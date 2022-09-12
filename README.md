@@ -23,7 +23,7 @@ $$ \hat{\beta} = \widehat{(\beta_1,\beta_2,\beta_3,\pi)} = \arg\max\sum_{n}\log\
 
 To avoid this integral we combine the E-M algorithm with simulation. Fixing the current estimate at $\beta^{i}$, we can draw (for each $k$) $R$ samples of $\eta^{kr},\theta_{0}^{kr}$ from the distribution implied by $\beta_{3}^{i}$, and calculate posterior weights:
 
-$$ w_{n}^{kr} = \frac{f(M_{n}|\theta^{kr},\beta_{1}^{i})f(\theta_{1}^{kr}|I_{n},\theta_{0}^{kr},\beta^{i}_2)f(\theta^{kr}_{0},I_{n};\beta^{i}_3,k)\pi_k}{ \sum__{k'} \sum_{r'}f(M_{n}|\theta^{k'r'},\beta_{1}^{i})f(\theta_{1}^{k'r'}|I_{n},\theta_{0}^{k'r'},\beta^{i}_2)f(\theta^{k'r'}_{0},I_{n};\beta^{i}_3,k')\pi_{k'}} $$
+$$ w_{n}^{kr} = \frac{f(M_{n}|\theta^{kr},\beta_{1}^{i})f(\theta_{1}^{kr}|I_{n},\theta_{0}^{kr},\beta_{2}^{i})f(\theta_{0}^{kr},I_{n};\beta_{3}^{i},k)\pi_k}{ \sum_{k'} \sum_{r'}f(M_{n}|\theta^{k'r'},\beta_{1}^{i})f(\theta_{1}^{k'r'}|I_{n},\theta_{0}^{k'r'},\beta_{2}^{i})f(\theta_{0}^{k'r'},I_{n};\beta_{3}^{i},k')\pi_{k'}} $$
 
 This is the "E step" of the algorithm. In the "M step", we choose each parameter $(\beta_1,\beta_2,\beta_3,\pi)$ to maximize the weighted log-likelihood given by the posterior weights $w_{n}^{kr}$. These can each be done separately as:
 
