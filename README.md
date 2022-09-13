@@ -53,3 +53,5 @@ where the last expression is the solution to log-likelihood maximization problem
 
 $$ \beta_{1}^{i+1} = \arg\max\sum_{n}\sum_{k}\int\int\log(f(M_{n}|\Psi,\beta_{1}))f(\Psi,k|M_{n},I_{n},\beta^{i})d\Psi_{1}d\Psi_{0} $$
 
+The E-M routine jumps in between these expectation and maximization steps until $\beta^{i}$ and $\beta^{i+1}$ have converged according to some pre-set tolerance.
+
