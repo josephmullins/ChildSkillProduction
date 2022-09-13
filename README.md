@@ -11,6 +11,8 @@ where
 
 ## Estimation Routine - Simple Example
 
+This section describes the estimation routine for a simplified version of the model.
+
 ### The likelihood model
 
 The simplest version of the problem consists of three blocks in the likelihood. First, a vector of measures $M_t$ allows for noisy observations of skills:
@@ -25,7 +27,11 @@ Finally, assume that $\log(I)$ and $\log(\Psi_0)$ are drawn from $K$ mixtures of
 
 $$ f(\Psi_1,I) = \sum_{k=1}^K \pi_{k}\phi([\log(I),\log(\Psi_0)]|\mu_{k},\Sigma_{k}) $$
 
-Let $\beta_3=(\Sigma_{k},\mu_{k})_{k=1}^K$. The full maximum likelihood estimator is:
+Let $\beta_3=(\Sigma_{k},\mu_{k})_{k=1}^{K}$. 
+
+### Estimation
+
+The full maximum likelihood estimator is:
 
 $$ \hat{\beta} = \widehat{(\beta_1,\beta_2,\beta_3,\pi)} = \arg\max\sum_{n}\log\left(\sum_{k}\int f(M_{n}|\Psi,\beta_1)f(\Psi_1|I_{n},\Psi_{0},\beta_2)f(\Psi_0,I_{n}|\beta_3,k)d\Psi_{1} d\Psi_0\pi_k\right)$$
 
