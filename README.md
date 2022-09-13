@@ -35,9 +35,9 @@ The full maximum likelihood estimator is:
 
 $$ \hat{\beta} = \widehat{(\beta_1,\beta_2,\beta_3,\pi)} = \arg\max\sum_{n}\log\left(\sum_{k}\int f(M_{n}|\Psi,\beta_1)f(\Psi_1|I_{n},\Psi_{0},\beta_2)f(\Psi_0,I_{n}|\beta_3,k)d\Psi_{1} d\Psi_0\pi_k\right)$$
 
-To avoid this integral we combine the E-M algorithm with simulation. Fixing the current estimate at $\beta^{i}$, we can draw (for each $k$) $R$ samples of $\eta^{kr},\Psi_{0}^{kr}$ from the distribution implied by $\beta_{3}^{i}$, and calculate posterior weights:
+To avoid this integral we combine the E-M algorithm with simulation. Fixing the current estimate at $\beta^{i}$, we can draw (for each $k$) $R$ samples of $\Psi_{1}^{kr},\Psi_{0}^{kr}$ from the distribution implied by $\beta^{i}$, and calculate posterior weights:
 
-$$ w_{n}^{kr} = \frac{f(M_{n}|\Psi^{kr},\beta_{1}^{i})f(\Psi_{1}^{kr}|I_{n},\Psi_{0}^{kr},\beta_{2}^{i})f(\Psi_{0}^{kr},I_{n}|\beta_{3}^{i},k)\pi^{i}_k}{ \sum_{k'} \sum_{r'}f(M_{n}|\Psi^{k'r'},\beta_{1}^{i})f(\Psi_{1}^{k'r'}|I_{n},\Psi_{0}^{k'r'},\beta_{2}^{i})f(\theta_{0}^{k'r'},I_{n}|\beta_{3}^{i},k')\pi^{i}_{k'}} $$
+$$ w_{n}^{kr} = \frac{f(M_{n}|\Psi^{kr},\beta_{1}^{i})\pi_{k}^{i}}{ \sum_{k'} \sum_{r'}f(M_{n}|\Psi^{k'r'},\beta_{1}^{i})\pi_{k'}^{i}} $$
 
 This is the "E step" of the algorithm, where we use simulation to approximate the integral. In the "M step", we choose each parameter $(\beta_1,\beta_2,\beta_3,\pi)$ to maximize the weighted log-likelihood given by the posterior weights $w_{n}^{kr}$. These can each be done separately as follows:
 
@@ -47,7 +47,7 @@ $$\beta_{2}^{i+1} = \arg\max\sum_{n}\sum_{k}\sum_{r}\log(f(\Psi_{1}^{kr}|\Psi_{0
 
 $$\beta_{3}^{i+1} = \arg\max\sum_{n}\sum_{k}\sum_{r}\log(f(\Psi_{0}^{kr},I_{n}|k,\beta_{3})w_{n}^{kr} $$
 
-$$\pi_{k}^{i+1} = \frac{\sum_{n}\sum_{r}w_{n}^{kr}\pi_{k}^{i}}{\sum_{n}\sum_{k'}\sum_{r}w_{n}^{k'r}\pi_{k'}^{i}} $$
+$$\pi_{k}^{i+1} = \frac{\sum_{n}\sum_{r}w_{n}^{kr}}{\sum_{n}\sum_{k'}\sum_{r}w_{n}^{k'r}} $$
 
 where the last expression is the solution to log-likelihood maximization problem. It is also worth noting that the maximization problems for $\beta_{3}^{i+1}$ and $\beta_{1}^{i+1}$ also have a closed-form solution.
 
