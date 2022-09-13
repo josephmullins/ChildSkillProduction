@@ -49,7 +49,9 @@ $$\beta_{3}^{i+1} = \arg\max\sum_{n}\sum_{k}\sum_{r}\log(f(\Psi_{0}^{kr},I_{n}|k
 
 $$\pi_{k}^{i+1} = \frac{\sum_{n}\sum_{r}w_{n}^{kr}\pi_{k}^{i}}{\sum_{n}\sum_{k'}\sum_{r}w_{n}^{k'r}\pi_{k'}^{i}} $$
 
-where the last expression is the solution to log-likelihood maximization problem. As mentioned above, these expressions use simulation to approximate the true expectation of the log-likelihood given $\beta^{i}$. For example, the first log-likelihood maximization problem approximates:
+where the last expression is the solution to log-likelihood maximization problem. It is also worth noting that the maximization problems for $\beta_{3}^{i+1}$ and $\beta_{1}^{i+1}$ also have a closed-form solution.
+
+As mentioned above, these expressions use simulation to approximate the true expectation of the log-likelihood given $\beta^{i}$. For example, the first log-likelihood maximization problem approximates:
 
 $$ \beta_{1}^{i+1} = \arg\max\sum_{n}\sum_{k}\int\int\log(f(M_{n}|\Psi,\beta_{1}))f(\Psi,k|M_{n},I_{n},\beta^{i})d\Psi_{1}d\Psi_{0} $$
 
