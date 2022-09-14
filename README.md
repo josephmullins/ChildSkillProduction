@@ -57,3 +57,5 @@ $$ \beta_{1}^{i+1} = \arg\max\sum_{n}\sum_{k}\int\int\log(f(M_{n}|\Psi,\beta_{1}
 
 The E-M routine jumps in between these expectation and maximization steps until $\beta^{i}$ and $\beta^{i+1}$ have converged according to some pre-set tolerance.
 
+Hello! This is a test to see if push requests are functioning properly. -Maddi
+
