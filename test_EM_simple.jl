@@ -32,4 +32,4 @@ end
 estep(pars0,prior0,X)
 
 function mstep(X,wghts)
-    
+end
