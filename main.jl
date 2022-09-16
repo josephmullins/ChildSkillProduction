@@ -37,6 +37,10 @@ function initial_draw(π0,μ,Σ)
     x = rand(MultivariateNormal(μ[k],Σ[k]))
     return x
 end
+##^^this function isn't running properly on my machine, 
+##not sure if this is just a me issue -MB
+
+
 
 # function to evaluate nested CES production function
 # assume x = [τ_m,τ_f,g,Y,Ψ_0]
@@ -47,14 +51,21 @@ end
 
 function draw_logΨ1(τ_m,τ_f,g,Y,logΨ_0,δ,a,γ,ρ,logθ,σ_η)
     return logCES(τ_m,τ_f,g,Y,logΨ_0,δ,a,γ,ρ,logθ) + rand(Normal(0,σ_η))
-end
+end 
 
+
+##Should have this done tomorrow -MB
 # return the vector:
 function draw_M(logΨ0,logΨ1,λ,σ_ζ)
-
+    logΨ = (logΨ0,logΨ1)
+    return  λ*logΨ+rand(Normal(0,σ_ζ))
 end
 
-# function to draw N observations given parameters
+#function to draw N observations given parameters
+function draw_data() 
+end
+
+
 # return N x 4 array of measurements, N x 2 Array of Skills, N x 4 array of inputs
 
 ##test
