@@ -34,9 +34,13 @@ The full maximum likelihood estimator is:
 
 $$ \hat{\beta} = \widehat{(\beta_1,\beta_2,\beta_3,\pi)} = \arg\max\sum_{n}\log\left(\sum_{k}\int f(M_{n}|\Psi,\beta_1)f(\Psi_1|I_{n},\Psi_{0},\beta_2)f(\Psi_0,I_{n}|\beta_3,k)d\Psi_{1} d\Psi_0\pi_k\right)$$
 
-To avoid this integral we combine the E-M algorithm with simulation. Fixing the current estimate at $\beta^{i}$, we can draw (for each $k$) $R$ samples of $\Psi_{1}^{kr},\Psi_{0}^{kr}$ from the distribution implied by $\beta^{i}$, and calculate posterior weights:
+To avoid this integral we combine the E-M algorithm with simulation. Fixing the current estimate at $\beta^{i}$, we can draw (for each $k$ and each $n$) $R$ samples of $\Psi_{1}^{nkr},\Psi_{0}^{nkr}$ from the conditional distribution $f(\Psi_{1},\Psi_{0}|\beta^{i},I)$ by first drawing $\Psi_{0}^{nkr}$ from $f(\Psi_{0}|\beta^{i}_{3},I_{n})$, then calculating: 
 
-$$ w_{n}^{kr} = \frac{f(M_{n}|\Psi^{kr},\beta_{1}^{i})\pi_{k}^{i}}{ \sum_{k'} \sum_{r'}f(M_{n}|\Psi^{k'r'},\beta_{1}^{i})\pi_{k'}^{i}} $$
+$$\Psi_{1}^{nkr} = g(I_{n},\Psi_{0}^{nkr};\beta_{2}^{i})\eta^{nkr} $$
+
+where $\eta^{nkr}$ is drawn with standard deviation $\sigma^{i}_{\eta}$. Given these draws, we calculate posterior weights:
+
+$$ w_{n}^{kr} = \frac{f(M_{n}|\Psi^{nkr},\beta_{1}^{i})\pi_{k}^{i}}{ \sum_{k'} \sum_{r'}f(M_{n}|\Psi^{nk'r'},\beta_{1}^{i})\pi_{k'}^{i}} $$
 
 This is the "E step" of the algorithm, where we use simulation to approximate the integral. In the "M step", we choose each parameter $(\beta_1,\beta_2,\beta_3,\pi)$ to maximize the weighted log-likelihood given by the posterior weights $w_{n}^{kr}$. These can each be done separately as follows:
 
