@@ -7,6 +7,7 @@ using Distributions,Optim,Random
 # β_1 - measurement parameters
 
 # π - assume two mixtures (K=2)
+
 π0 = [0.5,0.5]
 # β_3:
 Random.seed!(1409)
@@ -52,6 +53,10 @@ x = rand(MultivariateNormal(μ[1],Σ[1]))
 function logCES(τ_m,τ_f,g,Y,logΨ_0,δ,a,γ,ρ,logθ)
     home_input = (a[1]*τ_m^ρ + a[2]*τ_f^ρ + a[3]*g^ρ)^(1/ρ)
     return logθ + (δ[1]/γ)*log(home_input^γ + a[4]*Y^γ) + δ[2]*logΨ_0
+end
+
+function logCES(x,δ,a,γ,ρ,logθ)
+    logCES(exp(x[1]),exp(x[2]),exp(x[3]),exp(x[4]),x[5],δ,a,γ,ρ,logθ)
 end
 
 
@@ -112,4 +117,52 @@ end
 datM = draw_measurements(dat1,dat0,λ,σ_ζ) 
 
 #next: code up a NLLS criterion, write estimation routine and check that it works
+function pred_error(i, δ, a,γ,ρ,logθ,dat1,dat0)
+    return dat1[i]-logCES(dat0[:,i],δ,a,γ,ρ,logθ)
+end
 
+
+function ssq(δ,a,γ,ρ,logθ,dat1,dat0)
+    sumsq = 0
+    for i=1:length(dat1)
+        sumsq += pred_error(i,δ, a,γ,ρ,logθ,dat1,dat0)^2
+    end
+    return sumsq
+end
+
+ssq(δ,a,γ,ρ,logθ,dat1,dat0)
+
+
+function ssq(x,dat1,dat0)
+    ssq(exp.(x[1:2]),exp.(x[3:6]),x[7],x[8],x[9],dat1,dat0)
+end
+
+x0 = [log.(δ);log.(a);γ;ρ;logθ]
+
+ssq(x0,dat1,dat0)
+
+@time res = optimize(x->ssq(x,dat1,dat0),x0)
+
+@time res2 = optimize(x->ssq(x,dat1,dat0),x0,BFGS(),autodiff=:forward)
+
+@time res3 = optimize(x->ssq(x,dat1,dat0),x0,Newton(),autodiff=:forward)
+
+
+[res.minimizer res2.minimizer res3.minimizer x0]
+
+N = 1000
+B = 100
+Xb = zeros(9,B)
+#Xb2 = zeros(9,B)
+R = zeros(Bool,B)
+
+for b=1:B
+    println(b)
+    dat0 = draw_data(N,π0,μ,Σ)
+    dat1 = draw_skills(dat0,δ,a,γ,ρ,logθ,0.3);
+    res = optimize(x->ssq(x,dat1,dat0),x0,BFGS(),autodiff=:forward)
+    Xb[:,b] = res.minimizer
+    R[b] = res.ls_success
+end
+
+[x0 mean(Xb,dims=2)[:]]
