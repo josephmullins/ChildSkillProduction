@@ -23,11 +23,15 @@ Let $\beta_1=\{\lambda,\sigma_{\zeta}\}$ be the vector of measurement parameters
 
 $$ \Psi_{1} = g(I,\Psi_{0};\beta_2)\eta,\ \log(\eta)\sim\mathcal{N}(0,\sigma^2_{\eta}).$$
 
-Finally, assume that $\log(I)$ and $\log(\Psi_0)$ are drawn from $K$ mixtures of a joint normal:
+Finally, assume that $\log(I)$ and $\log(\Psi_0)$ are drawn from $K$ mixtures of a joint normal. It will be convenient to represent this as:
 
-$$ f(\Psi_1,I) = \sum_{k=1}^K \pi_{k}\phi([\log(I),\log(\Psi_0)]|\mu_{k},\Sigma_{k}) $$
+$$ f(I) = \sum_{k=1}^K \pi_{k}\phi(\log(I)|\mu_{k},\Sigma_{k}) $$
 
-Let $\beta_3=(\Sigma_{k},\mu_{k})_{k=1}^{K}$. 
+where $\phi$ indicates the multi-variate normal density, with:
+
+$$ \log(\Psi_{0}) = \mu_{\Psi,k} + \log(I)^{\prime}B_{k} + \epsilon_{\Psi},\ \epsilon_{\Psi,k}\sim\mathcal{N}(0,\sigma^2_{\Psi,k}) $$
+
+where $k$ is the mixture that $I$ has been drawn from. Let $\beta_3=(\Sigma_{k},\mu_{k},\mu_{\Psi,k},B_{k},\sigma^2_{\Psi,k})_{k=1}^{K}$. 
 
 ### Estimation
 The full maximum likelihood estimator is:
@@ -40,7 +44,7 @@ $$\Psi_{1}^{nkr} = g(I_{n},\Psi_{0}^{nkr};\beta_{2}^{i})\eta^{nkr} $$
 
 where $\eta^{nkr}$ is drawn with standard deviation $\sigma^{i}_{\eta}$. Given these draws, we calculate posterior weights:
 
-$$ w_{n}^{kr} = \frac{f(M_{n}|\Psi^{nkr},\beta_{1}^{i})\pi_{k}^{i}}{ \sum_{k'} \sum_{r'}f(M_{n}|\Psi^{nk'r'},\beta_{1}^{i})\pi_{k'}^{i}} $$
+$$ w_{n}^{kr} = \frac{f(M_{n}|\Psi^{nkr},\beta_{1}^{i})f(I_{n}|k,\beta^{i}_{3})\pi_{k}^{i}}{ \sum_{k'} \sum_{r'}f(M_{n}|\Psi^{nk'r'},\beta_{1}^{i})f(I_{n}|k',\beta^{i}_{3})\pi_{k'}^{i}} $$
 
 This is the "E step" of the algorithm, where we use simulation to approximate the integral. In the "M step", we choose each parameter $(\beta_1,\beta_2,\beta_3,\pi)$ to maximize the weighted log-likelihood given by the posterior weights $w_{n}^{kr}$. These can each be done separately as follows:
 
@@ -59,5 +63,30 @@ As mentioned above, these expressions use simulation to approximate the true exp
 $$ \beta_{1}^{i+1} = \arg\max\sum_{n}\sum_{k}\int\int\log(f(M_{n}|\Psi,\beta_{1}))f(\Psi,k|M_{n},I_{n},\beta^{i})d\Psi_{1}d\Psi_{0} $$
 
 The E-M routine jumps in between these expectation and maximization steps until $\beta^{i}$ and $\beta^{i+1}$ have converged according to some pre-set tolerance.
+
+### More Details on the M-Step
+
+For measurement parameters, the following solutions to the maximization problem hold:
+
+$$ \lambda^{i+1}_{2} = \frac{\sum_{n,k,r}\sum_{t=0,1}w_{n}^{kr}\log(\Psi_{n,t}^{kr})M_{n,t,2}}{\sum_{n,k,r}\sum_{t=0,1}w_{n}^{kr}\log(\Psi_{n,t}^{kr})^{2}} $$
+
+$$(\sigma_{\zeta,j}^{2})^{i+1} = \frac{\sum_{n,k,r}w_{n}^{kr}\sum_{t=0,1}(M_{n,t,j}-\lambda^{i+1}_{j}\log(\Psi_{n,t}^{kr}))^2}{\sum_{n,k,r}2w_{n}^{kr}} $$
+
+For the initial distribution, the solution for $\pi^{i+1}$ is given explicitly above. The solution for the other parameters is as follows. The solution for the mean parameter for mixture $k$, $\mu_{k}$, is a weighted mean:
+
+$$\mu_{k}^{i+1} = \frac{\sum_{n,r}w_{n}^{kr}\tilde{I}_{n}}{\sum_{n,r}w_{n}^{kr}} $$
+
+where $\tilde{I}_{n} = \log(I_{n})$. The solution for the $(l,m)^{th}$ component of the covariance matrix $\Sigma_{k}$ is a sample covariance:
+
+
+$$ \Sigma_{k}^{i+1}(l,m) = \frac{\sum_{n,r}w_{n}^{kr}(\tilde{I}_{n}(l)-\mu_{k}^{i+1}(l))(\tilde{I}_{n}(m)-\mu_{k}^{i+1}(m))}{\sum_{n,r}w_{n}^{kr}} $$
+
+where $\tilde{I}_{n}(l)$ denotes the $l^{th}$ component of the vector $\tilde{I}_{n}$ and so on. Let $C_{k} = [\mu_{\Psi,k},B_{k}^\prime]^\prime$. The $M$-step solution for $C_{k}$ is a weighted regression:
+
+$$C^{i+1}_{k} = \left(\sum_{n,r}w_{n}^{kr}\mathbf{x}_{n}\mathbf{x}_{n}^\prime\right)^{-1}\sum_{n,r}w_{n}^{kr}\mathbf{x}_{n}\log(\Psi_{n,0}^{kr}) $$
+
+where $\mathbf{x}_{n} = [1,\ \tilde{I}_{n}^\prime]^\prime$ is the vector of log investments with a constant added. Finally, the $M$-step solution for $\sigma^2_{\Psi}$ is a weighted mean of squared residuals:
+
+$$(\sigma^2_{\Psi,k})^{i+1} = \frac{\sum_{n,r}w_{n}^{kr}(\log(\Psi_{n,0}^{kr})-\mathbf{x}_{n}^{\prime}C^{i+1}_{k})^2}{\sum_{n,r}w_{n}^{kr}}.$$
 
 

@@ -36,6 +36,7 @@ x = rand(F0)
 
 #β_1: assume J=2
 @with_kw mutable struct MeasurementModel
+    J::Int64 = 2 #<- number of measurements
     λ::Array{Float64,1} = [1.,0.9]
     σ_ζ::Array{Float64,1} = [0.4,0.4]
 end
