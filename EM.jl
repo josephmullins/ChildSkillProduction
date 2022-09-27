@@ -240,6 +240,116 @@ draw_Ψ0_Ψ1!(EM)
 get_wght!(EM)
 
 # -------- Code to Calculate the M-Step for production parameters ---------- #
+
+###########################################################################
+
+
+
+########### uncertainty below
+function λ_update(EM::EM_model) ##this returns a 2x2
+    N,K,R = size(EM.wghts)
+    for n in 1:N, k in 1:K, r in 1:R
+        @views EM.MM.λ[1] = sum(EM.wghts[n,k,r]*EM.logΨ0[n,k,r]*EM.M0[k,n])/sum(EM.wghts[n,k,r]*(EM.logΨ0[n,k,r])^2)
+        @views EM.MM.λ[2] = sum(EM.wghts[n,k,r]*EM.logΨ1[n,k,r]*EM.M1[k,n])/sum(EM.wghts[n,k,r]*(EM.logΨ1[n,k,r])^2)
+    end
+end
+
+function λ_update(EM::EM_model) ##this only updates the second value
+    N,K,R = size(EM.wghts)
+    for n in 1:N, k in 1:K, r in 1:R
+        @views EM.MM.λ[2] = (sum(EM.wghts[n,k,r]*EM.logΨ0[n,k,r]*EM.M0[k,n])+sum(EM.wghts[n,k,r]*EM.logΨ1[n,k,r]*EM.M1[k,n]))/
+        (sum(EM.wghts[n,k,r]*(EM.logΨ0[n,k,r])^2)+sum(EM.wghts[n,k,r]*(EM.logΨ1[n,k,r])^2))
+    end
+end
+########### uncertainty above
+
+function π_update(EM::EM_model) ##edited - struct
+    N,K,R = size(EM.wghts)
+    for k in 1:K
+        for n in 1:N, r in 1:R
+            EM.F0.π0[k] += EM.wghts[n,k,r]
+        end
+        EM.F0.π0[k]=EM.F0.π0[k]/sum(EM.wghts)
+    end
+end
+
+function σ_ζ_update(EM::EM_model) ##edited - struct
+    N,K,R = size(EM.wghts)
+    J=EM.MM.J
+    for j in 1:J
+        for n in 1:N, k in 1:K, r in 1:R
+            @views EM.MM.σ_ζ[j] = sum(EM.wghts[n,k,r]*((EM.M0[k,n]-EM.MM.λ[j]*EM.logΨ0[n,k,r])^2+
+                            (EM.M1[k,n]-EM.MM.λ[j]*EM.logΨ1[n,k,r])^2))/sum(2*EM.wghts[n,k,r])
+        end
+    end
+end
+
+function μ_update(EM::EM_model) ##edited - struct
+    N,K,R = size(EM.wghts)
+    EM.F0.μ = EM.F0.μ*0 #zero out the current value
+    for k in 1:K
+        for n in 1:N, r in 1:R
+            @views EM.F0.μ[k] += EM.wghts[n,k,r]*EM.logI[:,n]  
+        end
+        @views EM.F0.μ[k] = EM.F0.μ[k]/((sum(sum(EM.wghts, dims=1),dims=3))[k]) 
+    end
+end
+
+function Σ_update(EM::EM_model) ##edited - struc
+    N,K,R = size(EM.wghts) #zero out the current value
+    M,L = size(EM.F0.Σ[1])
+    EM.F0.Σ = EM.F0.Σ*0 
+    for k in 1:K
+        for n in 1:N, r in 1:R
+            for l in 1:L, m in 1:M
+                @views EM.F0.Σ[k][m,l] += EM.wghts[n,k,r]*(EM.logI[l,n]-EM.F0.μ[k][l])*(EM.logI[m,n]-EM.F0.μ[k][m])
+            end
+        end
+        @views EM.F0.Σ[k] = EM.F0.Σ[k]/((sum(sum(EM.wghts, dims=1),dims=3))[k]) 
+    end
+end
+
+function generate_C(EM::EM_model) ##There is an issue with thiss step that is throwing things off
+    N,K,R = size(EM.wghts)
+    x=[ones(1,N);logI]
+    C1=zeros(5,5,2)
+    C2=zeros(5,2)
+    C=zeros(5,2)
+    for k in 1:K
+        for n in 1:N, r in 1:R
+            C1[:,:,k] += EM.wghts[n,k,r].*(x[:,n]*x[:,n]')
+            C2[:,k] += EM.wghts[n,k,r].*(x[:,n]).*EM.logΨ0[n,k,r]
+        end
+        C[:,k]=inv(C1[k])*C2[:,k]
+    end 
+end
+
+function update_σΨ(EM::EM_model)
+    N,K,R = size(EM.wghts)
+    x=[ones(1,N);logI]
+    generate_C(EM::EM_model)
+    for k in 1:K
+        for n in 1:N, r in 1:R
+            EM.F0.σΨ[k] += EM.wghts[n,k,r]*(EM.logΨ0[n,k,r]-x[:,n]'*C[:,k])^2
+        end
+        EM.F0.σΨ[k]=EM.F0.σΨ[k]/((sum(sum(EM.wghts, dims=1),dims=3))[k]) 
+    end  
+end
+
+
+function M_step(EM::EM_model)
+    π_update(EM::EM_model)
+    λ_update(EM::EM_model)
+    σ_ζ_update(EM::EM_model)
+    μ_update(EM::EM_model)
+    Σ_update(EM::EM_model)
+    update_σΨ(EM::EM_model)
+end
+
+
+
+###########################################################################
+
 #next: code up a NLLS criterion, write estimation routine and check that it works
 function pred_error(n,k,r,P,EM::EM_model)
     @unpack logΨ1,logΨ0,Inv = EM
