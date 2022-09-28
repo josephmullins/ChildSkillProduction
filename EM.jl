@@ -332,12 +332,13 @@ function generate_C(EM::EM_model) #something still off here
             C1[:,:,k] += EM.wghts[n,k,r].*(x[:,n]*x[:,n]')
             C2[:,k] += EM.wghts[n,k,r].*(x[:,n]).*EM.logΨ0[n,k,r]
         end
-        C[:,k]=inv(C1[k])*C2[:,k]
+        @views C[:,k]=inv(C1[:,:,k])*C2[:,k]
     end
     return C
 end
 
-@time C = generate_C(EM)
+C = generate_C(EM)
+
 
 # TODO: maddi to fix this function
 function update_σΨ!(EM::EM_model)
