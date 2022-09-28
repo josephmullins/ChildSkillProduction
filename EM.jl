@@ -245,27 +245,23 @@ get_wght!(EM)
 
 
 
-########### uncertainty below
-function λ_update(EM::EM_model) ##this returns a 2x2
+function λ_update!(EM::EM_model) ##this only updates the second value
     N,K,R = size(EM.wghts)
+    numerator = 0
+    denominator = 0
     for n in 1:N, k in 1:K, r in 1:R
-        @views EM.MM.λ[1] = sum(EM.wghts[n,k,r]*EM.logΨ0[n,k,r]*EM.M0[k,n])/sum(EM.wghts[n,k,r]*(EM.logΨ0[n,k,r])^2)
-        @views EM.MM.λ[2] = sum(EM.wghts[n,k,r]*EM.logΨ1[n,k,r]*EM.M1[k,n])/sum(EM.wghts[n,k,r]*(EM.logΨ1[n,k,r])^2)
+        numerator += (EM.wghts[n,k,r]*EM.logΨ0[n,k,r]*EM.M0[k,n]+EM.wghts[n,k,r]*EM.logΨ1[n,k,r]*EM.M1[k,n])
+        denominator += (EM.wghts[n,k,r]*(EM.logΨ0[n,k,r])^2+EM.wghts[n,k,r]*(EM.logΨ1[n,k,r])^2)
     end
+    EM.MM.λ[2] = numerator/denominator
 end
 
-function λ_update(EM::EM_model) ##this only updates the second value
-    N,K,R = size(EM.wghts)
-    for n in 1:N, k in 1:K, r in 1:R
-        @views EM.MM.λ[2] = (sum(EM.wghts[n,k,r]*EM.logΨ0[n,k,r]*EM.M0[k,n])+sum(EM.wghts[n,k,r]*EM.logΨ1[n,k,r]*EM.M1[k,n]))/
-        (sum(EM.wghts[n,k,r]*(EM.logΨ0[n,k,r])^2)+sum(EM.wghts[n,k,r]*(EM.logΨ1[n,k,r])^2))
-    end
-end
-########### uncertainty above
+λ_update!(EM)
 
-function π_update(EM::EM_model) ##edited - struct
+function π_update!(EM::EM_model) ##edited - struct
     N,K,R = size(EM.wghts)
     for k in 1:K
+        EM.F0.π0[k] = 0.
         for n in 1:N, r in 1:R
             EM.F0.π0[k] += EM.wghts[n,k,r]
         end
@@ -273,45 +269,61 @@ function π_update(EM::EM_model) ##edited - struct
     end
 end
 
-function σ_ζ_update(EM::EM_model) ##edited - struct
+π_update!(EM)
+
+# NOTE: this function only works properly as part of the M-step if λ_update! is called first
+function σ_ζ_update!(EM::EM_model) ##edited - struct
     N,K,R = size(EM.wghts)
     J=EM.MM.J
     for j in 1:J
+        numerator = 0
         for n in 1:N, k in 1:K, r in 1:R
-            @views EM.MM.σ_ζ[j] = sum(EM.wghts[n,k,r]*((EM.M0[k,n]-EM.MM.λ[j]*EM.logΨ0[n,k,r])^2+
-                            (EM.M1[k,n]-EM.MM.λ[j]*EM.logΨ1[n,k,r])^2))/sum(2*EM.wghts[n,k,r])
+            numerator +=  EM.wghts[n,k,r]*((EM.M0[k,n]-EM.MM.λ[j]*EM.logΨ0[n,k,r])^2+
+                            (EM.M1[k,n]-EM.MM.λ[j]*EM.logΨ1[n,k,r])^2)
         end
+        EM.MM.σ_ζ[j] = numerator/(2N)
     end
 end
 
-function μ_update(EM::EM_model) ##edited - struct
+σ_ζ_update!(EM) 
+
+function μ_update!(EM::EM_model) ##edited - struct
     N,K,R = size(EM.wghts)
-    EM.F0.μ = EM.F0.μ*0 #zero out the current value
-    for k in 1:K
+    NI = size(EM.logI)[1]
+    denominator = sum(EM.wghts,dims=[1,3])
+    for k in 1:K, i in 1:NI
+        EM.F0.μ[k][i] = 0.
         for n in 1:N, r in 1:R
-            @views EM.F0.μ[k] += EM.wghts[n,k,r]*EM.logI[:,n]  
+            EM.F0.μ[k][i] += EM.wghts[n,k,r]*EM.logI[i,n]  
         end
-        @views EM.F0.μ[k] = EM.F0.μ[k]/((sum(sum(EM.wghts, dims=1),dims=3))[k]) 
+        @views EM.F0.μ[k][i] = EM.F0.μ[k][i]/denominator[k]
     end
 end
 
-function Σ_update(EM::EM_model) ##edited - struc
+μ_update!(EM::EM_model)
+
+
+function Σ_update!(EM::EM_model) ##edited - struc
     N,K,R = size(EM.wghts) #zero out the current value
     M,L = size(EM.F0.Σ[1])
     EM.F0.Σ = EM.F0.Σ*0 
+    denominator = sum(EM.wghts,dims=[1,3])
     for k in 1:K
-        for n in 1:N, r in 1:R
-            for l in 1:L, m in 1:M
+        for l in 1:L, m in l:M
+            for n in 1:N, r in 1:R
                 @views EM.F0.Σ[k][m,l] += EM.wghts[n,k,r]*(EM.logI[l,n]-EM.F0.μ[k][l])*(EM.logI[m,n]-EM.F0.μ[k][m])
             end
+            EM.F0.Σ[k][m,l] /= denominator[k]
+            EM.F0.Σ[k][l,m] = EM.F0.Σ[k][m,l]
         end
-        @views EM.F0.Σ[k] = EM.F0.Σ[k]/((sum(sum(EM.wghts, dims=1),dims=3))[k]) 
     end
 end
 
-function generate_C(EM::EM_model) ##There is an issue with thiss step that is throwing things off
+Σ_update!(EM::EM_model)
+
+function generate_C(EM::EM_model) #something still off here
     N,K,R = size(EM.wghts)
-    x=[ones(1,N);logI]
+    x=[ones(1,N);EM.logI]
     C1=zeros(5,5,2)
     C2=zeros(5,2)
     C=zeros(5,2)
@@ -321,10 +333,14 @@ function generate_C(EM::EM_model) ##There is an issue with thiss step that is th
             C2[:,k] += EM.wghts[n,k,r].*(x[:,n]).*EM.logΨ0[n,k,r]
         end
         C[:,k]=inv(C1[k])*C2[:,k]
-    end 
+    end
+    return C
 end
 
-function update_σΨ(EM::EM_model)
+@time C = generate_C(EM)
+
+# TODO: maddi to fix this function
+function update_σΨ!(EM::EM_model)
     N,K,R = size(EM.wghts)
     x=[ones(1,N);logI]
     generate_C(EM::EM_model)
@@ -336,7 +352,7 @@ function update_σΨ(EM::EM_model)
     end  
 end
 
-
+# add exclamation points
 function M_step(EM::EM_model)
     π_update(EM::EM_model)
     λ_update(EM::EM_model)
@@ -345,6 +361,7 @@ function M_step(EM::EM_model)
     Σ_update(EM::EM_model)
     update_σΨ(EM::EM_model)
 end
+
 
 
 
