@@ -321,16 +321,16 @@ end
 
 Σ_update!(EM::EM_model)
 
-function generate_C(EM::EM_model) #something still off here
+function generate_C(EM::EM_model) 
     N,K,R = size(EM.wghts)
     x=[ones(1,N);EM.logI]
-    C1=zeros(5,5,2)
-    C2=zeros(5,2)
-    C=zeros(5,2)
+    C1=zeros(5,5,K)
+    C2=zeros(5,K)
+    C=zeros(5,K)
     for k in 1:K
         for n in 1:N, r in 1:R
-            C1[:,:,k] += EM.wghts[n,k,r].*(x[:,n]*x[:,n]')
-            C2[:,k] += EM.wghts[n,k,r].*(x[:,n]).*EM.logΨ0[n,k,r]
+            @views C1[:,:,k] += EM.wghts[n,k,r].*(x[:,n]*x[:,n]')
+            @views C2[:,k] += EM.wghts[n,k,r].*(x[:,n]).*EM.logΨ0[n,k,r]
         end
         @views C[:,k]=inv(C1[:,:,k])*C2[:,k]
     end
@@ -341,31 +341,65 @@ C = generate_C(EM)
 
 
 # function should be fixed
-function update_σΨ!(EM::EM_model)
+function update_BμΨσΨ!(EM::EM_model)
     N,K,R = size(EM.wghts)
     x=[ones(1,N);logI]
-    generate_C(EM::EM_model)
+    C = generate_C(EM::EM_model)
     denominator = sum(EM.wghts,dims=[1,3])
     for k in 1:K
+        EM.F0.μΨ[k] = C[1,k]
+        EM.F0.B[k] = C[2:end,k]
         EM.F0.σΨ[k] = 0.
         for n in 1:N, r in 1:R
-            EM.F0.σΨ[k] += EM.wghts[n,k,r]*(EM.logΨ0[n,k,r]-x[:,n]'*C[:,k])^2
+            @views EM.F0.σΨ[k] += EM.wghts[n,k,r]*(EM.logΨ0[n,k,r]-dot(x[:,n],C[:,k]))^2
         end
         EM.F0.σΨ[k]=EM.F0.σΨ[k]/denominator[k]
     end  
 end
 
-# add exclamation points
+@time update_BμΨσΨ!(EM)
+
+# TODO
 function M_step!(EM::EM_model)
-    π_update!(EM::EM_model)
-    λ_update!(EM::EM_model)
-    σ_ζ_update!(EM::EM_model)
-    μ_update!(EM::EM_model)
-    Σ_update!(EM::EM_model)
-    update_σΨ!(EM::EM_model)
+    π_update!(EM)
+    λ_update!(EM)
+    σ_ζ_update!(EM)
+    μ_update!(EM)
+    Σ_update!(EM)
+    update_BμΨσΨ!(EM)
+    update_CESpars!(EM) #<- TODO: to write this function
 end
 
+# TODO
+function update_CESpars!(EM)
+    # (1) solve the weighted least squares routine (use functions below)
+    # (2) update P inside EM
+end
 
+# TODO: return F0, B,μΨ,P,MM parameters as big vector
+function get_parameter_vec(EM)
+end
+
+M_step!(EM)
+
+# TODO finish this
+function EMstep(EM)
+    # (1) simulation step 
+    Random.seed!(100322)
+    draw_Ψ0_Ψ1!(EM)
+
+    # (2) E step (call the function to calculate weights)
+    get_wght!(EM)
+
+    x0 = get_parameter_vec(EM)
+    # (3) M step
+    M_step!(M)
+
+    x1 = get_parameter_vec(EM)
+    # (4) Check convergence
+    err = norm(x1 .- x0,Inf)
+    return err
+end
 
 
 ###########################################################################
@@ -395,10 +429,10 @@ getPars(x::Array) = CESparams(δ=exp.(x[1:2]),a=[exp.(x[3:5]);1.],γ=x[6],ρ=x[7
 getPars(P::CESparams) = [log.(P.δ);log.(P.a[1:3]);P.γ;P.ρ;P.logθ]
 # compare these two versions of ssq and notice how we are using type-dependent dispatch
 
-# notice again here that we have two ssq functions that rely on type-dependent dispatch
-function ssq(x::Array{R,1},dat1,dat0) where R<:Real 
-    return ssq(getPars(x),dat1,dat0)
-end
+# # notice again here that we have two ssq functions that rely on type-dependent dispatch
+# function ssq(x::Array{R,1},dat1,dat0) where R<:Real 
+#     return ssq(getPars(x),dat1,dat0)
+# end
 
 x0 = getPars(P)
 
@@ -409,7 +443,7 @@ EM = EM_model(1000,2,10);
 B = 50
 Xb = zeros(8,B)
 for b=1:B
-    #println(b)
+    println(b)
     draw_Ψ0_Ψ1!(EM)
     get_wght!(EM)
     res = optimize(x->ssq(getPars(x),EM),x0,LBFGS(),autodiff=:forward)
