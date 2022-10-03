@@ -340,27 +340,29 @@ end
 C = generate_C(EM)
 
 
-# TODO: maddi to fix this function
+# function should be fixed
 function update_σΨ!(EM::EM_model)
     N,K,R = size(EM.wghts)
     x=[ones(1,N);logI]
     generate_C(EM::EM_model)
+    denominator = sum(EM.wghts,dims=[1,3])
     for k in 1:K
+        EM.F0.σΨ[k] = 0.
         for n in 1:N, r in 1:R
             EM.F0.σΨ[k] += EM.wghts[n,k,r]*(EM.logΨ0[n,k,r]-x[:,n]'*C[:,k])^2
         end
-        EM.F0.σΨ[k]=EM.F0.σΨ[k]/((sum(sum(EM.wghts, dims=1),dims=3))[k]) 
+        EM.F0.σΨ[k]=EM.F0.σΨ[k]/denominator[k]
     end  
 end
 
 # add exclamation points
-function M_step(EM::EM_model)
-    π_update(EM::EM_model)
-    λ_update(EM::EM_model)
-    σ_ζ_update(EM::EM_model)
-    μ_update(EM::EM_model)
-    Σ_update(EM::EM_model)
-    update_σΨ(EM::EM_model)
+function M_step!(EM::EM_model)
+    π_update!(EM::EM_model)
+    λ_update!(EM::EM_model)
+    σ_ζ_update!(EM::EM_model)
+    μ_update!(EM::EM_model)
+    Σ_update!(EM::EM_model)
+    update_σΨ!(EM::EM_model)
 end
 
 
