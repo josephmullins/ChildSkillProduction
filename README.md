@@ -89,4 +89,21 @@ where $\mathbf{x}_{n} = [1,\ \tilde{I}_{n}^\prime]^\prime$ is the vector of log 
 
 $$(\sigma^2_{\Psi,k})^{i+1} = \frac{\sum_{n,r}w_{n}^{kr}(\log(\Psi_{n,0}^{kr})-\mathbf{x}_{n}^{\prime}C^{i+1}_{k})^2}{\sum_{n,r}w_{n}^{kr}}.$$
 
+## Diagnosing Convergence Issues
+In theory, each step of the E-M routine is supposed to move up the likelihood monotonically. Although we cannot evaluate the exact log-likelihood, we can check the simulated log-likelihood that we are, in principle, maximizing. The approximate likelihood for each individual can be evaluated as:
 
+$$\hat{f}^{R}(M_{n},I_{n}|\Theta) = \sum_{k}\sum_{r}f(M_{n}|\Psi^{nkr},\beta_{1})f(I_{n}|k,\beta)\pi_{k}$$
+
+where each $(\Psi_{1}^{nkr},\Psi_{0}^{nkr})$ is one of $R$ simulation draws from $f(\Psi_{1},\Psi_{0}|\beta,I_{n})$ performed in the exact same way as it is done for the $E$ step. This approximates the true likelihood:
+
+$${f}(M_{n},I_{n}|\Theta) = \sum_{k}\int f(M_{n}|\Psi,\beta_{1})f(\Psi_{1},\Psi_{0}|\beta,I_{n})f(I_{n}|k,\beta)\pi_{k}d\Psi_{0}d\Psi_{1}.$$
+
+Thus, to check convergence at each step $i$, calculate:
+
+$$ L^{R} = \sum_{n}\log\left(\hat{f}^{R}(M_{n},I_{n}|\Theta^{i})\right) $$
+
+after each EM step, using the same draws of $\Psi_{1}$ and $\Psi_{0}$ that are used to calculate the posterior weights $w_{n}^{kr}$ at the E step.
+
+# Alternative estimator
+
+An alternative to full maximum likelihood is to first estimate the distribution of initial conditions and measurement parameters, and then use it to construct moments for a second stage estimate of production paremeters. Something to consider?
