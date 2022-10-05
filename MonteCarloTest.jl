@@ -48,3 +48,10 @@ for b=1:B
 end
 
 [x0 mean(Xb2,dims=2)]
+
+# a little snip of code here to see that the estimates are mostly ok but occasionally go crazy
+using Plots
+
+j = 5
+histogram(Xb2[j,:])
+plot!([x0[j],x0[j]],[0,ylims()[2]],linewidth=2.0)
