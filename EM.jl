@@ -342,7 +342,7 @@ C = generate_C(EM)
 
 function update_BμΨσΨ!(EM::EM_model)
     N,K,R = size(EM.wghts)
-    x=[ones(1,N);logI]
+    x=[ones(1,N);EM.logI]
     C = generate_C(EM::EM_model)
     denominator = sum(EM.wghts,dims=[1,3])
     for k in 1:K
