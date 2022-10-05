@@ -358,78 +358,14 @@ end
 
 @time update_BμΨσΨ!(EM)
 
-# updates CES parameters given the optimization routine specified within the function
-function update_CESpars!(EM)
-    
-    # (1) solves the weighted least squares routine using the functions below
-    x0=getPars(P)
-    B = 10 #set to 10 just to test
-    Xb = zeros(8,B)
-    for b=1:B
-        println(b) #I left the print statment in 
-        draw_Ψ0_Ψ1!(EM)
-        get_wght!(EM)
-        res = optimize(x->ssq(getPars(x),EM),x0,LBFGS(),autodiff=:forward)
-        Xb[:,b] = res.minimizer
-    end
-    
-    # (2) update P inside EM
-    EM.P = getPars(mean(Xb,dims=2))
 
-end
-
-
-function M_step!(EM::EM_model)
-    π_update!(EM)
-    λ_update!(EM)
-    σ_ζ_update!(EM)
-    μ_update!(EM)
-    Σ_update!(EM)
-    update_BμΨσΨ!(EM)
-    update_CESpars!(EM) 
-end
-
-M_step!(EM)
-
-
-#returns F0,P,MM parameters as a big vector
-function get_parameter_vec(EM)
-    @unpack K,μ,μΨ,Σ,B,σΨ,π0 = EM.F0
-    @unpack ρ,γ,σ_η,logθ,a,δ = EM.P
-    @unpack J,λ,σ_ζ = EM.MM
-    parameter_vec = [K,μ,μΨ,Σ,B,σΨ,π0,ρ,γ,σ_η,logθ,a,δ,J,λ,σ_ζ]
-    return parameter_vec
-end
-
-# This should be running now
-function EMstep(EM)
-    # (1) simulation step 
-    Random.seed!(100322)
-    draw_Ψ0_Ψ1!(EM)
-
-    # (2) E step (call the function to calculate weights)
-    get_wght!(EM)
-
-    x0 = get_parameter_vec(EM)
-    # (3) M step
-    M_step!(EM)
-
-    x1 = get_parameter_vec(EM)
-    # (4) Check convergence
-    err = norm(x1 .- x0,Inf)
-    return err
-end
-
-
-###########################################################################
-
-#next: code up a NLLS criterion, write estimation routine and check that it works
+# function to calculate residuals
 function pred_error(n,k,r,P,EM::EM_model)
     @unpack logΨ1,logΨ0,Inv = EM
     return logΨ1[n,k,r]-logCES(Inv[:,n],logΨ0[n,k,r],P)
 end
 
-
+# function to calculate sum of squares
 function ssq(P::CESparams,EM::EM_model)
     sumsq = 0
     @unpack wghts = EM
@@ -448,46 +384,78 @@ getPars(x::Array) = CESparams(δ=exp.(x[1:2]),a=[exp.(x[3:5]);1.],γ=x[6],ρ=x[7
 getPars(P::CESparams) = [log.(P.δ);log.(P.a[1:3]);P.γ;P.ρ;P.logθ]
 # compare these two versions of ssq and notice how we are using type-dependent dispatch
 
-# # notice again here that we have two ssq functions that rely on type-dependent dispatch
-# function ssq(x::Array{R,1},dat1,dat0) where R<:Real 
-#     return ssq(getPars(x),dat1,dat0)
-# end
-
-x0 = getPars(P)
-
-# ----- Some Monte-Carlo Simulations that should eventually go elsewhere. No need to run this! -------- #
-
-EM = EM_model(1000,2,10);
-# here is the solution with 10 simulations per observation
-B = 10
-Xb = zeros(8,B)
-for b=1:B
-    println(b)
-    draw_Ψ0_Ψ1!(EM)
-    get_wght!(EM)
-    res = optimize(x->ssq(getPars(x),EM),x0,LBFGS(),autodiff=:forward)
-    Xb[:,b] = res.minimizer
+# updates CES parameters given the optimization routine specified within the function
+function update_CESpars!(EM)
+    # (1) solves the weighted least squares routine using the functions below
+    x0=getPars(P)
+    res = optimize(x->ssq(getPars(x),EM),x0,LBFGS(),autodiff=:forward)    
+    # (2) update P inside EM
+    EM.P = getPars(res.minimizer)
 end
 
-[x0 mean(Xb,dims=2)]
+update_CESpars!(EM)
 
-
-
-
-# here is the solution with 1000 simulations per observation
-
-EM = EM_model(2000,2,10);
-
-# here is the solution with 10 simulations per observation
-Xb2 = zeros(8,B)
-
-for b=1:B
-    #println(b)
-    draw_Ψ0_Ψ1!(EM)
-    get_wght!(EM)
-    res = optimize(x->ssq(getPars(x),EM),x0,LBFGS(),autodiff=:forward)
-    Xb2[:,b] = res.minimizer
+function M_step!(EM::EM_model)
+    π_update!(EM)
+    λ_update!(EM)
+    σ_ζ_update!(EM)
+    μ_update!(EM)
+    Σ_update!(EM)
+    update_BμΨσΨ!(EM)
+    update_CESpars!(EM) 
 end
 
-[x0 mean(Xb2,dims=2)]
+M_step!(EM)
 
+# -------- Code to run the E-M routine until convergence ------------- #
+#returns F0,P,MM parameters as a big vector
+function get_parameter_vec(EM)
+    @unpack μ,μΨ,Σ,B,σΨ,π0 = EM.F0
+    @unpack ρ,γ,σ_η,logθ,a,δ = EM.P
+    @unpack λ,σ_ζ = EM.MM
+    parameter_vec = [μ,μΨ,Σ,B,σΨ,π0,ρ,γ,σ_η,logθ,a,δ,λ,σ_ζ]
+    return parameter_vec
+end
+
+
+# One iteration of E step and M step + check convergence
+function EMstep(EM)
+    # (1) simulation step 
+    Random.seed!(100322)
+    draw_Ψ0_Ψ1!(EM)
+
+    # (2) E step (call the function to calculate weights)
+    get_wght!(EM)
+
+    x0 = get_parameter_vec(EM)
+    # (3) M step
+    M_step!(EM)
+
+    x1 = get_parameter_vec(EM)
+    # (4) Check convergence
+    err = norm(x1 .- x0,Inf)
+    return err
+end
+
+EMstep(EM)
+
+# iterate on EM step until error satisfies convergence
+function EMRoutine(EM::EM_model,err_tol = 1e-4,maxiter = 100)
+    err = Inf
+    iter = 0
+    while err>err_tol && iter<maxiter
+        err = EMstep(EM)
+        iter +=1 
+        println(err)
+    end
+    if iter==maxiter
+        println("Warning: max iterations reached")
+    end
+end
+
+
+
+
+
+
+###########################################################################
