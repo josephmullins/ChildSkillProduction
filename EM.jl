@@ -340,7 +340,6 @@ end
 C = generate_C(EM)
 
 
-# function should be fixed
 function update_BμΨσΨ!(EM::EM_model)
     N,K,R = size(EM.wghts)
     x=[ones(1,N);logI]
@@ -359,7 +358,27 @@ end
 
 @time update_BμΨσΨ!(EM)
 
-# TODO
+# updates CES parameters given the optimization routine specified within the function
+function update_CESpars!(EM)
+    
+    # (1) solves the weighted least squares routine using the functions below
+    x0=getPars(P)
+    B = 10 #set to 10 just to test
+    Xb = zeros(8,B)
+    for b=1:B
+        println(b) #I left the print statment in 
+        draw_Ψ0_Ψ1!(EM)
+        get_wght!(EM)
+        res = optimize(x->ssq(getPars(x),EM),x0,LBFGS(),autodiff=:forward)
+        Xb[:,b] = res.minimizer
+    end
+    
+    # (2) update P inside EM
+    EM.P = getPars(mean(Xb,dims=2))
+
+end
+
+
 function M_step!(EM::EM_model)
     π_update!(EM)
     λ_update!(EM)
@@ -367,22 +386,22 @@ function M_step!(EM::EM_model)
     μ_update!(EM)
     Σ_update!(EM)
     update_BμΨσΨ!(EM)
-    update_CESpars!(EM) #<- TODO: to write this function
-end
-
-# TODO
-function update_CESpars!(EM)
-    # (1) solve the weighted least squares routine (use functions below)
-    # (2) update P inside EM
-end
-
-# TODO: return F0, B,μΨ,P,MM parameters as big vector
-function get_parameter_vec(EM)
+    update_CESpars!(EM) 
 end
 
 M_step!(EM)
 
-# TODO finish this
+
+#returns F0,P,MM parameters as a big vector
+function get_parameter_vec(EM)
+    @unpack K,μ,μΨ,Σ,B,σΨ,π0 = EM.F0
+    @unpack ρ,γ,σ_η,logθ,a,δ = EM.P
+    @unpack J,λ,σ_ζ = EM.MM
+    parameter_vec = [K,μ,μΨ,Σ,B,σΨ,π0,ρ,γ,σ_η,logθ,a,δ,J,λ,σ_ζ]
+    return parameter_vec
+end
+
+# This should be running now
 function EMstep(EM)
     # (1) simulation step 
     Random.seed!(100322)
@@ -393,7 +412,7 @@ function EMstep(EM)
 
     x0 = get_parameter_vec(EM)
     # (3) M step
-    M_step!(M)
+    M_step!(EM)
 
     x1 = get_parameter_vec(EM)
     # (4) Check convergence
@@ -440,7 +459,7 @@ x0 = getPars(P)
 
 EM = EM_model(1000,2,10);
 # here is the solution with 10 simulations per observation
-B = 50
+B = 10
 Xb = zeros(8,B)
 for b=1:B
     println(b)
@@ -451,6 +470,9 @@ for b=1:B
 end
 
 [x0 mean(Xb,dims=2)]
+
+
+
 
 # here is the solution with 1000 simulations per observation
 
@@ -469,7 +491,3 @@ end
 
 [x0 mean(Xb2,dims=2)]
 
-# ------- NEXT: Code to calculate the M-Step for F0 and MM parameters.
-# - See the README file for formulae
-# - Wghts can be calculated using get_wght!(EM) and stored in EM.wghts
-# - All other data stored in EM
