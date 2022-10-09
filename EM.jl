@@ -213,6 +213,7 @@ end
 
 get_wght(1,1,1,EM)
 
+
 function get_wght!(EM::EM_model)
     N,K,R = size(EM.wghts)
     for n in 1:N
@@ -223,6 +224,7 @@ function get_wght!(EM::EM_model)
         @views EM.wghts[n,:,:] ./= sum(EM.wghts[n,:,:])
     end
 end
+
 
 get_wght!(EM)
 
@@ -256,7 +258,7 @@ function λ_update!(EM::EM_model) ##this only updates the second value
     EM.MM.λ[2] = numerator/denominator
 end
 
-λ_update!(EM)
+#λ_update!(EM)
 
 function π_update!(EM::EM_model) ##edited - struct
     N,K,R = size(EM.wghts)
@@ -269,7 +271,7 @@ function π_update!(EM::EM_model) ##edited - struct
     end
 end
 
-π_update!(EM)
+#π_update!(EM)
 
 # NOTE: this function only works properly as part of the M-step if λ_update! is called first
 function σ_ζ_update!(EM::EM_model) ##edited - struct
@@ -285,7 +287,7 @@ function σ_ζ_update!(EM::EM_model) ##edited - struct
     end
 end
 
-σ_ζ_update!(EM) 
+#σ_ζ_update!(EM) 
 
 function μ_update!(EM::EM_model) ##edited - struct
     N,K,R = size(EM.wghts)
@@ -300,7 +302,7 @@ function μ_update!(EM::EM_model) ##edited - struct
     end
 end
 
-μ_update!(EM::EM_model)
+#μ_update!(EM::EM_model)
 
 
 function Σ_update!(EM::EM_model) ##edited - struc
@@ -319,7 +321,7 @@ function Σ_update!(EM::EM_model) ##edited - struc
     end
 end
 
-Σ_update!(EM::EM_model)
+#Σ_update!(EM::EM_model)
 
 function generate_C(EM::EM_model) 
     N,K,R = size(EM.wghts)
@@ -337,7 +339,7 @@ function generate_C(EM::EM_model)
     return C
 end
 
-C = generate_C(EM)
+#C = generate_C(EM)
 
 
 function update_BμΨσΨ!(EM::EM_model)
@@ -439,6 +441,19 @@ end
 
 EMstep(EM)
 
+
+#function to return the loglikelihood
+function get_likelihood(EM)
+    N,K,R = size(EM.wghts)
+    l=EM.wghts
+    for n in 1:N, k in 1:K, r in 1:R
+        l[n,k,r] = get_wght(n,k,r,EM)
+    end
+    l=sum(l,dims=[2,3])
+    l=sum(log.(l))
+    return l
+end
+
 # iterate on EM step until error satisfies convergence
 function EMRoutine(EM::EM_model,err_tol = 1e-4,maxiter = 100)
     err = Inf
@@ -446,7 +461,10 @@ function EMRoutine(EM::EM_model,err_tol = 1e-4,maxiter = 100)
     while err>err_tol && iter<maxiter
         err = EMstep(EM)
         iter +=1 
-        println(err)
+        #println(err)
+        l=get_likelihood(EM) 
+        check= [err l]
+        println(check) #comparing likelihood changes to error changes
     end
     if iter==maxiter
         println("Warning: max iterations reached")
