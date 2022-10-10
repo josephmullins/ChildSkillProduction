@@ -445,7 +445,7 @@ EMstep(EM)
 #function to return the loglikelihood
 function get_likelihood(EM)
     N,K,R = size(EM.wghts)
-    l=EM.wghts
+    l=0*EM.wghts #lazy way to get the size right 
     for n in 1:N, k in 1:K, r in 1:R
         l[n,k,r] = get_wght(n,k,r,EM)
     end
@@ -460,9 +460,10 @@ function EMRoutine(EM::EM_model,err_tol = 1e-4,maxiter = 100)
     iter = 0
     while err>err_tol && iter<maxiter
         err = EMstep(EM)
+        l=get_likelihood(EM) 
         iter +=1 
         #println(err)
-        l=get_likelihood(EM) 
+        
         check= [err l]
         println(check) #comparing likelihood changes to error changes
     end
@@ -470,6 +471,8 @@ function EMRoutine(EM::EM_model,err_tol = 1e-4,maxiter = 100)
         println("Warning: max iterations reached")
     end
 end
+
+##^^ the likelihood function is really jumpy compared to the error term 
 
 
 
