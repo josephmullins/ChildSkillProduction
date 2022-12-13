@@ -1,0 +1,22 @@
+\documentclass{article}
+\usepackage{booktabs,caption}
+
+\begin{document}
+\section{Direct Estimation - No Input Measurement Error}
+% The specification estimated is:
+% \[ LW_{02,i} = \log(\theta_{i}) + \delta_{1}\log\left(\left(a_{m,i}\tau^{\rho}_{97,m,i}+a_{f,i}\tau^{\rho}_{97,f,i} + a_{g,i}g^{\rho}_{02,i}\right)^{\gamma/\rho} + (\tau_{C,i}+a_{N}\tau_{N,i})^{\gamma}\right) + \delta_{2}LW_{97,i} \]
+% where:
+% \begin{itemize}
+%     \item $\tau_{C,i}$ is hours spent in center-based care
+%     \item $\tau_{N,i}$ is hours spent in any non center-based, non-relative care
+%     \item $a_{x} = \exp(X_{i}\beta_{x})$ for each $x\in\{m,f,g,N\}$
+% \end{itemize
+
+\begin{table}\caption{Direct Estimation Results with Fixed Elasticities}
+    \begin{center}
+        \input{../tables/results_fixed_rho_gamma}
+        \captionsetup{width=0.7\textwidth}
+        \caption*{Standard errors are calculated using 50 bootstrap samples. Sample is 700 children with non-missing skills in both 1997 and 2002, non-missing time use observations (including childcare) in 1997, and non-missing goods observations in 2002.}
+    \end{center}
+    \end{table}
+\end{document}
