@@ -1,8 +1,8 @@
 # Fdb version 3
-["pdflatex"] 1670377106 "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results.tex" "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results.pdf" "results" 1670377106
-  "../tables/results_fixed_rho_gamma.tex" 1670365332 1563 b4f20061746c88a17eef394020f2703e ""
-  "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results.aux" 1670377106 276 9e1933657bce19e44cc53d4d517abcf5 ""
-  "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results.tex" 1670365655 1330 d55656006c29de4e262d1afb1453c544 ""
+["pdflatex"] 1670377106 "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results.tex" "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results.pdf" "results" 1671055186
+  "../tables/results_fixed_rho_gamma.tex" 1670967002 1563 b4f20061746c88a17eef394020f2703e ""
+  "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results.aux" 1670967002 276 9e1933657bce19e44cc53d4d517abcf5 ""
+  "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results.tex" 1670967002 1330 d55656006c29de4e262d1afb1453c544 ""
   "/Users/joseph/Library/TinyTeX/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
   "/Users/joseph/Library/TinyTeX/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1136768653 1324 c910af8c371558dc20f2d7822f66fe64 ""
   "/Users/joseph/Library/TinyTeX/texmf-dist/fonts/tfm/public/cm/cmmi12.tfm" 1136768653 1524 4414a8315f39513458b80dfc63bff03a ""
@@ -40,11 +40,11 @@
   "/Users/joseph/Library/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1000.600pk" 1589462733 11524 31fa3b3b67d5bfc4cddcba35497cdae6 ""
   "/Users/joseph/Library/TinyTeX/texmf-var/web2c/pdftex/pdflatex.fmt" 1595269731 1147928 1ae1f1a9c5223155f188eafe8f1e7c8f ""
   "/Users/joseph/Library/TinyTeX/texmf.cnf" 1589461304 573 776c60b165bc978932a94a7fe7ede234 ""
-  "results.aux" 1670377106 276 9e1933657bce19e44cc53d4d517abcf5 "pdflatex"
-  "results.tex" 1670365655 1330 d55656006c29de4e262d1afb1453c544 ""
+  "results.aux" 1670967002 276 9e1933657bce19e44cc53d4d517abcf5 "pdflatex"
+  "results.tex" 1670967002 1330 d55656006c29de4e262d1afb1453c544 ""
   (generated)
-  "results.pdf"
-  "results.log"
-  "results.aux"
-  "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results.log"
   "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results.pdf"
+  "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results.log"
+  "results.pdf"
+  "results.aux"
+  "results.log"
