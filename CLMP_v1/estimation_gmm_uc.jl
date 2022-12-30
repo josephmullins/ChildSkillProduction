@@ -16,8 +16,6 @@ x0 = [-2.,-2.,0.1,0.9]
 βθ0 = zeros(7)
 βθf = zeros(6)
 x0 = [x0;βg0;βm0;βf0;βθ0;βθf;1]
-αm = [0.1,0.5,1.]
-αf = [0.9,0.5,1.]
 
 # write an update function that works with the specification we are using here
 # returns a named tuple
