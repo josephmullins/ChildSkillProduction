@@ -26,6 +26,18 @@ end
 lb = [[-Inf,-Inf,0.,0.];-Inf*ones(32);0.]
 ub = Inf*ones(37)
 
+# shares only version
+gfunc(x,data,i) = gmm_shares(update(x,1.,1.),data,i)
+gtest = gfunc(x0,data,1)
+K = length(gtest)
+W = Matrix{Float64}(I,K,K)
+
+GMMCriterion(x0,gfunc,data,W,N)
+
+break
+res,se = EstimateGMMIterative(x0,gfunc,data,W,N,lb,ub,4)
+
+
 
 # Run the gmm routine to estimate the model
 gfunc(x,data,i) = gmm_inputs(update(x,1.,1.),data,Z_prod,Z_prodF,i)

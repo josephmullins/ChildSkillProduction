@@ -9,6 +9,7 @@ using DataFrames
 D = DataFrame(CSV.File("../../../PSID_CDS/data-derived/MotherPanelCDS.csv",missingstring = "NA"))
 D[!,:logwage_m] = log.(D.m_wage)
 D[!,:age_sq] = D.age_mother.^2
+
 #groupby(D)
 
 function get_wage_data(data,vlist::Array{Symbol,1},fe=false)

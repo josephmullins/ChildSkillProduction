@@ -24,6 +24,19 @@ function gmm_inputs(par,data,Z_prod,Z_prodF,i,savings=true)
     return [g0;g1;g2] #<- try this
 end
 
+function gmm_shares(par,data,i)
+    K0 = data.Ks[1]+data.Ks[2]+2*data.Ks[3]
+    K1 = sum(data.Km[1:3])+2*data.Km[5]
+    if data.mar[i]==1
+        g0 = zeros(Real,K0)
+        g1 = gmm_shares_married(par,data,i)
+    else
+        g0 = gmm_shares_single(par,data,i)
+        g1 = zeros(Real,K1)
+    end
+    return [g0;g1]
+end
+
 
 # moment functions for married couples:
 
