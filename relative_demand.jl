@@ -142,16 +142,30 @@ function calc_demand_resids!(it,R,data,pars)
     end
 end
 
-# commenting out because it looks the same as above
-# function calc_demand_resids!(R97,R02,data,pars)
-#     gd = groupby(D,:KID)
-#     for i in 1:gd.ngroups
-#         #println(i)
-#         R97[i,:] .= 0.
-#         R02[i,:] .= 0.
-#         for it in gd.starts[i]:gd.ends[i]
-#             @views calc_demand_resids!(it,R97[i,:],R02[i,:],data,pars)
-#         end
+# this function creates a stacked vector of moment conditions from a vector of residuals
+# -- it relies on the function gmap to tell it, given variables data at [it], which residuals to use, which instruments to use, and where to place them in the vector g
+# function demand_moments_stacked!(pars,n,g,R,data,gd,Z_list,gmap)
+#     for it=gd.starts[n]:gd.ends[n]
+#         R[:] .= 0.
+#         g_idx,z_idx,r_idx = gmap(data,it) #<- returns which part of g to write to, which instruments to use, and which residuals to use, based on it observables
+#         calc_demand_resids!(it,R,data,pars)
+#         resids = view(R,r_idx)
+#         g_it = view(g,g_idx)
+#         Z = view(Z_list,z_idx)
+#         stack_moments!(g_it,resids,data,Z,it)
 #     end
 # end
+# this version does the same but assumes that the function spits out the list of instruments instead of an index for existing instruments
+# args... contains all the arguments that might potentially be needed by the function gmap
+function demand_moments_stacked2!(pars,n,g,R,data,gd,gmap,args...)
+    for it=gd.starts[n]:gd.ends[n]
+        R[:] .= 0.
+        g_idx,zlist,r_idx = gmap(data,it,args...) #<- returns which part of g to write to, which instruments to use, and which residuals to use, based on [it] observables
+        calc_demand_resids!(it,R,data,pars)
+        resids = view(R,r_idx)
+        g_it = view(g,g_idx)
+        stack_moments!(g_it,resids,data,zlist,it)
+    end
+end
+# thought: this can be a general function in estimation_tools by requiring residuals be calculated elsewhere
 

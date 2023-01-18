@@ -29,9 +29,30 @@ function EstimateGMMIterative(x0,gfunc,data,W,N,lb,ub,iter)
     maxeval!(opt,1000000)
     min_objective!(opt,(x,g)->GMMCriterion(x,g,gfunc,data,W,N))
     res = optimize(opt,x1)
-    V = ParameterVariance(res[2],gfunc,data,W,N)
-    return res,sqrt.(diag(V))
+    #V = ParameterVariance(res[2],gfunc,data,W,N)
+    return res#,sqrt.(diag(V))
 end
+function EstimateGMMIterative2(x0,gfunc,data,W,N,iter)
+    # x0: the initial parameter guess
+    # gfunc: the function used to evalute the moment: gn(x) = (1/N)*∑ gfunc(x,i)
+    # W: the initial weighting matrix
+    # lb,ub: lower and upper bounds on parameter space
+    # iter: number of iterations
+
+    x1 = x0
+    for i=1:iter
+        println("----- Iteration $i ----------")
+        res = Optim.optimize(x->GMMCriterion(x,gfunc,data,W,N),x1,LBFGS(),autodiff=:forward,Optim.Options(f_calls_limit = 30))
+        x1 = res.minimizer
+        Ω = MomentVariance(x1,gfunc,data,W,N)
+        W = inv(Ω)
+    end
+    println("----- Final Iteration ----------")
+    res = Optim.optimize(x->GMMCriterion(x,gfunc,data,W,N),x1,LBFGS(),autodiff=:forward,Optim.Options(show_trace=true))
+    #V = ParameterVariance(res[2],gfunc,data,W,N)
+    return res#,sqrt.(diag(V))
+end
+
 
 # evaluates gn'*W*gn where gn is the sample mean of gfunc
 function GMMCriterion(x,gfunc,data,W,N)

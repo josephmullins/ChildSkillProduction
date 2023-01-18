@@ -32,12 +32,35 @@ gtest = gfunc(x0,data,1)
 K = length(gtest)
 W = Matrix{Float64}(I,K,K)
 
+G = zeros(N,K)
+for i=1:N
+    G[i,:] = gfunc(x0,data,i)
+end
+
+
 GMMCriterion(x0,gfunc,data,W,N)
 
+function update(x,αm0,αf0)
+    return (ay = 1, ρ=x[1],γ=x[2],αm=αm0,αf=αf0,βg=x[3:10],βm=x[11:16],βf=x[17:21])
+end
+x0 = [x0[1:2];βg0;βm0;βf0]
+lb = [[-Inf,-Inf];-Inf*ones(19)]
+ub = Inf*ones(21)
+
 break
-res,se = EstimateGMMIterative(x0,gfunc,data,W,N,lb,ub,4)
+res = EstimateGMMIterative(x0,gfunc,data,W,N,lb,ub,4)
+using Optim
+res2 = EstimateGMMIterative2(x0,gfunc,data,W,N,4)
 
+res3 = Optim.optimize(x->GMMCriterion(x,gfunc,data,W,N),x0,LBFGS(),autodiff=:forward,Optim.Options(show_trace=true,f_calls_limit=100))
 
+np = length(x0)
+opt = Opt(:LD_LBFGS,np)
+lower_bounds!(opt,lb)
+upper_bounds!(opt,ub)
+maxeval!(opt,100)
+min_objective!(opt,(x,g)->GMMCriterion(x,g,gfunc,data,W,N))
+r2 = optimize(opt,x0)
 
 # Run the gmm routine to estimate the model
 gfunc(x,data,i) = gmm_inputs(update(x,1.,1.),data,Z_prod,Z_prodF,i)

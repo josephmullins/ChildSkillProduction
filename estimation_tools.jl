@@ -3,17 +3,20 @@ using Optim, Statistics, ForwardDiff, LinearAlgebra
 # ---------- Utility functions for GMM estimation ------------ #
 
 # function that calculates the sample mean of gfunc
-function gmm_criterion(x,gfunc!,data,W,N)
+# idea: pass other arguments here
+function gmm_criterion(x,gfunc!,W,N,nresids,args...)
     nmom = size(W)[1]
-    g = moment_func(x,gfunc!,data,N,nmom)
+    g = moment_func(x,gfunc!,N,nmom,nresids,args...)
     return g'*W*g
 end
 
+# issue: want the type of the storage vector to change
 # when we benchmarked, didn't seem like the type instability cost anything
-function moment_func(x,gfunc!,data,N,nmom)
+function moment_func(x,gfunc!,N,nmom,nresids,args...)
     g = zeros(typeof(x[1]),nmom)
+    resids = zeros(typeof(x[1]),nresids)
     for n in 1:N
-        gfunc!(x,g,data,n)
+        gfunc!(x,n,g,resids,args...)
     end
     g /= N #
 end
@@ -26,19 +29,22 @@ end
 #     g /= N #
 # end
 
+# have to fix all of these!
+
 # function that calculate the variance of the moment
-function moment_variance(x,gfunc!,data,N,nmom)
+function moment_variance(x,gfunc!,N,nmom,nresids,args...)
     G = zeros(N,nmom)
+    resids = zeros(nresids)
     for n in 1:N
-        @views gfunc!(x,G[n,:],data,n)
+        @views gfunc!(x,n,G[n,:],resids,args...)
     end
     return cov(G)
 end
 
-function parameter_variance_gmm(x_est,gfunc!,data,W,N)
+function parameter_variance_gmm(x_est,gfunc!,W,N,nresids,args...)
     nmom = size(W)[1]
-    dg = ForwardDiff.jacobian(x->moment_func(x,gfunc!,data,N,nmom),x_est)
-    Σ = moment_variance(x_est,gfunc!,data,N,nmom)
+    dg = ForwardDiff.jacobian(x->moment_func(x,gfunc!,N,nmom,nresids,args...),x_est)
+    Σ = moment_variance(x_est,gfunc!,N,nmom,nresids,args...)
     bread = inv(dg'*W*dg)
     peanut_butter = dg'*W*Σ*W*dg
     return (1/N)  * bread * peanut_butter * bread'
@@ -58,6 +64,7 @@ function stack_gmm!(x,g,rvec,resid!,data,z_vars,n)
     end
 end
 # this version assumes we have the residuals already. I think this is better
+# but it's wrong!
 function stack_moments!(g,rvec,data,z_vars,n)
     pos = 1
     for k in eachindex(z_vars) 
@@ -69,7 +76,7 @@ function stack_moments!(g,rvec,data,z_vars,n)
     end
 end
 
-function estimate_gmm_iterative(x0,gfunc!,data,W,N,iter)
+function estimate_gmm_iterative(x0,gfunc!,iter,W,N,nresids,args...)
     # x0: the initial parameter guess
     # gfunc: the function used to evalute the moment: gn(x) = (1/N)*∑ gfunc(x,i)
     # W: the initial weighting matrix
@@ -80,15 +87,15 @@ function estimate_gmm_iterative(x0,gfunc!,data,W,N,iter)
     nmom = size(W)[1]
     for i=1:iter
         println("----- Iteration $i ----------")
-        res = optimize(x->gmm_criterion(x,gfunc!,data,W,N),x1,LBFGS(),autodiff=:forward,Optim.Options(f_calls_limit=30))
+        res = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,args...),x1,LBFGS(),autodiff=:forward,Optim.Options(f_calls_limit=30))
         x1 = res.minimizer
-        Ω = moment_variance(x1,gfunc!,data,N,nmom)
+        Ω = moment_variance(x1,gfunc!,N,nmom,nresids,args...)
         W = inv(Ω)
     end
     println("----- Final Iteration ----------")
-    res = optimize(x->gmm_criterion(x,gfunc!,data,W,N),x1,LBFGS(),autodiff=:forward,Optim.Options(show_trace=true))
+    res = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,args...),x1,LBFGS(),autodiff=:forward,Optim.Options(show_trace=true))
     x1 = res.minimizer
-    V = parameter_variance_gmm(x1,gfunc!,data,W,N)
+    V = parameter_variance_gmm(x1,gfunc!,W,N,nresids,args...)
     return x1,sqrt.(diag(V))
 end
 

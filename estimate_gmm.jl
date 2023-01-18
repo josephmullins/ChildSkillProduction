@@ -4,7 +4,8 @@ include("relative_demand.jl")
 # read in the data:
 # Step 1: create the data object
 D2 = DataFrame(CSV.File("CLMP_v1/data/gmm_full_vertical.csv",missingstring = "NA"))
-#d = DataFrame(CSV.File("data/gmm_full_horizontal.csv",missingstring = "NA"))
+d = DataFrame(CSV.File("data/gmm_full_horizontal.csv",missingstring = "NA"))
+d = d[d.age.<=8,:]
 D2[!,:mar_stat] = D2.mar_stable
 D2[!,:logwage_m] = log.(D2.m_wage)
 #D2[!,:age_sq] = D2.age_mother.^2
