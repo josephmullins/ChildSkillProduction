@@ -28,23 +28,27 @@ function make_dummy(data,var::Symbol)
 end
 
 
-function get_wage_data(data,vlist::Array{Symbol,1},fe=false)
+function get_wage_data(data,vlist::Array{Symbol,1},fe=true)
     N = size(data)[1]
     index_select = .!ismissing.(data.logwage_m)
     for v in vlist
         index_select = index_select .& (.!ismissing.(data[!,v]))
     end
+    d=data[index_select,:]
     if fe
-        # de-mean all variables by individual (MID)
-        # use groupby <- "split-apply-combine"
+
         d=data[index_select,:]
         d=groupby(d,:MID)
         d=transform(d, :logwage_m => mean) 
         d[!,:logwage_m] = d.logwage_m-d.logwage_m_mean #overwrites log_wage with the de-meaned
         
-        #de-means the log wages, did not de-mean age or the booleans
+        for i in 1:length(vlist)
+            d=groupby(d,:MID)
+            d=transform(d, vlist[i] => mean) #creates a new mean column
+            d[!,vlist[i]] = d[!,vlist[i]]-d[!,end] #subtracts off the newest column, which should be the newly constructed mean
+        end
     end
-    return Vector{Float64}(data[index_select,:logwage_m]),Matrix{Float64}(data[index_select,vlist]),data[index_select,:]
+    return Vector{Float64}(data[index_select,:logwage_m]),Matrix{Float64}(data[index_select,vlist]),d
 end
 
 ed_dummies=make_dummy(D,:m_ed) #education dummies made
@@ -101,8 +105,7 @@ df=wage_regression(D,vl,true)
 
 #ed_dummies=make_dummy(D,:m_ed) #education dummies made
 #vl=[ed_dummies;:age_mother]
-#lW,X,d = get_wage_data(D,vl,true)
-
+lW,X,d = get_wage_data(D,vl,true)
 
 # with residuals, use package Clustering.jl to perform K-means on the estimates of fixed effects
 
@@ -110,8 +113,8 @@ df=wage_regression(D,vl,true)
 
 vl=[ed_dummies;:age_mother]
 df=df[3]
-df=df[:,[vl;:resid_mean]]
-features=collect(Matrix{Float64}(df)')
+df=df[:,:resid_mean]
+features=collect(Vector{Float64}(df)')
 
 result = kmeans(features, 5; maxiter=100, display=:iter)
 
@@ -119,4 +122,7 @@ nclusters(result)
 
 a=assignments(result)
 c = counts(result) # get the cluster sizes
-M = R.centers
+
+
+#summary variables that are static for individuals --> use individual level averages
+#cluster only on mean residuals to start
