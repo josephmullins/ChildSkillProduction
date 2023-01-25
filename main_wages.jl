@@ -28,6 +28,7 @@ function make_dummy(data,var::Symbol)
 end
 
 
+# dropmissing()
 function get_wage_data(data,vlist::Array{Symbol,1},fe=false)
     N = size(data)[1]
     index_select = .!ismissing.(data.logwage_m)
@@ -40,11 +41,11 @@ function get_wage_data(data,vlist::Array{Symbol,1},fe=false)
         d=data[index_select,:]
         d=groupby(d,:MID)
         d=transform(d, :logwage_m => mean) 
-        d[!,:logwage_m] = d.logwage_m-d.logwage_m_mean #overwrites log_wage with the de-meaned
+        lW = d.logwage_m-d.logwage_m_mean #overwrites log_wage with the de-meaned
         
         #de-means the log wages, did not de-mean age or the booleans
     end
-    return Vector{Float64}(data[index_select,:logwage_m]),Matrix{Float64}(data[index_select,vlist]),data[index_select,:]
+    return Vector{Float64}(lW),Matrix{Float64}(data[index_select,vlist]),data[index_select,:]
 end
 
 ed_dummies=make_dummy(D,:m_ed) #education dummies made
@@ -66,7 +67,7 @@ function wage_regression(data,vlist,fe)
             d.resid[i]=tcoef*X[i,:]
         end    
 
-        d.resid=lW-d.resid
+        d.resid=d.logwage_m-d.resid
 
         d=groupby(d,:MID)
         d=transform(d, :resid => mean) #a row of the means repeating for each group; if not desired form use select

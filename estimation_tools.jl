@@ -4,6 +4,8 @@ using Optim, Statistics, ForwardDiff, LinearAlgebra
 
 # function that calculates the sample mean of gfunc
 # idea: pass other arguments here
+# g = N^{-1}∑gfunc(x,i...)
+# gfunc = [ϵ_{1,i} × Z_{1,i}, ϵ_{2,i} × Z_{2,i}, .... ]
 function gmm_criterion(x,gfunc!,W,N,nresids,args...)
     nmom = size(W)[1]
     g = moment_func(x,gfunc!,N,nmom,nresids,args...)
@@ -21,15 +23,6 @@ function moment_func(x,gfunc!,N,nmom,nresids,args...)
     g /= N #
 end
 
-# function moment_func(x,gfunc!,data,N,nmom)
-#     g = zeros(nmom)
-#     for n in 1:N
-#         gfunc!(x,g,data,n)
-#     end
-#     g /= N #
-# end
-
-# have to fix all of these!
 
 # function that calculate the variance of the moment
 function moment_variance(x,gfunc!,N,nmom,nresids,args...)
