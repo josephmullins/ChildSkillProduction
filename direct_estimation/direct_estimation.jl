@@ -218,7 +218,6 @@ end
 
 # --- Output functions (?)
 
-# EDIT these functions to allow for a variable name in first cell of line
 function write_line!(io,format,M,v::Symbol,i::Int=0,vname::String="")
     nspec = length(M)
     write(io,vname,"&")
