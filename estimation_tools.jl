@@ -1,4 +1,4 @@
-using Optim, Statistics, ForwardDiff, LinearAlgebra
+using Optim, Statistics, ForwardDiff, LinearAlgebra, Printf
 
 # ---------- Utility functions for GMM estimation ------------ #
 
@@ -210,3 +210,109 @@ function wage_clustering(wage_reg,fe)
 end
 
 
+# ----------- Tools for writing results to file
+function write_line!(io,format,M,v::Symbol,i::Int=0,vname::String="")
+    nspec = length(M)
+    write(io,vname,"&")
+    for s in 1:nspec
+        if i==0
+            write(io,format(getfield(M[s],v)),"&")
+        else
+            write(io,format(getfield(M[s],v)[i]),"&")
+        end
+    end
+    write(io,"\\\\","\n")
+end
+
+function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,specvar::Symbol,constant=true)
+
+    nspec = length(M)
+    if constant
+        # write the constant:
+        write_line!(io,format,M,var,1,"Const.")
+        write_line!(io,formatse,SE,var,1)
+    end
+    vlist = union([s[specvar] for s in specs]...)
+    for v in vlist
+        if v in keys(labels)
+            vname = labels[v] #<-?
+        else
+            vname = string(v)
+        end
+        write(io,vname,"&")
+        # write estimates
+        for j in 1:nspec
+            i = findfirst(specs[j][specvar].==v)
+            if isnothing(i)
+                write(io,"-","&")
+            else
+                if constant
+                    write(io,format(getfield(M[j],var)[1+i]),"&")
+                else
+                    write(io,format(getfield(M[j],var)[i]),"&")
+                end
+            end
+        end
+        write(io,"\\\\")
+        # write standard errors
+        write(io,"&")
+        for j in 1:nspec
+            i = findfirst(specs[j][specvar].==v)
+            if isnothing(i)
+                write(io,"","&")
+            else
+                if constant
+                    write(io,formatse(getfield(SE[j],var)[1+i]),"&")
+                else
+                    write(io,formatse(getfield(SE[j],var)[i]),"&")
+                end
+            end
+        end
+        write(io,"\\\\")
+
+    end
+end
+
+# specs are an array
+function writetable(M,SE,specs,labels,outfile::String)
+    form(x) = @sprintf("%0.2f",x)
+    formse(x) = string("(",@sprintf("%0.2f",x),")")
+    
+    nspec = length(M)
+    
+    # Write the header
+    io = open(outfile, "w");
+    write(io,"\\begin{tabular}{l",repeat("c",nspec+1),"}\\\\\\toprule","\n")
+    write(io,"&",["($s)&" for s in 1:nspec]...,"\\\\\\cmidrule(r){2-$(nspec+2)}")
+
+    
+    # Write the elasticity parameters 
+    v = [:ρ,:γ]
+    vname = ["\$\\rho\$","\$\\gamma\$"]
+    for j in 1:2
+        write_line!(io,form,M,v[j],0,vname[j])
+        write_line!(io,formse,SE,v[j],0)
+    end
+    # δ_1 and δ_2
+    for j in 1:2
+        write_line!(io,form,M,:δ,j,"\$\\delta_{$j}\$")
+        write_line!(io,formse,SE,:δ,j)
+    end
+
+    # Factor share Parameters:
+    # a_{m}
+    # write the header:
+    write(io,"& \\multicolumn{$(nspec+1)}{c}{\$\\phi_{m}\$: Mother's Time}\\\\\\cmidrule(r){2-$(nspec+2)}")
+    write_observables!(io,form,formse,M,SE,specs,labels,:βm,:vm)
+    # a_{f}
+    write(io,"& \\multicolumn{$(nspec+1)}{c}{\$\\phi_{f}\$: Father's Time}\\\\\\cmidrule(r){2-$(nspec+2)}")
+    write_observables!(io,form,formse,M,SE,specs,labels,:βf,:vf)
+    # a_{g}
+    write(io,"& \\multicolumn{$(nspec+1)}{c}{\$\\phi_{g}\$: Goods}\\\\\\cmidrule(r){2-$(nspec+2)}")
+    write_observables!(io,form,formse,M,SE,specs,labels,:βg,:vg)
+
+    write(io,"\\bottomrule")
+    write(io,"\\end{tabular}")
+    close(io)
+
+end
