@@ -193,74 +193,74 @@ se2 = CESmod(sqrt.(diag(V2)),spec)
 labels = (mar = "Married",m_ed_HS = "Mother: HS",m_ed_SomeColl = "Mother: Some Coll.",m_ed_Coll = "Mother: Coll.", m_ed_CollMore = "Mother: College+")
 writetable([P0,P1,P2],[se0,se1,se2],[spec,spec,spec],labels,"tables/table_weak_id.tex")
 
-break
+# break
 
-res = optimize(x->gmm_criterion(x,Z,spec,data),x0,LBFGS(),autodiff = :forward)
-x1 = res.minimizer
-res = optimize(x->gmm_criterion(x,Z,spec,data),x1,NelderMead())
-x2 = res.minimizer
-res = optimize(x->gmm_criterion(x,Z,spec,data),x2,NelderMead())
-x3 = res.minimizer
+# res = optimize(x->gmm_criterion(x,Z,spec,data),x0,LBFGS(),autodiff = :forward)
+# x1 = res.minimizer
+# res = optimize(x->gmm_criterion(x,Z,spec,data),x1,NelderMead())
+# x2 = res.minimizer
+# res = optimize(x->gmm_criterion(x,Z,spec,data),x2,NelderMead())
+# x3 = res.minimizer
 
-x0b = copy(x0)
-x0b[3:4] = [-0.5,-0.5]
-res = optimize(x->gmm_criterion(x,Z,spec,data),x0b,LBFGS(),autodiff = :forward,Optim.Options(iterations=3000))
-x1b = res.minimizer
-res = optimize(x->gmm_criterion(x,Z,spec,data),x1b,NelderMead())
-x2b = res.minimizer
-res = optimize(x->gmm_criterion(x,Z,spec,data),x2b,NelderMead())
-x3b = res.minimizer
-# this does better.
-# very weakly identified
+# x0b = copy(x0)
+# x0b[3:4] = [-0.5,-0.5]
+# res = optimize(x->gmm_criterion(x,Z,spec,data),x0b,LBFGS(),autodiff = :forward,Optim.Options(iterations=3000))
+# x1b = res.minimizer
+# res = optimize(x->gmm_criterion(x,Z,spec,data),x1b,NelderMead())
+# x2b = res.minimizer
+# res = optimize(x->gmm_criterion(x,Z,spec,data),x2b,NelderMead())
+# x3b = res.minimizer
+# # this does better.
+# # very weakly identified
 
-x0c = copy(x0)
-x0c[3:4] = [0.5,0.5]
-res = optimize(x->gmm_criterion(x,Z,spec,data),x0c,LBFGS(),autodiff = :forward)
-x1c = res.minimizer
-res = optimize(x->gmm_criterion(x,Z,spec,data),x1c,NelderMead())
-x2c = res.minimizer
-res = optimize(x->gmm_criterion(x,Z,spec,data),x2c,NelderMead())
-x3c = res.minimizer
-
-
-X = bootstrap(x1,Z,spec,data,x->x,1010,50,true)
-
-P = CESmod(x1,spec)
-se = CESmod(std(X,dims=2)[:],spec)
-
-labels = (mar = "Married",m_ed_HS = "Mother: HS",m_ed_SomeColl = "Mother: Some Coll.",m_ed_Coll = "Mother: Coll.", m_ed_CollMore = "Mother: College+")
-
-P2 = CESmod(spec)
-x0 = CESvec(P2)
-res = optimize(x->gmm_criterion([0.05;0.95;x],Z,spec,data),x0[3:end],LBFGS(),autodiff = :forward)
-x2 = [0.05;0.95;res.minimizer]
-P2 = CESmod(x2,spec)
-# ERROR: can't do the bootstrap because something goes wrong with estimation
-X2 = bootstrap(x2[3:end],Z,spec,data,x->[0.05;0.95;x],2020)
-se2 = CESmod([0.;0.;std(X2,dims=2)[:]],spec)
-
-writetable([P,P2],[se,se2],[spec,spec],labels,"tables/test_table.tex")
+# x0c = copy(x0)
+# x0c[3:4] = [0.5,0.5]
+# res = optimize(x->gmm_criterion(x,Z,spec,data),x0c,LBFGS(),autodiff = :forward)
+# x1c = res.minimizer
+# res = optimize(x->gmm_criterion(x,Z,spec,data),x1c,NelderMead())
+# x2c = res.minimizer
+# res = optimize(x->gmm_criterion(x,Z,spec,data),x2c,NelderMead())
+# x3c = res.minimizer
 
 
-break
+# X = bootstrap(x1,Z,spec,data,x->x,1010,50,true)
 
-Z2 = get_instruments(x1,P,spec,data)
-res = optimize(x->gmm_criterion(x,Z2,spec,data),x0,LBFGS(),autodiff = :forward)
-x2 = res.minimizer
+# P = CESmod(x1,spec)
+# se = CESmod(std(X,dims=2)[:],spec)
 
-Z3 = get_instruments(x2,P,spec,data)
-res = optimize(x->gmm_criterion(x,Z3,spec,data),x0,LBFGS(),autodiff = :forward)
-x3 = res.minimizer
+# labels = (mar = "Married",m_ed_HS = "Mother: HS",m_ed_SomeColl = "Mother: Some Coll.",m_ed_Coll = "Mother: Coll.", m_ed_CollMore = "Mother: College+")
 
-Z4 = get_instruments(x3,P,spec,data)
-res = optimize(x->gmm_criterion(x,Z4,spec,data),x0,LBFGS(),autodiff = :forward)
-x4 = res.minimizer
+# P2 = CESmod(spec)
+# x0 = CESvec(P2)
+# res = optimize(x->gmm_criterion([0.05;0.95;x],Z,spec,data),x0[3:end],LBFGS(),autodiff = :forward)
+# x2 = [0.05;0.95;res.minimizer]
+# P2 = CESmod(x2,spec)
+# # ERROR: can't do the bootstrap because something goes wrong with estimation
+# X2 = bootstrap(x2[3:end],Z,spec,data,x->[0.05;0.95;x],2020)
+# se2 = CESmod([0.;0.;std(X2,dims=2)[:]],spec)
 
-
-V = moment_variance(x4,Z,spec,data)
-dg = ForwardDiff.jacobian(x->gfunc(x,Z4,spec,data),x4)
-
-bread = inv(dg'*dg)
+# writetable([P,P2],[se,se2],[spec,spec],labels,"tables/test_table.tex")
 
 
-parameter_variance(x1,Z,spec,data)
+# break
+
+# Z2 = get_instruments(x1,P,spec,data)
+# res = optimize(x->gmm_criterion(x,Z2,spec,data),x0,LBFGS(),autodiff = :forward)
+# x2 = res.minimizer
+
+# Z3 = get_instruments(x2,P,spec,data)
+# res = optimize(x->gmm_criterion(x,Z3,spec,data),x0,LBFGS(),autodiff = :forward)
+# x3 = res.minimizer
+
+# Z4 = get_instruments(x3,P,spec,data)
+# res = optimize(x->gmm_criterion(x,Z4,spec,data),x0,LBFGS(),autodiff = :forward)
+# x4 = res.minimizer
+
+
+# V = moment_variance(x4,Z,spec,data)
+# dg = ForwardDiff.jacobian(x->gfunc(x,Z4,spec,data),x4)
+
+# bread = inv(dg'*dg)
+
+
+# parameter_variance(x1,Z,spec,data)
