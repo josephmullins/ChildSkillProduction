@@ -73,6 +73,8 @@ end
 # ---- write the specification we want to use. This is the same as the original draft.
 spec = (vm = [:mar_stat;:div;m_ed[2:3];:age;:num_0_5;cluster_dummies[2:5]],vf = [:const;f_ed[2:3];:age;:num_0_5],vθ = [:const,:mar_stat,:age,:num_0_5],vg = [:mar_stat;:div;m_ed[2:3];f_ed[2:3];:age;:num_0_5])
 
+#spec = (vm = [:mar_stat;:div;m_ed[2:3];:age;:num_0_5;],vf = [:const;f_ed[2:3];:age;:num_0_5],vθ = [:const,:mar_stat,:age,:num_0_5],vg = [:mar_stat;:div;m_ed[2:3];f_ed[2:3];:age;:num_0_5])
+
 #cluster dummies have been added to vm
 
 #things up to here run fine -MB
@@ -178,6 +180,7 @@ W = I(nmom)
 gfunc_spec2!(x,n,g,resids,data,gd,gmap_spec2,spec) = demand_moments_stacked2!(update(x,spec),n,g,resids,data,gd,gmap_spec2,spec)
 @time gmm_criterion(x0,gfunc_spec2!,W,N,5,D2,gd,gmap_spec2,spec)
 res,se = estimate_gmm_iterative(x0,gfunc_spec2!,5,W,N,5,D2,gd,gmap_spec2,spec)
+
 
 # ------------ Specification (3): each child-year is one observation now
 # there is a simpler vesion than this FYI (what is it?) have to review code to figure it out

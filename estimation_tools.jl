@@ -122,22 +122,17 @@ end
 
 # ---- Functions from main_wages
 
-
 function get_wage_data(data,vlist::Array{Symbol,1},fe)
     N = size(data)[1]
-    index_select = .!ismissing.(data.logwage_m)
-    for v in vlist
-        index_select = index_select .& (.!ismissing.(data[!,v]))
-    end
-    d=data[index_select,:]
+    data=select(data, [:MID;:logwage_m;vl])
+    d=data[completecases(data), :]
     lW=Vector{Float64}(d[!,:logwage_m]) #return non-demeans
     if fe
-
-        d=data[index_select,:]
         d=groupby(d,:MID)
         d=transform(d, :logwage_m => mean) 
         d[!,:logwage_m_demean] = d.logwage_m-d.logwage_m_mean #overwrites log_wage with the de-meaned
         lW=Vector{Float64}(d[!,:logwage_m_demean])
+        c=d #need to preserve original dataframe to return non-demeaned variables (where do we actually used the demeaned vlist)
 
         for i in 1:length(vlist)
             d=groupby(d,:MID)
@@ -145,66 +140,57 @@ function get_wage_data(data,vlist::Array{Symbol,1},fe)
             d[!,vlist[i]] = d[!,vlist[i]]-d[!,end] #subtracts off the newest column, which should be the newly constructed mean
         end
     end
-    return lW,Matrix{Float64}(data[index_select,vlist]),d
+    return lW,Matrix{Float64}(c[!,vlist]),d
 end
 
-function wage_regression(data,vlist,fe)
-    
-    if fe
 
+function wage_regression(data,vlist,fe)
+    if fe
         lW,X,d = get_wage_data(data,vlist,fe) #using the demeaned values
         coef=inv(X'X)*X'lW
-
         d.resid = missings(Float64, nrow(d))
         tcoef=transpose(coef)
-    
-        for i in 1:nrow(d)
-            d.resid[i]=tcoef*X[i,:]
-        end    
-
+            for i in 1:nrow(d)
+                d.resid[i]=tcoef*X[i,:]
+            end    
         d.resid=d.logwage_m-d.resid #residuals from non-demeaned
-
         d=groupby(d,:MID)
         d=transform(d, :resid => mean) #a row of the means repeating for each group; if not desired form use select
-
         return Vector{Float64}(coef),Vector{Float64}(d.resid),d
-
     else
-
         lW,X,d = get_wage_data(data,vlist,fe)
         coef=inv(X'X)*X'lW
-
         d.resid = missings(Float64, nrow(d))
         tcoef=transpose(coef)
-    
-        for i in 1:nrow(d)
-            d.resid[i]=tcoef*X[i,:]
-        end    
-
+            for i in 1:nrow(d)
+                d.resid[i]=tcoef*X[i,:]
+            end    
         d.resid=lW-d.resid #herelW is just the logwage normally
-
         return Vector{Float64}(coef),Vector{Float64}(d.resid) 
     end
 end
 
+##reduce to unique cases prior to clustering
 
 function wage_clustering(wage_reg,fe)
     if fe
         df=wage_reg[3]
         dat=df[:,:resid_mean]
+        dat=unique(dat)
         features=collect(Vector{Float64}(dat)')
         result = kmeans(features, 5; maxiter=100, display=:iter)
         a=assignments(result)
         centers=result.centers
-        clusters=DataFrame(MID=d.MID,cluster=a)
+        clusters=DataFrame(MID=unique(df.MID),cluster=a)
     else
         df=wage_reg[2]
         dat=df[:,:resid_mean]
+        dat=unique(dat)
         features=collect(Vector{Float64}(dat)')
         result = kmeans(features, 5; maxiter=100, display=:iter)
         a=assignments(result)
         centers=result.centers
-        clusters=DataFrame(MID=d.MID,cluster=a)
+        clusters=DataFrame(MID=unique(df.MID),cluster=a)
     end
     return clusters,centers
 end
@@ -225,7 +211,6 @@ function write_line!(io,format,M,v::Symbol,i::Int=0,vname::String="")
 end
 
 function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,specvar::Symbol,constant=true)
-
     nspec = length(M)
     if constant
         # write the constant:
@@ -272,6 +257,12 @@ function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,spe
 
     end
 end
+
+#testing
+#nspecs=1
+
+#should M be a list of matrix output from the specifications
+
 
 # specs are an array
 function writetable(M,SE,specs,labels,outfile::String)
