@@ -71,13 +71,13 @@ end
 
 
 # ---- write the specification we want to use. This is the same as the original draft.
-spec = (vm = [:mar_stat;:div;m_ed[2:3];:age;:num_0_5;cluster_dummies[2:5]],vf = [:const;f_ed[2:3];:age;:num_0_5],vθ = [:const,:mar_stat,:age,:num_0_5],vg = [:mar_stat;:div;m_ed[2:3];f_ed[2:3];:age;:num_0_5])
+spec = (vm = [:mar_stat;:div;m_ed[1];m_ed[3];:age;:num_0_5;cluster_dummies[2:5]],vf = [:const;f_ed[1];f_ed[2];:age;:num_0_5],vθ = [:const,:mar_stat,:age,:num_0_5],
+vg = [:mar_stat;:div;m_ed[1];m_ed[3];f_ed[1];f_ed[2];:age;:num_0_5])
+
+rename(D2, :const => :constant) #using const mucked things up for the write tools
 
 #spec = (vm = [:mar_stat;:div;m_ed[2:3];:age;:num_0_5;],vf = [:const;f_ed[2:3];:age;:num_0_5],vθ = [:const,:mar_stat,:age,:num_0_5],vg = [:mar_stat;:div;m_ed[2:3];f_ed[2:3];:age;:num_0_5])
-
 #cluster dummies have been added to vm
-
-#things up to here run fine -MB
 
 
 P = CESmod(spec)
@@ -141,10 +141,10 @@ N = length(unique(D2.KID))
 W = I(nmom)
 gd = groupby(D2,:KID)
 
-# test the function
+# test the function ---> something is off here
 gfunc_spec1!(x,n,g,resids,data,gd,gmap_spec1,spec) = demand_moments_stacked2!(update(x,spec),n,g,resids,data,gd,gmap_spec1,spec)
 @time gmm_criterion(x0,gfunc_spec1!,W,N,5,D2,gd,gmap_spec1,spec)
-res,se = estimate_gmm_iterative(x0,gfunc_spec1!,5,W,N,5,D2,gd,gmap_spec1,spec)
+res1,se1 = estimate_gmm_iterative(x0,gfunc_spec1!,5,W,N,5,D2,gd,gmap_spec1,spec)
 # res = optimize(x->gmm_criterion(x,gfunc_spec1!,W,N,5,D2,gd,gmap_spec1,spec),x0,LBFGS(),autodiff=:forward,Optim.Options(f_calls_limit=30))
 # x1 = res.minimizer
 # Ω = moment_variance(x1,gfunc_spec1!,N,nmom,5,D2,gd,gmap_spec1,spec)
@@ -174,7 +174,8 @@ n97 = length(spec.vg) + 1
 n02 = (length(spec.vg)+1)*2 + length(spec.vf) + length(spec.vm) + 2
 
 nmom = n97+n02
-N = nrow(D2)
+N = length(unique(D2.KID))
+#N = nrow(D2) 
 W = I(nmom)
 
 gfunc_spec2!(x,n,g,resids,data,gd,gmap_spec2,spec) = demand_moments_stacked2!(update(x,spec),n,g,resids,data,gd,gmap_spec2,spec)
@@ -195,7 +196,8 @@ function gmap_spec3(data,it,spec)
     return g_idx,zlist,r_idx
 end
 nmom = (length(spec.vg)+1)*2 + length(spec.vf) + length(spec.vm) + 2
-N = nrow(D2) #length(unique(D2.KID))
+#N = nrow(D2) #
+N=length(unique(D2.KID))
 gd2 = groupby(D2,[:KID,:year])
 W = I(nmom)
 

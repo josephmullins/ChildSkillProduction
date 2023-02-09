@@ -196,7 +196,9 @@ function wage_clustering(wage_reg,fe)
 end
 
 
+
 # ----------- Tools for writing results to file
+
 function write_line!(io,format,M,v::Symbol,i::Int=0,vname::String="")
     nspec = length(M)
     write(io,vname,"&")
@@ -210,7 +212,7 @@ function write_line!(io,format,M,v::Symbol,i::Int=0,vname::String="")
     write(io,"\\\\","\n")
 end
 
-function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,specvar::Symbol,constant=true)
+function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,specvar::Symbol,constant=false)
     nspec = length(M)
     if constant
         # write the constant:
@@ -220,7 +222,8 @@ function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,spe
     vlist = union([s[specvar] for s in specs]...)
     for v in vlist
         if v in keys(labels)
-            vname = labels[v] #<-?
+            vname = labels[v]
+            #vname = string(vname) #<-?
         else
             vname = string(v)
         end
@@ -258,24 +261,15 @@ function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,spe
     end
 end
 
-#testing
-#nspecs=1
-
-#should M be a list of matrix output from the specifications
-
-
-# specs are an array
 function writetable(M,SE,specs,labels,outfile::String)
     form(x) = @sprintf("%0.2f",x)
     formse(x) = string("(",@sprintf("%0.2f",x),")")
-    
     nspec = length(M)
-    
+
     # Write the header
     io = open(outfile, "w");
     write(io,"\\begin{tabular}{l",repeat("c",nspec+1),"}\\\\\\toprule","\n")
     write(io,"&",["($s)&" for s in 1:nspec]...,"\\\\\\cmidrule(r){2-$(nspec+2)}")
-
     
     # Write the elasticity parameters 
     v = [:ρ,:γ]
@@ -284,11 +278,11 @@ function writetable(M,SE,specs,labels,outfile::String)
         write_line!(io,form,M,v[j],0,vname[j])
         write_line!(io,formse,SE,v[j],0)
     end
-    # δ_1 and δ_2
-    for j in 1:2
-        write_line!(io,form,M,:δ,j,"\$\\delta_{$j}\$")
-        write_line!(io,formse,SE,:δ,j)
-    end
+    # δ_1 and δ_2 #are there delta parameters here?
+    #for j in 1:2
+    #    write_line!(io,form,M,:δ,j,"\$\\delta_{$j}\$")
+    #    write_line!(io,formse,SE,:δ,j)
+    #end
 
     # Factor share Parameters:
     # a_{m}
@@ -307,3 +301,58 @@ function writetable(M,SE,specs,labels,outfile::String)
     close(io)
 
 end
+
+
+struct Spec
+    ρ::Float64
+    γ::Float64
+    βm::Vector{Float64}
+    βf::Vector{Float64}
+    βg::Vector{Float64}
+end
+
+struct SpecSE
+    ρ::Float64
+    γ::Float64
+    βm::Vector{Float64}
+    βf::Vector{Float64}
+    βg::Vector{Float64}
+end
+
+s2=Spec(res[1],res[2],res[3:12],res[13:17],res[18:25])
+s3=Spec(res3[1],res3[2],res3[3:12],res3[13:17],res3[18:25])
+
+s2se=SpecSE(se[1],se[2],se[3:12],se[13:17],se[18:25])
+s3se=SpecSE(se3[1],se3[2],se3[3:12],se3[13:17],se3[18:25])
+
+M=[s2,s3]
+SE=[s2se,s3se]
+
+labels=(mar_stat = ["Married"], div = ["Divorced"], m_ed_12 = ["Mother: HS"], age = ["Child Age"], m_ed_16 = ["Mother: Coll."], num_0_5 = ["0-5"], cluster_1 = ["Cluster 1"],
+        cluster_2 = ["Cluster 2"], cluster_3 = ["Cluster 3"], cluster_4 = ["Cluster 4"], constant = ["Constant"], f_ed_12 = ["Father: HS"], f_ed_16 = ["Father: Coll."])
+
+output=writetable(M,SE,specs,labels,"output")
+
+
+
+
+
+
+
+
+
+test=writetable(M,SE,specs,labels,"testfile")
+
+labels = (mar_stat="Married",div="Divorced",m_ed_12="Mother: HS",age="Child Age",m_ed_16="Mother: Coll.",num_0_5="0-5",cluster_1="Cluster 1",
+cluster_2="Cluster 2",cluster_3="Cluster 3",cluster_4="Cluster 4",constant="Constant",f_ed_12="Father: HS",f_ed_16="Father: Coll.")
+
+##testing
+
+specs=[spec,spec,spec]
+vlist = union([s[:vm] for s in specs]...)
+
+for s in spec
+    print(s[:div])
+end
+
+
