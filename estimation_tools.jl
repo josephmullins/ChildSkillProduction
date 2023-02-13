@@ -223,7 +223,7 @@ function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,spe
     for v in vlist
         if v in keys(labels)
             vname = labels[v]
-            #vname = string(vname) #<-?
+            vname = string(vname) #<-?
         else
             vname = string(v)
         end
@@ -319,14 +319,18 @@ struct SpecSE
     βg::Vector{Float64}
 end
 
-s2=Spec(res[1],res[2],res[3:12],res[13:17],res[18:25])
-s3=Spec(res3[1],res3[2],res3[3:12],res3[13:17],res3[18:25])
+s1=Spec(res1[1],res1[2],res1[3:10],res1[11:15],res1[16:23])
+s2=Spec(res2[1],res2[2],res2[3:10],res2[11:15],res2[16:23])
+s3=Spec(res3[1],res3[2],res3[3:10],res3[11:15],res3[16:23])
 
-s2se=SpecSE(se[1],se[2],se[3:12],se[13:17],se[18:25])
-s3se=SpecSE(se3[1],se3[2],se3[3:12],se3[13:17],se3[18:25])
+s1se=Spec(se1[1],se1[2],se1[3:10],se1[11:15],se1[16:23])
+s2se=SpecSE(se2[1],se2[2],se2[3:10],se2[11:15],se2[16:23])
+s3se=SpecSE(se3[1],se3[2],se3[3:10],se3[11:15],se3[16:23])
 
-M=[s2,s3]
-SE=[s2se,s3se]
+M=[s1,s2,s3]
+SE=[s1se,s2se,s3se]
+specs=[spec,spec,spec]
+
 
 labels=(mar_stat = ["Married"], div = ["Divorced"], m_ed_12 = ["Mother: HS"], age = ["Child Age"], m_ed_16 = ["Mother: Coll."], num_0_5 = ["0-5"], cluster_1 = ["Cluster 1"],
         cluster_2 = ["Cluster 2"], cluster_3 = ["Cluster 3"], cluster_4 = ["Cluster 4"], constant = ["Constant"], f_ed_12 = ["Father: HS"], f_ed_16 = ["Father: Coll."])
@@ -334,14 +338,8 @@ labels=(mar_stat = ["Married"], div = ["Divorced"], m_ed_12 = ["Mother: HS"], ag
 output=writetable(M,SE,specs,labels,"output")
 
 
-
-
-
-
-
-
-
 test=writetable(M,SE,specs,labels,"testfile")
+
 
 labels = (mar_stat="Married",div="Divorced",m_ed_12="Mother: HS",age="Child Age",m_ed_16="Mother: Coll.",num_0_5="0-5",cluster_1="Cluster 1",
 cluster_2="Cluster 2",cluster_3="Cluster 3",cluster_4="Cluster 4",constant="Constant",f_ed_12="Father: HS",f_ed_16="Father: Coll.")

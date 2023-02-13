@@ -48,8 +48,8 @@ function get_wage_data(data,vlist::Array{Symbol,1},fe)
     return lW,Matrix{Float64}(c[!,vlist]),d
 end
 
-#ed_dummies=make_dummy(D,:m_ed) #education dummies made
-#vl=[ed_dummies;:age_mother]
+ed_dummies=make_dummy(D,:m_ed) #education dummies made
+vl=[ed_dummies;:age_mother]
 
 # a function to return regression coefficents and *also* residuals
 # -- also return an estimate of individual fixed effects if fe=true (a mean of residuals for each MID)
@@ -85,21 +85,23 @@ function wage_clustering(wage_reg,fe)
         dat=df[:,:resid_mean]
         dat=unique(dat)
         features=collect(Vector{Float64}(dat)')
-        result = kmeans(features, 5; maxiter=100, display=:iter)
+        result = kmeans(features, 3; maxiter=100, display=:iter)
         a=assignments(result)
         centers=result.centers
+        c=counts(result)
         clusters=DataFrame(MID=unique(df.MID),cluster=a)
     else
         df=wage_reg[2]
         dat=df[:,:resid_mean]
         dat=unique(dat)
         features=collect(Vector{Float64}(dat)')
-        result = kmeans(features, 5; maxiter=100, display=:iter)
+        result = kmeans(features, 3; maxiter=100, display=:iter)
         a=assignments(result)
+        c=counts(result)
         centers=result.centers
         clusters=DataFrame(MID=unique(df.MID),cluster=a)
     end
-    return clusters,centers
+    return clusters,centers,c
 end
 
 function generate_cluster_assignment(dat,fe)

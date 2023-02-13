@@ -71,10 +71,15 @@ end
 
 
 # ---- write the specification we want to use. This is the same as the original draft.
-spec = (vm = [:mar_stat;:div;m_ed[1];m_ed[3];:age;:num_0_5;cluster_dummies[2:5]],vf = [:const;f_ed[1];f_ed[2];:age;:num_0_5],vθ = [:const,:mar_stat,:age,:num_0_5],
+#spec = (vm = [:mar_stat;:div;m_ed[1];m_ed[3];:age;:num_0_5;cluster_dummies[2:5]],vf = [:const;f_ed[1];f_ed[2];:age;:num_0_5],vθ = [:const,:mar_stat,:age,:num_0_5],
+#vg = [:mar_stat;:div;m_ed[1];m_ed[3];f_ed[1];f_ed[2];:age;:num_0_5])
+
+#trying this --> this is the only specification that seems to make things happy
+spec = (vm = [:mar_stat;:div;m_ed[1];m_ed[3];:age;:num_0_5;cluster_dummies[1:2]],vf = [:const;f_ed[1:2];:age;:num_0_5],vθ = [:const,:mar_stat,:age,:num_0_5],
 vg = [:mar_stat;:div;m_ed[1];m_ed[3];f_ed[1];f_ed[2];:age;:num_0_5])
 
-rename(D2, :const => :constant) #using const mucked things up for the write tools
+
+#rename(D2, :const => :constant) #using const mucked things up for the write tools
 
 #spec = (vm = [:mar_stat;:div;m_ed[2:3];:age;:num_0_5;],vf = [:const;f_ed[2:3];:age;:num_0_5],vθ = [:const,:mar_stat,:age,:num_0_5],vg = [:mar_stat;:div;m_ed[2:3];f_ed[2:3];:age;:num_0_5])
 #cluster dummies have been added to vm
@@ -180,7 +185,7 @@ W = I(nmom)
 
 gfunc_spec2!(x,n,g,resids,data,gd,gmap_spec2,spec) = demand_moments_stacked2!(update(x,spec),n,g,resids,data,gd,gmap_spec2,spec)
 @time gmm_criterion(x0,gfunc_spec2!,W,N,5,D2,gd,gmap_spec2,spec)
-res,se = estimate_gmm_iterative(x0,gfunc_spec2!,5,W,N,5,D2,gd,gmap_spec2,spec)
+res2,se2 = estimate_gmm_iterative(x0,gfunc_spec2!,5,W,N,5,D2,gd,gmap_spec2,spec)
 
 
 # ------------ Specification (3): each child-year is one observation now

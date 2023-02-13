@@ -10,6 +10,16 @@ d = DataFrame(CSV.File("CLMP_v1/data/gmm_full_horizontal.csv",missingstring = "N
 # rename!(D2,:age => :age2)
 # D2 = innerjoin(D2,d[:,[:KID,:age]],on=:KID)
 
+
+D2 = DataFrame(CSV.File("/Users/madisonbozich/gmm_full_vertical.csv",missingstring = "NA"))
+d = DataFrame(CSV.File("/Users/madisonbozich/gmm_full_horizontal.csv",missingstring = "NA"))
+
+output=generate_cluster_assignment(D,true) #getting our clustering assignments
+c=output[1] #dataframe for clusters
+
+D2=innerjoin(D2, c, on = :MID) #merging in 
+cluster_dummies=make_dummy(D2,:cluster)
+
 D2[!,:mar_stat] = D2.mar_stable
 D2[!,:logwage_m] = log.(D2.m_wage)
 #D2[!,:age_sq] = D2.age_mother.^2
@@ -124,7 +134,7 @@ gd = groupby(D2,:KID)
 # test the function
 gfunc_spec1!(x,n,g,resids,data,gd,gmap_spec1,spec) = demand_moments_stacked2!(update(x,spec),n,g,resids,data,gd,gmap_spec1,spec)
 @time gmm_criterion(x0,gfunc_spec1!,W,N,5,D2,gd,gmap_spec1,spec)
-res,se = estimate_gmm_iterative(x0,gfunc_spec1!,5,W,N,5,D2,gd,gmap_spec1,spec)
+res1,se1 = estimate_gmm_iterative(x0,gfunc_spec1!,5,W,N,5,D2,gd,gmap_spec1,spec)
 # res = optimize(x->gmm_criterion(x,gfunc_spec1!,W,N,5,D2,gd,gmap_spec1,spec),x0,LBFGS(),autodiff=:forward,Optim.Options(f_calls_limit=30))
 # x1 = res.minimizer
 # Ω = moment_variance(x1,gfunc_spec1!,N,nmom,5,D2,gd,gmap_spec1,spec)
