@@ -83,7 +83,7 @@ D2[!,:logprice_c_g] = D2.logprice_c .- D2.logprice_g
 D2[!,:logprice_m_g] = D2.logwage_m .- D2.logprice_g
 D2[!,:logprice_f_g] = D2.logwage_f .- D2.logprice_g
 
-# --------------- Specification (1): This replictes the moments we used previously
+# --------------- Specification (1): This replicates the moments we used previously
 function gmap_spec1(data,it,spec)
     n97s = length(spec.vm)
     n02s = length(spec.vm)*3

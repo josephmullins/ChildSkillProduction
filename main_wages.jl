@@ -6,17 +6,6 @@ using DataFrames
 using Plots
 using Clustering
 
-# read in data:
-
-/Users/madisonbozich/MotherPanelCDS.csv
-
-D = DataFrame(CSV.File("../../../PSID_CDS/data-derived/MotherPanelCDS.csv",missingstring = "NA"))
-D = DataFrame(CSV.File("/Users/madisonbozich/MotherPanelCDS.csv",missingstring = "NA"))
-D[!,:logwage_m] = log.(D.m_wage)
-D[!,:age_sq] = D.age_mother.^2
-
-#groupby(D)
-
 function make_dummy(data,var::Symbol)
     vals = unique(skipmissing(data[!,var]))
     nvals = length(vals)

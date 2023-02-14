@@ -144,23 +144,13 @@ end
 
 # this function creates a stacked vector of moment conditions from a vector of residuals
 # -- it relies on the function gmap to tell it, given variables data at [it], which residuals to use, which instruments to use, and where to place them in the vector g
-# function demand_moments_stacked!(pars,n,g,R,data,gd,Z_list,gmap)
-#     for it=gd.starts[n]:gd.ends[n]
-#         R[:] .= 0.
-#         g_idx,z_idx,r_idx = gmap(data,it) #<- returns which part of g to write to, which instruments to use, and which residuals to use, based on it observables
-#         calc_demand_resids!(it,R,data,pars)
-#         resids = view(R,r_idx)
-#         g_it = view(g,g_idx)
-#         Z = view(Z_list,z_idx)
-#         stack_moments!(g_it,resids,data,Z,it)
-#     end
-# end
+#
 # this version does the same but assumes that the function spits out the list of instruments instead of an index for existing instruments
 # args... contains all the arguments that might potentially be needed by the function gmap
-function demand_moments_stacked2!(pars,n,g,R,data,gd,gmap,args...)
+function demand_moments_stacked!(pars,n,g,R,data,gd,gmap,args...)
     for it=gd.starts[n]:gd.ends[n]
         R[:] .= 0.
-        g_idx,zlist,r_idx = gmap(data,it,args...) #<- returns which part of g to write to, which instruments to use, and which residuals to use, based on [it] observables
+        g_idx,zlist,r_idx = gmap(data,it,args...) #<- returns which part of g to write to, which instruments to use, and which residuals to use, based on [it] observables. Not all residuals are calculated or used for each observation.
         calc_demand_resids!(it,R,data,pars)
         resids = view(R,r_idx)
         g_it = view(g,g_idx)
@@ -169,3 +159,30 @@ function demand_moments_stacked2!(pars,n,g,R,data,gd,gmap,args...)
 end
 # thought: this can be a general function in estimation_tools by requiring residuals be calculated elsewhere
 
+
+# functions below for the nonlinear least squares estimator. Possibly deprecated.: 
+function weighted_nlls(P,W97,W02,data)
+    ssq = 0
+    r97 = zeros(typeof(P.βm[1]),2)
+    r02 = zeros(typeof(P.βm[2]),5)
+    gd = groupby(data,:KID)
+    for i in 1:gd.ngroups
+        #println(i)
+        r97[:] .= 0.
+        r02[:] .= 0.
+        for it in gd.starts[i]:gd.ends[i]
+            calc_demand_resids!(it,r97,r02,data,P)
+        end
+        ssq += r97'*W97*r97 + r02'*W02*r02
+    end
+    return ssq/gd.ngroups
+end
+
+function weighted_nlls(gd,i,P,W97,W02,data)
+    r97 = zeros(typeof(P.ρ),2)
+    r02 = zeros(typeof(P.ρ),5)
+    for it in gd.starts[i]:gd.ends[i]
+        calc_demand_resids!(it,r97,r02,data,P)
+    end
+    return r97'*W97*r97 + r02'*W02*r02
+end

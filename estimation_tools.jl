@@ -24,7 +24,7 @@ function moment_func(x,gfunc!,N,nmom,nresids,args...)
 end
 
 
-# function that calculate the variance of the moment
+# function that calculates the variance of the moment
 function moment_variance(x,gfunc!,N,nmom,nresids,args...)
     G = zeros(N,nmom)
     resids = zeros(nresids)
@@ -43,22 +43,14 @@ function parameter_variance_gmm(x_est,gfunc!,W,N,nresids,args...)
     return (1/N)  * bread * peanut_butter * bread'
 end
 
-# when a M-valued function *resid* must be interacted with M different sets of instruments
-# NOTE: this is really two functions! maybe make it one?
-function stack_gmm!(x,g,rvec,resid!,data,z_vars,n)
-    resid!(x,rvec,data,n) #fill in rvec with residuals
-    pos = 1
-    for k in eachindex(z_vars) 
-        for m in eachindex(z_vars[k])
-            zv = z_vars[k][m]
-            g[pos] += rvec[k]*data[n,zv]
-            pos += 1
-        end
-    end
-end
+# when a M-vector of resids, *resid*, must be interacted with M different sets of instruments and stacked.
+
 # this version assumes we have the residuals already. I think this is better
-# but it's wrong!
 function stack_moments!(g,rvec,data,z_vars,n)
+    # g: the vector to add moments to
+    # rvec: the vector of residuals
+    # z_vars: an array of arrays of instrument names to take from data. z_vars[k] is the array of instrument names for the kth residual
+    # n: the row number for the data
     pos = 1
     for k in eachindex(z_vars) 
         for m in eachindex(z_vars[k])
@@ -73,7 +65,6 @@ function estimate_gmm_iterative(x0,gfunc!,iter,W,N,nresids,args...)
     # x0: the initial parameter guess
     # gfunc: the function used to evalute the moment: gn(x) = (1/N)*∑ gfunc(x,i)
     # W: the initial weighting matrix
-    # lb,ub: lower and upper bounds on parameter space
     # iter: number of iterations
 
     x1 = x0
@@ -172,13 +163,13 @@ end
 
 ##reduce to unique cases prior to clustering
 
-function wage_clustering(wage_reg,fe)
+function wage_clustering(wage_reg,fe,nclusters)
     if fe
         df=wage_reg[3]
         dat=df[:,:resid_mean]
         dat=unique(dat)
         features=collect(Vector{Float64}(dat)')
-        result = kmeans(features, 5; maxiter=100, display=:iter)
+        result = kmeans(features, nclusters; maxiter=100, display=:iter)
         a=assignments(result)
         centers=result.centers
         clusters=DataFrame(MID=unique(df.MID),cluster=a)
@@ -187,7 +178,7 @@ function wage_clustering(wage_reg,fe)
         dat=df[:,:resid_mean]
         dat=unique(dat)
         features=collect(Vector{Float64}(dat)')
-        result = kmeans(features, 5; maxiter=100, display=:iter)
+        result = kmeans(features, nclusters; maxiter=100, display=:iter)
         a=assignments(result)
         centers=result.centers
         clusters=DataFrame(MID=unique(df.MID),cluster=a)
@@ -303,54 +294,54 @@ function writetable(M,SE,specs,labels,outfile::String)
 end
 
 
-struct Spec
-    ρ::Float64
-    γ::Float64
-    βm::Vector{Float64}
-    βf::Vector{Float64}
-    βg::Vector{Float64}
-end
+# struct Spec
+#     ρ::Float64
+#     γ::Float64
+#     βm::Vector{Float64}
+#     βf::Vector{Float64}
+#     βg::Vector{Float64}
+# end
 
-struct SpecSE
-    ρ::Float64
-    γ::Float64
-    βm::Vector{Float64}
-    βf::Vector{Float64}
-    βg::Vector{Float64}
-end
+# struct SpecSE
+#     ρ::Float64
+#     γ::Float64
+#     βm::Vector{Float64}
+#     βf::Vector{Float64}
+#     βg::Vector{Float64}
+# end
 
-s1=Spec(res1[1],res1[2],res1[3:10],res1[11:15],res1[16:23])
-s2=Spec(res2[1],res2[2],res2[3:10],res2[11:15],res2[16:23])
-s3=Spec(res3[1],res3[2],res3[3:10],res3[11:15],res3[16:23])
+# s1=Spec(res1[1],res1[2],res1[3:10],res1[11:15],res1[16:23])
+# s2=Spec(res2[1],res2[2],res2[3:10],res2[11:15],res2[16:23])
+# s3=Spec(res3[1],res3[2],res3[3:10],res3[11:15],res3[16:23])
 
-s1se=Spec(se1[1],se1[2],se1[3:10],se1[11:15],se1[16:23])
-s2se=SpecSE(se2[1],se2[2],se2[3:10],se2[11:15],se2[16:23])
-s3se=SpecSE(se3[1],se3[2],se3[3:10],se3[11:15],se3[16:23])
+# s1se=Spec(se1[1],se1[2],se1[3:10],se1[11:15],se1[16:23])
+# s2se=SpecSE(se2[1],se2[2],se2[3:10],se2[11:15],se2[16:23])
+# s3se=SpecSE(se3[1],se3[2],se3[3:10],se3[11:15],se3[16:23])
 
-M=[s1,s2,s3]
-SE=[s1se,s2se,s3se]
-specs=[spec,spec,spec]
-
-
-labels=(mar_stat = ["Married"], div = ["Divorced"], m_ed_12 = ["Mother: HS"], age = ["Child Age"], m_ed_16 = ["Mother: Coll."], num_0_5 = ["0-5"], cluster_1 = ["Cluster 1"],
-        cluster_2 = ["Cluster 2"], cluster_3 = ["Cluster 3"], cluster_4 = ["Cluster 4"], constant = ["Constant"], f_ed_12 = ["Father: HS"], f_ed_16 = ["Father: Coll."])
-
-output=writetable(M,SE,specs,labels,"output")
+# M=[s1,s2,s3]
+# SE=[s1se,s2se,s3se]
+# specs=[spec,spec,spec]
 
 
-test=writetable(M,SE,specs,labels,"testfile")
+# labels=(mar_stat = ["Married"], div = ["Divorced"], m_ed_12 = ["Mother: HS"], age = ["Child Age"], m_ed_16 = ["Mother: Coll."], num_0_5 = ["0-5"], cluster_1 = ["Cluster 1"],
+#         cluster_2 = ["Cluster 2"], cluster_3 = ["Cluster 3"], cluster_4 = ["Cluster 4"], constant = ["Constant"], f_ed_12 = ["Father: HS"], f_ed_16 = ["Father: Coll."])
+
+# output=writetable(M,SE,specs,labels,"output")
 
 
-labels = (mar_stat="Married",div="Divorced",m_ed_12="Mother: HS",age="Child Age",m_ed_16="Mother: Coll.",num_0_5="0-5",cluster_1="Cluster 1",
-cluster_2="Cluster 2",cluster_3="Cluster 3",cluster_4="Cluster 4",constant="Constant",f_ed_12="Father: HS",f_ed_16="Father: Coll.")
+# test=writetable(M,SE,specs,labels,"testfile")
 
-##testing
 
-specs=[spec,spec,spec]
-vlist = union([s[:vm] for s in specs]...)
+# labels = (mar_stat="Married",div="Divorced",m_ed_12="Mother: HS",age="Child Age",m_ed_16="Mother: Coll.",num_0_5="0-5",cluster_1="Cluster 1",
+# cluster_2="Cluster 2",cluster_3="Cluster 3",cluster_4="Cluster 4",constant="Constant",f_ed_12="Father: HS",f_ed_16="Father: Coll.")
 
-for s in spec
-    print(s[:div])
-end
+# ##testing
+
+# specs=[spec,spec,spec]
+# vlist = union([s[:vm] for s in specs]...)
+
+# for s in spec
+#     print(s[:div])
+# end
 
 

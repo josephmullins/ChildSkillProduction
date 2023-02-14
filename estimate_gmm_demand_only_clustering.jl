@@ -7,8 +7,8 @@ include("relative_demand.jl")
 D2 = DataFrame(CSV.File("CLMP_v1/data/gmm_full_vertical.csv",missingstring = "NA"))
 d = DataFrame(CSV.File("CLMP_v1/data/gmm_full_horizontal.csv",missingstring = "NA"))
 
-D2 = DataFrame(CSV.File("/Users/madisonbozich/gmm_full_vertical.csv",missingstring = "NA"))
-d = DataFrame(CSV.File("/Users/madisonbozich/gmm_full_horizontal.csv",missingstring = "NA"))
+#D2 = DataFrame(CSV.File("/Users/madisonbozich/gmm_full_vertical.csv",missingstring = "NA"))
+#d = DataFrame(CSV.File("/Users/madisonbozich/gmm_full_horizontal.csv",missingstring = "NA"))
 
 # NOTE: if this code is used, the age of the child in 1997 is used for both 1997 and 2002 observations which is a bit weird.
 # rename!(D2,:age => :age2)
@@ -71,6 +71,7 @@ end
 
 
 # ---- write the specification we want to use. This is the same as the original draft.
+
 #spec = (vm = [:mar_stat;:div;m_ed[1];m_ed[3];:age;:num_0_5;cluster_dummies[2:5]],vf = [:const;f_ed[1];f_ed[2];:age;:num_0_5],vθ = [:const,:mar_stat,:age,:num_0_5],
 #vg = [:mar_stat;:div;m_ed[1];m_ed[3];f_ed[1];f_ed[2];:age;:num_0_5])
 
