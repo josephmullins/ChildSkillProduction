@@ -1,4 +1,5 @@
 using Optim, Statistics, ForwardDiff, LinearAlgebra, Printf
+using Clustering
 
 # ---------- Utility functions for GMM estimation ------------ #
 
@@ -115,7 +116,7 @@ end
 
 function get_wage_data(data,vlist::Array{Symbol,1},fe)
     N = size(data)[1]
-    data=select(data, [:MID;:logwage_m;vl])
+    data=select(data, [:MID;:logwage_m;vlist])
     d=data[completecases(data), :]
     lW=Vector{Float64}(d[!,:logwage_m]) #return non-demeans
     if fe
@@ -184,6 +185,19 @@ function wage_clustering(wage_reg,fe,nclusters)
         clusters=DataFrame(MID=unique(df.MID),cluster=a)
     end
     return clusters,centers
+end
+
+function generate_cluster_assignment(dat,fe,nclusters)
+    D=dat
+    D[!,:logwage_m] = log.(D.m_wage)
+    D[!,:age_sq] = D.age_mother.^2
+    ed_dummies=make_dummy(D,:m_ed) 
+    vl=[ed_dummies;:age_mother]
+
+    df=wage_regression(D,vl,fe)
+    cluster_assignment=wage_clustering(df,fe,nclusters)
+
+    return cluster_assignment
 end
 
 

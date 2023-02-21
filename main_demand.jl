@@ -163,24 +163,24 @@ n02s = length(spec_1.vm)*3
 n97m = length(spec_1.vg)
 n02m = length(spec_1.vg)*2 + length(spec_1.vm) + length(spec_1.vf) + 1
 nmom = n97s+n02s+n97m+n02m
-N = length(unique(D2.KID))
+N = length(unique(panel_data.KID))
 W = I(nmom)
 gd = groupby(panel_data,:KID)
 
 gfunc!(x,n,g,resids,data,gd,gmap,spec) = demand_moments_stacked!(update(x,spec),n,g,resids,data,gd,gmap,spec)
 
-@time gmm_criterion(x0,gfunc_spec1!,W,N,5,panel_data,gd,gmap_v1,spec_1)
+@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v1,spec_1)
 res1,se1 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v1,spec_1)
 
 # Specification (2): spec_1 with version_2 of moments
 n97 = length(spec_1.vg) + 1 
 n02 = (length(spec_1.vg)+1)*2 + length(spec_1.vf) + length(spec_1.vm) + 2
 nmom = n97+n02
-N = nrow(panel_data)
+#N = nrow(panel_data)
 W = I(nmom)
 
 #gfunc_spec2!(x,n,g,resids,data,gd,gmap_spec2,spec) = demand_moments_stacked!(update(x,spec),n,g,resids,data,gd,gmap_spec2,spec)
-@time gmm_criterion(x0,gfunc_spec2!,W,N,5,panel_data,gd,gmap_v2,spec_1)
+@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v2,spec_1)
 res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_1)
 
 # Specification (3): spec_2 with version_2 of moments
