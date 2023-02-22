@@ -1,5 +1,14 @@
 using Parameters
 
+# note:
+# - the major steps here are calculating the residuals for relative demand given marital status and year, then interacting them with the appropriate instruments.
+# - We want two things:
+# (1) to be able to select/change the residuals and the instruments flexibly; and
+# (2) to change how the moments are arranged flexibly
+# - the function demand_moments_stacked calculates the moments by calling
+# - the key is that this function uses an in input *gmap*: a function that tells demand_moments_stacked where to write the moments given the year and marital status of the individual
+
+
 @with_kw struct CESmod
     # elasticity parameters
     ρ = -1.5 #
@@ -107,8 +116,10 @@ function calc_demand_resids!(it,R97,R02,data,pars)
     end
 end
 
+# this function calculates residuals in relative demand after checking that the data are available
 function calc_demand_resids!(it,R,data,pars)
     lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars,data,it) #<- does this factor in missing data?
+    # in 97: c/m, f/m (no goods available in 97)
     if data.year[it]==1997
         if !ismissing(data.log_mtime[it]) & !ismissing(data.logwage_m[it])
             if !ismissing(data.log_chcare[it])
