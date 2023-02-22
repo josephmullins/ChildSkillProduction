@@ -79,7 +79,7 @@ function estimate_gmm_iterative(x0,gfunc!,iter,W,N,nresids,args...)
     nmom = size(W)[1]
     for i=1:iter
         println("----- Iteration $i ----------")
-        res = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,args...),x1,LBFGS(),autodiff=:forward,Optim.Options(f_calls_limit=30))
+        res = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,args...),x1,LBFGS(),autodiff=:forward,Optim.Options(f_calls_limit=50))
         x1 = res.minimizer
         Ω = moment_variance(x1,gfunc!,N,nmom,nresids,args...)
         W = inv(Ω)
@@ -110,7 +110,7 @@ end
 function linear_combination(β,vars,data,n)
     r = 0 #<- not assuming a constant term
     for j in eachindex(vars)
-        if vars[j]==:const
+        if vars[j]==:const #<- this condition is unnecessary: we simply add a variable =1 named :const to the dataset
             r += β[j]
         else
             @views r += β[j]*data[n,vars[j]]
@@ -224,13 +224,8 @@ function write_line!(io,format,M,v::Symbol,i::Int=0,vname::String="")
     write(io,"\\\\","\n")
 end
 
-function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,specvar::Symbol,constant=false)
+function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,specvar::Symbol)
     nspec = length(M)
-    if constant
-        # write the constant:
-        write_line!(io,format,M,var,1,"Const.")
-        write_line!(io,formatse,SE,var,1)
-    end
     vlist = union([s[specvar] for s in specs]...)
     for v in vlist
         if v in keys(labels)
@@ -246,11 +241,7 @@ function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,spe
             if isnothing(i)
                 write(io,"-","&")
             else
-                if constant
-                    write(io,format(getfield(M[j],var)[1+i]),"&")
-                else
-                    write(io,format(getfield(M[j],var)[i]),"&")
-                end
+                write(io,format(getfield(M[j],var)[i]),"&")
             end
         end
         write(io,"\\\\")
@@ -261,11 +252,7 @@ function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,spe
             if isnothing(i)
                 write(io,"","&")
             else
-                if constant
-                    write(io,formatse(getfield(SE[j],var)[1+i]),"&")
-                else
-                    write(io,formatse(getfield(SE[j],var)[i]),"&")
-                end
+                write(io,formatse(getfield(SE[j],var)[i]),"&")
             end
         end
         write(io,"\\\\")
@@ -313,56 +300,3 @@ function writetable(M,SE,specs,labels,outfile::String)
     close(io)
 
 end
-
-
-# struct Spec
-#     ρ::Float64
-#     γ::Float64
-#     βm::Vector{Float64}
-#     βf::Vector{Float64}
-#     βg::Vector{Float64}
-# end
-
-# struct SpecSE
-#     ρ::Float64
-#     γ::Float64
-#     βm::Vector{Float64}
-#     βf::Vector{Float64}
-#     βg::Vector{Float64}
-# end
-
-# s1=Spec(res1[1],res1[2],res1[3:10],res1[11:15],res1[16:23])
-# s2=Spec(res2[1],res2[2],res2[3:10],res2[11:15],res2[16:23])
-# s3=Spec(res3[1],res3[2],res3[3:10],res3[11:15],res3[16:23])
-
-# s1se=Spec(se1[1],se1[2],se1[3:10],se1[11:15],se1[16:23])
-# s2se=SpecSE(se2[1],se2[2],se2[3:10],se2[11:15],se2[16:23])
-# s3se=SpecSE(se3[1],se3[2],se3[3:10],se3[11:15],se3[16:23])
-
-# M=[s1,s2,s3]
-# SE=[s1se,s2se,s3se]
-# specs=[spec,spec,spec]
-
-
-# labels=(mar_stat = ["Married"], div = ["Divorced"], m_ed_12 = ["Mother: HS"], age = ["Child Age"], m_ed_16 = ["Mother: Coll."], num_0_5 = ["0-5"], cluster_1 = ["Cluster 1"],
-#         cluster_2 = ["Cluster 2"], cluster_3 = ["Cluster 3"], cluster_4 = ["Cluster 4"], constant = ["Constant"], f_ed_12 = ["Father: HS"], f_ed_16 = ["Father: Coll."])
-
-# output=writetable(M,SE,specs,labels,"output")
-
-
-# test=writetable(M,SE,specs,labels,"testfile")
-
-
-# labels = (mar_stat="Married",div="Divorced",m_ed_12="Mother: HS",age="Child Age",m_ed_16="Mother: Coll.",num_0_5="0-5",cluster_1="Cluster 1",
-# cluster_2="Cluster 2",cluster_3="Cluster 3",cluster_4="Cluster 4",constant="Constant",f_ed_12="Father: HS",f_ed_16="Father: Coll.")
-
-# ##testing
-
-# specs=[spec,spec,spec]
-# vlist = union([s[:vm] for s in specs]...)
-
-# for s in spec
-#     print(s[:div])
-# end
-
-

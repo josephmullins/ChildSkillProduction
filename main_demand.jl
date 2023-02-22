@@ -95,6 +95,10 @@ P = CESmod(spec_1)
 x0 = update_inv(P)
 x0[1:2] .= -2. #<- initial guess consistent with last time
 
+gfunc!(x,n,g,resids,data,gd,gmap,spec) = demand_moments_stacked!(update(x,spec),n,g,resids,data,gd,gmap,spec)
+# all of the specifications here calculate moments using the child as the observational unit
+gd = groupby(panel_data,:KID)
+
 
 # Specification (1): spec_1 with version_1 of moments
 n97s = length(spec_1.vm)
@@ -104,9 +108,6 @@ n02m = length(spec_1.vg)*2 + length(spec_1.vm) + length(spec_1.vf) + 1
 nmom = n97s+n02s+n97m+n02m
 N = length(unique(panel_data.KID))
 W = I(nmom)
-gd = groupby(panel_data,:KID)
-
-gfunc!(x,n,g,resids,data,gd,gmap,spec) = demand_moments_stacked!(update(x,spec),n,g,resids,data,gd,gmap,spec)
 
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v1,spec_1)
 res1,se1 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v1,spec_1)
@@ -115,34 +116,36 @@ res1,se1 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v1,spec_1
 n97 = length(spec_1.vg) + 1 
 n02 = (length(spec_1.vg)+1)*2 + length(spec_1.vf) + length(spec_1.vm) + 2
 nmom = n97+n02
-#N = nrow(panel_data)
 W = I(nmom)
 
-g = zeros(nmom) #<- pre-allocate an array for the moment function to write to
-resids = zeros(5)
-gfunc!(x0,3,g,resids,panel_data,gd,gmap_v2,spec_2)
-
-g_idx,zlist,r_idx = gmap_v2(panel_data,3,spec_2)
-for k in eachindex(zlist)
-    for m in eachindex(zlist[k])
-        zv = zlist[k][m]
-        println(zv,": ",panel_data[3,zv])
-    end
-end
-
-#gfunc_spec2!(x,n,g,resids,data,gd,gmap_spec2,spec) = demand_moments_stacked!(update(x,spec),n,g,resids,data,gd,gmap_spec2,spec)
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v2,spec_1)
 res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_1)
 
 # Specification (3): spec_2 with version_2 of moments
-n97 = length(spec_1.vg) + 1 
-n02 = (length(spec_1.vg)+1)*2 + length(spec_1.vf) + length(spec_1.vm) + 2
+n97 = length(spec_2.vg) + 1 
+n02 = (length(spec_2.vg)+1)*2 + length(spec_2.vf) + length(spec_2.vm) + 2
 nmom = n97+n02
-N = nrow(panel_data)
 W = I(nmom)
 
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v2,spec_2)
 res3,se3 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_2)
 
-
 # Specification (4): spec_3 with version_2 of moments
+n97 = length(spec_3.vg) + 1 
+n02 = (length(spec_3.vg)+1)*2 + length(spec_3.vf) + length(spec_3.vm) + 2
+nmom = n97+n02
+W = I(nmom)
+
+@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v2,spec_3)
+res4,se4 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_3)
+
+
+cluster_labels = Dict(zip(cluster_dummies[2:3],["Type $s" for s in 2:nclusters]))
+ed_labels = Dict(zip([f_ed[2:3];m_ed[2:3]],["Father: College+","Father: Some College","Mother: Some College","Mother: College+"]))
+
+other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. Children 0-5", :const => "Const.")
+
+labels = merge(other_labels,cluster_labels,ed_labels)
+
+
+writetable([update(res1,spec_1),update(res2,spec_1),update(res3,spec_2)],[update(se1,spec_1),update(se2,spec_1),update(se3,spec_2)],[spec_1,spec_1,spec_2],labels,"tables/relative_demand.tex")
