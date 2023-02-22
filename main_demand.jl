@@ -103,7 +103,8 @@ x0[1:2] .= -2. #<- initial guess consistent with last time
 
 
 
-# ---- Version (1): this version stacks 97 and 02 moments on top of each other, and holds moments for married and divorced couples separately in the vector:
+# ---- Version (1): this version stacks 97 and 02 moments on top of each other, and holds moments for married and divorced couples separately in the vector
+# - doesn't use the ratio of father's to mother's time.
 function gmap_v1(data,it,spec)
     n97s = length(spec.vm)
     n02s = length(spec.vm)*3
@@ -139,6 +140,7 @@ function gmap_v1(data,it,spec)
 end
 
 # ---- Version (2): this version puts married and single in the same moment instead of on top of each other
+# tries to mimic the ordering above, but instead puts married and single in the same location of the g vector (when appropriate)
 function gmap_v2(data,it,spec)
     n97 = length(spec.vg)+1
     n02 = (length(spec.vg)+1)*2 + length(spec.vf) + length(spec.vm) + 2

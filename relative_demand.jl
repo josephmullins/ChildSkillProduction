@@ -6,7 +6,8 @@ using Parameters
 # (1) to be able to select/change the residuals and the instruments flexibly; and
 # (2) to change how the moments are arranged flexibly
 # - the function demand_moments_stacked calculates the moments by calling
-# - the key is that this function uses an in input *gmap*: a function that tells demand_moments_stacked where to write the moments given the year and marital status of the individual
+# - the key is that this function uses an input function *gmap*: a function that tells demand_moments_stacked where to write the moments, which residuals to use, and which instruments to use for each residual given the year and marital status of the individual. The gmap function must be written specially for each specification
+# - is this the best way to do it?
 
 
 @with_kw struct CESmod
