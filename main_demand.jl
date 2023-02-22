@@ -31,14 +31,6 @@ panel_data[!,:logprice_c] = log.(panel_data.p_4f) # alternative is p_4c
 #panel_data[!,:log_chcare] = replace(log.(panel_data.chcare),-Inf => missing)
 panel_data[!,:log_mtime] = panel_data.log_mtime .- panel_data.logwage_m
 panel_data[!,:log_ftime] = panel_data.log_ftime .- panel_data.logwage_f
-# ordering of residuals: c/m,f/m,c/g,m/g,f/g
-# -- make some price ratios to pass as instruments:
-# -- put this in prep data or even in earlier R code
-panel_data[!,:logprice_c_m] = panel_data.logprice_c .- panel_data.logwage_m
-panel_data[!,:logprice_m_f] = panel_data.logwage_m .- panel_data.logwage_f
-panel_data[!,:logprice_c_g] = panel_data.logprice_c .- panel_data.logprice_g
-panel_data[!,:logprice_m_g] = panel_data.logwage_m .- panel_data.logprice_g
-panel_data[!,:logprice_f_g] = panel_data.logwage_f .- panel_data.logprice_g
 
 #panel_data = panel_data[.!ismissing.(panel_data.mar_stat),:]
 panel_data = panel_data[.!ismissing.(panel_data.price_g),:] #<- drop observations with missing prices (goods)
@@ -57,6 +49,17 @@ panel_data[!,:div] = .!panel_data.mar_stat
 panel_data[!,:const] .= 1.
 panel_data = panel_data[panel_data.price_missing.==0,:]
 panel_data = subset(panel_data,:year => x->(x.==1997) .| (x.==2002)) #<- for now, limit to years 1997 and 2002
+
+# ordering of residuals: c/m,f/m,c/g,m/g,f/g
+# -- make some price ratios to pass as instruments:
+# -- put this in prep data or even in earlier R code
+panel_data[!,:logprice_c_m] = panel_data.logprice_c .- panel_data.logwage_m
+panel_data[!,:logprice_m_f] = panel_data.logwage_m .- panel_data.logwage_f
+panel_data[!,:logprice_c_g] = panel_data.logprice_c .- panel_data.logprice_g
+panel_data[!,:logprice_m_g] = panel_data.logwage_m .- panel_data.logprice_g
+panel_data[!,:logprice_f_g] = panel_data.logwage_f .- panel_data.logprice_g
+
+
 
 # ----------------------------- #
 
@@ -79,17 +82,8 @@ function update_inv(pars)
     return [ρ;γ;βm;βf;βg]
 end
 
-
-# Here are the different specifications we are going to use:
-# using just education
-spec_1 = (vm = [:mar_stat;:div;m_ed[2:3];:age;:num_0_5],vf = [:const;f_ed[2:3];:age;:num_0_5],vθ = [:const,:mar_stat,:age,:num_0_5],vg = [:mar_stat;:div;m_ed[2:3];f_ed[2:3];:age;:num_0_5])
-
-# using just dummies
-spec_2 = (vm = [:mar_stat;:div;cluster_dummies[2:nclusters];:age;:num_0_5],vf = [:const;f_ed[2:3];:age;:num_0_5],vθ = [:const,:mar_stat,:age,:num_0_5],vg = [:mar_stat;:div;cluster_dummies[2:nclusters];f_ed[2:3];:age;:num_0_5])
-
-# using dummies and education
-spec_3 = (vm = [:mar_stat;:div;cluster_dummies[2:nclusters];m_ed[2:3];:age;:num_0_5],vf = [:const;f_ed[2:3];:age;:num_0_5],vθ = [:const,:mar_stat,:age,:num_0_5],vg = [:mar_stat;:div;cluster_dummies[2:nclusters];m_ed[2:3];f_ed[2:3];:age;:num_0_5])
-
+# - load the specifications that we want to use. See that script for more details.
+include("specifications.jl")
 
 #rename(D2, :const => :constant) #using const mucked things up for the write tools
 
@@ -101,63 +95,6 @@ P = CESmod(spec_1)
 x0 = update_inv(P)
 x0[1:2] .= -2. #<- initial guess consistent with last time
 
-
-
-# ---- Version (1): this version stacks 97 and 02 moments on top of each other, and holds moments for married and divorced couples separately in the vector
-# - doesn't use the ratio of father's to mother's time.
-function gmap_v1(data,it,spec)
-    n97s = length(spec.vm)
-    n02s = length(spec.vm)*3
-    n97m = length(spec.vg)
-    n02m = length(spec.vg)*2 + length(spec.vm) + length(spec.vf) + 1
-    if !data.mar_stat[it]
-        if data.year[it]==1997
-            g_idx = 1:n97s
-            zlist =  [[spec.vm[2:end];:logprice_c_m]]
-            r_idx = [1]
-        else
-            g_idx = (1+n97s):(n97s+n02s)
-            zlist = [[spec.vm[2:end];:logprice_m_g],
-            [spec.vm[2:end];:logprice_c_g],
-            [spec.vm[2:end];:logprice_c_m]]
-            r_idx = [4,3,1]
-        end
-    else
-        if data.year[it]==1997
-            g_idx = (n97s+n02s+1):(n97s+n02s+n97m)
-            zlist =  [[spec.vg[[1;3:end]];:logprice_c_m]]
-            r_idx = [1] 
-        else
-            g_idx = (n97s+n02s+n97m+1):(n97s+n02s+n97m+n02m)
-            zlist = [[spec.vm[[1;3:end]];:logprice_m_g],
-            [spec.vf;:logprice_f_g],
-            [spec.vg[[1;3:end]];:logprice_c_g],
-            [spec.vg[[1;3:end]];:logprice_c_m]]
-            r_idx = [4,5,3,1]
-        end
-    end
-    return g_idx,zlist,r_idx
-end
-
-# ---- Version (2): this version puts married and single in the same moment instead of on top of each other
-# tries to mimic the ordering above, but instead puts married and single in the same location of the g vector (when appropriate)
-function gmap_v2(data,it,spec)
-    n97 = length(spec.vg)+1
-    n02 = (length(spec.vg)+1)*2 + length(spec.vf) + length(spec.vm) + 2
-    if data.year[it]==1997
-        g_idx = 1:n97
-        zlist =  [[spec.vg;:logprice_c_m]]
-        r_idx = [1] 
-    else
-        g_idx = (n97+1):(n97+n02)
-        zlist = [[spec.vm;:logprice_m_g],
-        [spec.vf;:logprice_f_g],
-        [spec.vg;:logprice_c_g],
-        [spec.vg;:logprice_c_m]]
-        r_idx = [4,5,3,1]
-    end
-    return g_idx,zlist,r_idx
-end
 
 # Specification (1): spec_1 with version_1 of moments
 n97s = length(spec_1.vm)
@@ -180,6 +117,18 @@ n02 = (length(spec_1.vg)+1)*2 + length(spec_1.vf) + length(spec_1.vm) + 2
 nmom = n97+n02
 #N = nrow(panel_data)
 W = I(nmom)
+
+g = zeros(nmom) #<- pre-allocate an array for the moment function to write to
+resids = zeros(5)
+gfunc!(x0,3,g,resids,panel_data,gd,gmap_v2,spec_2)
+
+g_idx,zlist,r_idx = gmap_v2(panel_data,3,spec_2)
+for k in eachindex(zlist)
+    for m in eachindex(zlist[k])
+        zv = zlist[k][m]
+        println(zv,": ",panel_data[3,zv])
+    end
+end
 
 #gfunc_spec2!(x,n,g,resids,data,gd,gmap_spec2,spec) = demand_moments_stacked!(update(x,spec),n,g,resids,data,gd,gmap_spec2,spec)
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v2,spec_1)
