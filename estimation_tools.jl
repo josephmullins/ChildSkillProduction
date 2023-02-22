@@ -1,6 +1,12 @@
 using Optim, Statistics, ForwardDiff, LinearAlgebra, Printf
 using Clustering
 
+# NOTE:
+# - The setup below allows for the moment function to take the form:
+# g_{ij}(x,θ) = ϵ_{i}(θ)× Z_{j} with a unique set of instruments for each residual
+# - the function stack_moments will perform the stacking into a vector of known size
+
+
 # ---------- Utility functions for GMM estimation ------------ #
 
 # function that calculates the sample mean of gfunc
@@ -16,8 +22,8 @@ end
 # issue: want the type of the storage vector to change
 # when we benchmarked, didn't seem like the type instability cost anything
 function moment_func(x,gfunc!,N,nmom,nresids,args...)
-    g = zeros(typeof(x[1]),nmom)
-    resids = zeros(typeof(x[1]),nresids)
+    g = zeros(typeof(x[1]),nmom) #<- pre-allocate an array for the moment function to write to
+    resids = zeros(typeof(x[1]),nresids) #<- pre-allocate an array to write the residuals.
     for n in 1:N
         gfunc!(x,n,g,resids,args...)
     end
@@ -62,6 +68,7 @@ function stack_moments!(g,rvec,data,z_vars,n)
     end
 end
 
+# this function is an iterative estimator that updates the weighting matrix after 30 function calls in the minimization routine, and does this iter times before finishing the minimization routine off.
 function estimate_gmm_iterative(x0,gfunc!,iter,W,N,nresids,args...)
     # x0: the initial parameter guess
     # gfunc: the function used to evalute the moment: gn(x) = (1/N)*∑ gfunc(x,i)
