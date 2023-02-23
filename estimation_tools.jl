@@ -119,94 +119,46 @@ function linear_combination(β,vars,data,n)
     return r
 end
 
-# ---- Functions from main_wages
+# ---- Functions to cluster on wages
 
 function get_wage_data(data,vlist::Array{Symbol,1},fe)
     N = size(data)[1]
-    data=select(data, [:MID;:logwage_m;vlist])
-    d=data[completecases(data), :]
-    lW=Vector{Float64}(d[!,:logwage_m]) #return non-demeans
+    d = dropmissing(select(data, [:MID;:logwage_m;vlist]))
+    d2 = copy(d)
+    # if including individual fixed effect, first de-mean here
     if fe
-        d=groupby(d,:MID)
-        d=transform(d, :logwage_m => mean) 
-        d[!,:logwage_m_demean] = d.logwage_m-d.logwage_m_mean #overwrites log_wage with the de-meaned
-        lW=Vector{Float64}(d[!,:logwage_m_demean])
-        c=d #need to preserve original dataframe to return non-demeaned variables (where do we actually used the demeaned vlist)
-
-        for i in 1:length(vlist)
-            d=groupby(d,:MID)
-            d=transform(d, vlist[i] => mean) #creates a new mean column
-            d[!,vlist[i]] = d[!,vlist[i]]-d[!,end] #subtracts off the newest column, which should be the newly constructed mean
+        demean(x) = x .- mean(x)
+        gd = groupby(d2,:MID)
+        for v in [:logwage_m;vlist]
+            transform!(gd,v => demean => v)
         end
     end
-    return lW,Matrix{Float64}(c[!,vlist]),d
+    lW = Vector{Float64}(d2.logwage_m)
+    return lW,Matrix{Float64}(d2[!,vlist]),d
 end
 
+function predict_wage(data,vlist,β)
+    return [linear_combination(β,vlist,data,n) for n=1:size(data,1)]
+end
 
 function wage_regression(data,vlist,fe)
-    if fe
-        lW,X,d = get_wage_data(data,vlist,fe) #using the demeaned values
-        coef=inv(X'X)*X'lW
-        d.resid = missings(Float64, nrow(d))
-        tcoef=transpose(coef)
-            for i in 1:nrow(d)
-                d.resid[i]=tcoef*X[i,:]
-            end    
-        d.resid=d.logwage_m-d.resid #residuals from non-demeaned
-        d=groupby(d,:MID)
-        d=transform(d, :resid => mean) #a row of the means repeating for each group; if not desired form use select
-        return Vector{Float64}(coef),Vector{Float64}(d.resid),d
-    else
-        lW,X,d = get_wage_data(data,vlist,fe)
-        coef=inv(X'X)*X'lW
-        d.resid = missings(Float64, nrow(d))
-        tcoef=transpose(coef)
-            for i in 1:nrow(d)
-                d.resid[i]=tcoef*X[i,:]
-            end    
-        d.resid=lW-d.resid #herelW is just the logwage normally
-        return Vector{Float64}(coef),Vector{Float64}(d.resid) 
-    end
+    lW,X,d = get_wage_data(data,vlist,fe)
+    coef=inv(X'X)*X'lW
+    d[!,:resid] = d.logwage_m .- predict_wage(d,vlist,coef)
+    return coef,d
 end
 
 ##reduce to unique cases prior to clustering
 
-function wage_clustering(wage_reg,fe,nclusters)
-    if fe
-        df=wage_reg[3]
-        dat=df[:,:resid_mean]
-        dat=unique(dat)
-        features=collect(Vector{Float64}(dat)')
-        result = kmeans(features, nclusters; maxiter=100, display=:iter)
-        a=assignments(result)
-        centers=result.centers
-        clusters=DataFrame(MID=unique(df.MID),cluster=a)
-    else
-        df=wage_reg[2]
-        dat=df[:,:resid_mean]
-        dat=unique(dat)
-        features=collect(Vector{Float64}(dat)')
-        result = kmeans(features, nclusters; maxiter=100, display=:iter)
-        a=assignments(result)
-        centers=result.centers
-        clusters=DataFrame(MID=unique(df.MID),cluster=a)
-    end
-    return clusters,centers
+function generate_cluster_assignment(dat,vlist,fe,nclusters)
+    coef,d = wage_regression(dat,vlist,fe) #<- this function returns d, which drops missing observations from dat and writes a residual called :resid
+    # command below takes the mean residual for each individual after dropping missing data
+    mean_resids = combine(groupby(d,:MID),:resid => mean)
+    result = kmeans(mean_resids[!,:resid_mean]', nclusters; maxiter=100, display=:iter)
+    mean_resids[!,:cluster] = result.assignments
+    mean_resids[!,:center] = result.centers[result.assignments]
+    return mean_resids
 end
-
-function generate_cluster_assignment(dat,fe,nclusters)
-    D=dat
-    D[!,:logwage_m] = log.(D.m_wage)
-    D[!,:age_sq] = D.age_mother.^2
-    ed_dummies=make_dummy(D,:m_ed) 
-    vl=[ed_dummies;:age_mother]
-
-    df=wage_regression(D,vl,fe)
-    cluster_assignment=wage_clustering(df,fe,nclusters)
-
-    return cluster_assignment
-end
-
 
 
 # ----------- Tools for writing results to file

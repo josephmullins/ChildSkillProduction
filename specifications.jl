@@ -19,6 +19,18 @@ spec_3 = (vm = [:mar_stat;:div;cluster_dummies[2:nclusters];m_ed[2:3];:age;:num_
         vθ = [:const,:mar_stat,:age,:num_0_5],
         vg = [:mar_stat;:div;cluster_dummies[2:nclusters];m_ed[2:3];f_ed[2:3];:age;:num_0_5])
 
+# using the center estimates from a clustering exercise with more types
+spec_4 = (vm = [:mar_stat;:div;:mu_k;:age;:num_0_5],
+        vf = [:const;f_ed[2:3];:age;:num_0_5],
+        vθ = [:const,:mar_stat,:age,:num_0_5],
+        vg = [:mar_stat;:div;:mu_k;m_ed[2:3];f_ed[2:3];:age;:num_0_5])
+
+# using centers (as above) and education
+spec_5 = (vm = [:mar_stat;:div;:mu_k;m_ed[2:3];:age;:num_0_5],
+        vf = [:const;f_ed[2:3];:age;:num_0_5],
+        vθ = [:const,:mar_stat,:age,:num_0_5],
+        vg = [:mar_stat;:div;:mu_k;m_ed[2:3];f_ed[2:3];:age;:num_0_5])
+
 
 # -------------- Moment, Residual and Instrument Combinations ---------------------- #
 # to read these functions, it helps to remember that the ordering of residuals is always [c/m,f/m,c/g,m/g,f/g] and the function calc_demand_resids will write a zero if data is missing for any reason

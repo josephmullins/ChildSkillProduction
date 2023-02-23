@@ -12,15 +12,18 @@ panel_data = DataFrame(CSV.File("CLMP_v1/data/gmm_full_vertical.csv",missingstri
 ind_data = DataFrame(CSV.File("CLMP_v1/data/gmm_full_horizontal.csv",missingstring = "NA"))
 nclusters = 3
 
-# -- Read in wage data from the mother's pane;
+# -- Read in wage data from the mother's panel;
 wage_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/MotherPanelCDS.csv",missingstring = "NA"))
 wage_data[!,:logwage_m] = log.(wage_data.m_wage)
 wage_data[!,:age_sq] = wage_data.age_mother.^2
+vl=[:age_mother;:age_sq]
 
-output=generate_cluster_assignment(wage_data,true,nclusters) #getting our clustering assignments
-c=output[1] #dataframe for clusters
+wage_types = generate_cluster_assignment(wage_data,vl,true,nclusters)
+wage_types_k10 = generate_cluster_assignment(wage_data,vl,true,10)
+wage_types_k10 = rename(select(wage_types_k10,[:MID,:center]),:center => :mu_k)
 
-panel_data=innerjoin(panel_data, c, on = :MID) #merging in 
+panel_data=innerjoin(panel_data, wage_types, on = :MID) #merging in cluster types
+panel_data = innerjoin(panel_data,wage_types_k10,on = :MID) # mergining in centers for K=10 clustering
 cluster_dummies=make_dummy(panel_data,:cluster) #cluster dummies made
 
 panel_data[!,:mar_stat] = panel_data.mar_stable
@@ -151,13 +154,40 @@ W = I(nmom)
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v2,spec_3)
 res4,se4 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_3)
 
+# Specification (5): spec_4 with version_2 of moments
+P = CESmod(spec_4)
+x0 = update_inv(P)
+x0[1:2] .= -2. #<- initial guess consistent with last time
+
+n97 = length(spec_4.vg) + 1 
+n02 = (length(spec_4.vg)+1)*2 + length(spec_4.vf) + length(spec_4.vm) + 2
+nmom = n97+n02
+W = I(nmom)
+
+@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v2,spec_4)
+res5,se5 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_4)
+
+# Specification (6): spec_5 with version_2 of moments
+P = CESmod(spec_5)
+x0 = update_inv(P)
+x0[1:2] .= -2. #<- initial guess consistent with last time
+
+n97 = length(spec_5.vg) + 1 
+n02 = (length(spec_5.vg)+1)*2 + length(spec_5.vf) + length(spec_5.vm) + 2
+nmom = n97+n02
+W = I(nmom)
+
+@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v2,spec_5)
+res6,se6 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_5)
+
+# ----- Write results to a LaTeX table
 
 cluster_labels = Dict(zip(cluster_dummies[2:3],["Type $s" for s in 2:nclusters]))
 ed_labels = Dict(zip([f_ed[2:3];m_ed[2:3]],["Father: College+","Father: Some College","Mother: Some College","Mother: College+"]))
 
-other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. Children 0-5", :const => "Const.")
+other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. Children 0-5", :const => "Const.", :mu_k => "\$\\mu_{k}\$", :age => "Child Age")
 
 labels = merge(other_labels,cluster_labels,ed_labels)
 
 
-writetable([update(res1,spec_1),update(res2,spec_1),update(res3,spec_2),update(res4,spec_3)],[update(se1,spec_1),update(se2,spec_1),update(se3,spec_2),update(se4,spec_3)],[spec_1,spec_1,spec_2,spec_3],labels,"tables/relative_demand.tex")
+writetable([update(res1,spec_1),update(res2,spec_1),update(res3,spec_2),update(res4,spec_3),update(res5,spec_4),update(res6,spec_5)],[update(se1,spec_1),update(se2,spec_1),update(se3,spec_2),update(se4,spec_3),update(se5,spec_4),update(se6,spec_5)],[spec_1,spec_1,spec_2,spec_3,spec_4,spec_5],labels,"tables/relative_demand.tex")
