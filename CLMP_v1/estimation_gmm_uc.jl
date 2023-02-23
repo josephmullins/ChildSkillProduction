@@ -47,11 +47,17 @@ x0 = [x0[1:2];βg0;βm0;βf0]
 lb = [[-Inf,-Inf];-Inf*ones(19)]
 ub = Inf*ones(21)
 
+x0[11] = 0.5
+x0[12] = 0.5
+
+
+
 break
 res = EstimateGMMIterative(x0,gfunc,data,W,N,lb,ub,4)
 using Optim
 res2 = EstimateGMMIterative2(x0,gfunc,data,W,N,4)
 
+break
 res3 = Optim.optimize(x->GMMCriterion(x,gfunc,data,W,N),x0,LBFGS(),autodiff=:forward,Optim.Options(show_trace=true,f_calls_limit=100))
 
 np = length(x0)

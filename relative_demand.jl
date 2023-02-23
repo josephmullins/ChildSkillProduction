@@ -72,7 +72,7 @@ function factor_shares(pars,data,it,mar_stat)
     else
         am = linear_combination(βm,spec.vm,data,it)
         ag = linear_combination(βg,spec.vg,data,it)
-        return exp(am),exp(ag)
+        return exp(ag),exp(am)
     end 
 end
 

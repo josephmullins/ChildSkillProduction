@@ -59,7 +59,9 @@ panel_data[!,:logprice_c_g] = panel_data.logprice_c .- panel_data.logprice_g
 panel_data[!,:logprice_m_g] = panel_data.logwage_m .- panel_data.logprice_g
 panel_data[!,:logprice_f_g] = panel_data.logwage_f .- panel_data.logprice_g
 
-
+# overwrite age and marital status to see if this gets old estimates back
+select!(panel_data,Not(:age))
+panel_data = innerjoin(panel_data,ind_data[:,[:KID,:age]],on=:KID)
 
 # ----------------------------- #
 
@@ -112,6 +114,12 @@ W = I(nmom)
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v1,spec_1)
 res1,se1 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v1,spec_1)
 
+# x0[3] = 0.5
+# x0[4] = 0.5
+# resids = zeros(5)
+# g = zeros(nmom)
+# gfunc!(x0,31,g,resids,panel_data,gd,gmap_v1,spec_1)
+
 # Specification (2): spec_1 with version_2 of moments
 n97 = length(spec_1.vg) + 1 
 n02 = (length(spec_1.vg)+1)*2 + length(spec_1.vf) + length(spec_1.vm) + 2
@@ -131,6 +139,10 @@ W = I(nmom)
 res3,se3 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_2)
 
 # Specification (4): spec_3 with version_2 of moments
+P = CESmod(spec_3)
+x0 = update_inv(P)
+x0[1:2] .= -2. #<- initial guess consistent with last time
+
 n97 = length(spec_3.vg) + 1 
 n02 = (length(spec_3.vg)+1)*2 + length(spec_3.vf) + length(spec_3.vm) + 2
 nmom = n97+n02
@@ -148,4 +160,4 @@ other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. Ch
 labels = merge(other_labels,cluster_labels,ed_labels)
 
 
-writetable([update(res1,spec_1),update(res2,spec_1),update(res3,spec_2)],[update(se1,spec_1),update(se2,spec_1),update(se3,spec_2)],[spec_1,spec_1,spec_2],labels,"tables/relative_demand.tex")
+writetable([update(res1,spec_1),update(res2,spec_1),update(res3,spec_2),update(res4,spec_3)],[update(se1,spec_1),update(se2,spec_1),update(se3,spec_2),update(se4,spec_3)],[spec_1,spec_1,spec_2,spec_3],labels,"tables/relative_demand.tex")
