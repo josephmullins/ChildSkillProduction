@@ -10,7 +10,7 @@ include("relative_demand.jl")
 # Step 1: create the data object
 panel_data = DataFrame(CSV.File("CLMP_v1/data/gmm_full_vertical.csv",missingstring = "NA"))
 ind_data = DataFrame(CSV.File("CLMP_v1/data/gmm_full_horizontal.csv",missingstring = "NA"))
-nclusters = 3
+nclusters = 4
 
 # -- Read in wage data from the mother's panel;
 wage_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/MotherPanelCDS.csv",missingstring = "NA"))

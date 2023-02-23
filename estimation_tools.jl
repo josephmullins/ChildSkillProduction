@@ -155,7 +155,8 @@ function generate_cluster_assignment(dat,vlist,fe,nclusters)
     # command below takes the mean residual for each individual after dropping missing data
     mean_resids = combine(groupby(d,:MID),:resid => mean)
     result = kmeans(mean_resids[!,:resid_mean]', nclusters; maxiter=100, display=:iter)
-    mean_resids[!,:cluster] = result.assignments
+    relabel = sortperm(result.centers[:])
+    mean_resids[!,:cluster] = relabel[result.assignments]
     mean_resids[!,:center] = result.centers[result.assignments]
     return mean_resids
 end
