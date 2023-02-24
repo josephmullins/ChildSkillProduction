@@ -277,7 +277,7 @@ function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,spe
     end
 end
 
-function writetable(M,SE,specs,labels,outfile::String)
+function writetable(M,SE,specs,labels,pvals,outfile::String)
     form(x) = @sprintf("%0.2f",x)
     formse(x) = string("(",@sprintf("%0.2f",x),")")
     nspec = length(M)
@@ -311,6 +311,15 @@ function writetable(M,SE,specs,labels,outfile::String)
     # a_{g}
     write(io,"& \\multicolumn{$(nspec+1)}{c}{\$\\phi_{g}\$: Goods}\\\\\\cmidrule(r){2-$(nspec+2)}")
     write_observables!(io,form,formse,M,SE,specs,labels,:βg,:vg)
+
+    # test results
+    write(io,"& \\multicolumn{$(nspec+1)}{c}{Residual Correlation Test}\\\\\\cmidrule(r){2-$(nspec+2)}")
+    write(io,"p-value","&")
+    for s in 1:nspec
+        write(io,form(pvals[s]),"&")
+    end
+    write(io,"\\\\","\n")
+
 
     write(io,"\\bottomrule")
     write(io,"\\end{tabular}")

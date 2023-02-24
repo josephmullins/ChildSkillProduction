@@ -27,6 +27,7 @@ wage_types = cluster_routine_robust(wage_data,vl,nclusters)
 wage_types_k10 = cluster_routine_robust(wage_data,vl,10,500)
 wage_types_k10 = rename(select(wage_types_k10,[:MID,:center]),:center => :mu_k)
 
+# --- alternatively using the naive clustering algorithm which won't work if we include education in vl
 # wage_types = generate_cluster_assignment(wage_data,vl,true,nclusters)
 # wage_types_k10 = generate_cluster_assignment(wage_data,vl,true,10)
 # wage_types_k10 = rename(select(wage_types_k10,[:MID,:center]),:center => :mu_k)
@@ -72,8 +73,8 @@ panel_data[!,:logprice_m_g] = panel_data.logwage_m .- panel_data.logprice_g
 panel_data[!,:logprice_f_g] = panel_data.logwage_f .- panel_data.logprice_g
 
 # overwrite age and marital status to see if this gets old estimates back
-select!(panel_data,Not(:age))
-panel_data = innerjoin(panel_data,ind_data[:,[:KID,:age]],on=:KID)
+#select!(panel_data,Not(:age))
+#panel_data = innerjoin(panel_data,ind_data[:,[:KID,:age]],on=:KID)
 
 # ----------------------------- #
 
@@ -193,6 +194,6 @@ labels = merge(other_labels,cluster_labels,ed_labels)
 par_vec = [update(res1,spec_1),update(res2,spec_1),update(res3,spec_2),update(res4,spec_3),update(res5,spec_4),update(res6,spec_5)]
 
 results = [residual_test(panel_data,gd,p) for p in par_vec]
+pvals = [r[2] for r in results]
 
-
-writetable(par_vec,[update(se1,spec_1),update(se2,spec_1),update(se3,spec_2),update(se4,spec_3),update(se5,spec_4),update(se6,spec_5)],[spec_1,spec_1,spec_2,spec_3,spec_4,spec_5],labels,"tables/relative_demand.tex")
+writetable(par_vec,[update(se1,spec_1),update(se2,spec_1),update(se3,spec_2),update(se4,spec_3),update(se5,spec_4),update(se6,spec_5)],[spec_1,spec_1,spec_2,spec_3,spec_4,spec_5],labels,pvals,"tables/relative_demand.tex")
