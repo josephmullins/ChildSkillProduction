@@ -1,11 +1,26 @@
 \documentclass{article}
 \usepackage{booktabs,caption}
-\title{Direct Estimation Approach}
-\author{}
+\title{Summary of GMM Estimates}
+\author{your old pal Jo}
 
 \begin{document}
 
 \maketitle
+\section*{Preliminaries}
+\begin{itemize}
+    \item Let there be $N$ children indexed by $N$. Let $g(M_{n},Z_{n})$ indicate the moment conditions with marital status $M_{n}=1$ if married.
+    \item Data used here is the same as the data from the first draft, not yet using the updated dataset.
+\end{itemize}
+
+\section*{Quick Summary of Specifications}
+
+\paragraph{Specification (1)} replicates the approach from the first draft of the paper, where moments for singled and married individuals are stacked on top of each other:
+\[ g(Z_{n}) = \left[\begin{array}{c}(1-M_{n})g(0,Z_{n}) \\ M_{n} g(1,Z_{n})\end{array}\right].\]
+Results are slightly different to the draft (found some small errors there).
+
+\paragraph{Specifications (2)-(6)} arrange the moments differently.
+
+
 \section*{Estimation Results}
 
 
