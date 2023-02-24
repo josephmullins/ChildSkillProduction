@@ -10,17 +10,26 @@ include("relative_demand.jl")
 # Step 1: create the data object
 panel_data = DataFrame(CSV.File("CLMP_v1/data/gmm_full_vertical.csv",missingstring = "NA"))
 ind_data = DataFrame(CSV.File("CLMP_v1/data/gmm_full_horizontal.csv",missingstring = "NA"))
-nclusters = 4
+nclusters = 3
 
 # -- Read in wage data from the mother's panel;
 wage_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/MotherPanelCDS.csv",missingstring = "NA"))
 wage_data[!,:logwage_m] = log.(wage_data.m_wage)
 wage_data[!,:age_sq] = wage_data.age_mother.^2
-vl=[:age_mother;:age_sq]
+wage_data[!,:const] .= 1.
+m_ed = make_dummy(wage_data,:m_ed)
+vl=[m_ed[2:end];:age_mother;:age_sq]
 
-wage_types = generate_cluster_assignment(wage_data,vl,true,nclusters)
-wage_types_k10 = generate_cluster_assignment(wage_data,vl,true,10)
+
+
+wage_types = cluster_routine_robust(wage_data,vl,nclusters)
+
+wage_types_k10 = cluster_routine_robust(wage_data,vl,10,500)
 wage_types_k10 = rename(select(wage_types_k10,[:MID,:center]),:center => :mu_k)
+
+# wage_types = generate_cluster_assignment(wage_data,vl,true,nclusters)
+# wage_types_k10 = generate_cluster_assignment(wage_data,vl,true,10)
+# wage_types_k10 = rename(select(wage_types_k10,[:MID,:center]),:center => :mu_k)
 
 panel_data=innerjoin(panel_data, wage_types, on = :MID) #merging in cluster types
 panel_data = innerjoin(panel_data,wage_types_k10,on = :MID) # mergining in centers for K=10 clustering
@@ -90,22 +99,24 @@ end
 # - load the specifications that we want to use. See that script for more details.
 include("specifications.jl")
 
-#rename(D2, :const => :constant) #using const mucked things up for the write tools
+# function to get the initial guess
+function initial_guess(spec)
+    P = CESmod(spec)
+    x0 = update_inv(P)
+    x0[1:2] .= -2. #<- initial guess consistent with last time
+    return x0
+end
 
-#spec = (vm = [:mar_stat;:div;m_ed[2:3];:age;:num_0_5;],vf = [:const;f_ed[2:3];:age;:num_0_5],vθ = [:const,:mar_stat,:age,:num_0_5],vg = [:mar_stat;:div;m_ed[2:3];f_ed[2:3];:age;:num_0_5])
-#cluster dummies have been added to vm
-
-
-P = CESmod(spec_1)
-x0 = update_inv(P)
-x0[1:2] .= -2. #<- initial guess consistent with last time
 
 gfunc!(x,n,g,resids,data,gd,gmap,spec) = demand_moments_stacked!(update(x,spec),n,g,resids,data,gd,gmap,spec)
+
 # all of the specifications here calculate moments using the child as the observational unit
 gd = groupby(panel_data,:KID)
 
 
 # Specification (1): spec_1 with version_1 of moments
+x0 = initial_guess(spec_1)
+
 n97s = length(spec_1.vm)
 n02s = length(spec_1.vm)*3
 n97m = length(spec_1.vg)
@@ -117,12 +128,6 @@ W = I(nmom)
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v1,spec_1)
 res1,se1 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v1,spec_1)
 
-# x0[3] = 0.5
-# x0[4] = 0.5
-# resids = zeros(5)
-# g = zeros(nmom)
-# gfunc!(x0,31,g,resids,panel_data,gd,gmap_v1,spec_1)
-
 # Specification (2): spec_1 with version_2 of moments
 n97 = length(spec_1.vg) + 1 
 n02 = (length(spec_1.vg)+1)*2 + length(spec_1.vf) + length(spec_1.vm) + 2
@@ -133,6 +138,8 @@ W = I(nmom)
 res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_1)
 
 # Specification (3): spec_2 with version_2 of moments
+x0 = initial_guess(spec_2)
+
 n97 = length(spec_2.vg) + 1 
 n02 = (length(spec_2.vg)+1)*2 + length(spec_2.vf) + length(spec_2.vm) + 2
 nmom = n97+n02
@@ -142,9 +149,7 @@ W = I(nmom)
 res3,se3 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_2)
 
 # Specification (4): spec_3 with version_2 of moments
-P = CESmod(spec_3)
-x0 = update_inv(P)
-x0[1:2] .= -2. #<- initial guess consistent with last time
+x0 = initial_guess(spec_3)
 
 n97 = length(spec_3.vg) + 1 
 n02 = (length(spec_3.vg)+1)*2 + length(spec_3.vf) + length(spec_3.vm) + 2
@@ -155,9 +160,7 @@ W = I(nmom)
 res4,se4 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_3)
 
 # Specification (5): spec_4 with version_2 of moments
-P = CESmod(spec_4)
-x0 = update_inv(P)
-x0[1:2] .= -2. #<- initial guess consistent with last time
+x0 = initial_guess(spec_4)
 
 n97 = length(spec_4.vg) + 1 
 n02 = (length(spec_4.vg)+1)*2 + length(spec_4.vf) + length(spec_4.vm) + 2
@@ -168,9 +171,7 @@ W = I(nmom)
 res5,se5 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_4)
 
 # Specification (6): spec_5 with version_2 of moments
-P = CESmod(spec_5)
-x0 = update_inv(P)
-x0[1:2] .= -2. #<- initial guess consistent with last time
+x0 = initial_guess(spec_5)
 
 n97 = length(spec_5.vg) + 1 
 n02 = (length(spec_5.vg)+1)*2 + length(spec_5.vf) + length(spec_5.vm) + 2
@@ -182,12 +183,16 @@ res6,se6 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_5
 
 # ----- Write results to a LaTeX table
 
-cluster_labels = Dict(zip(cluster_dummies[2:3],["Type $s" for s in 2:nclusters]))
+cluster_labels = Dict(zip(cluster_dummies,[string("Type ",string(s)[end]) for s in cluster_dummies]))
 ed_labels = Dict(zip([f_ed[2:3];m_ed[2:3]],["Father: College+","Father: Some College","Mother: Some College","Mother: College+"]))
 
 other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. Children 0-5", :const => "Const.", :mu_k => "\$\\mu_{k}\$", :age => "Child Age")
 
 labels = merge(other_labels,cluster_labels,ed_labels)
 
+par_vec = [update(res1,spec_1),update(res2,spec_1),update(res3,spec_2),update(res4,spec_3),update(res5,spec_4),update(res6,spec_5)]
 
-writetable([update(res1,spec_1),update(res2,spec_1),update(res3,spec_2),update(res4,spec_3),update(res5,spec_4),update(res6,spec_5)],[update(se1,spec_1),update(se2,spec_1),update(se3,spec_2),update(se4,spec_3),update(se5,spec_4),update(se6,spec_5)],[spec_1,spec_1,spec_2,spec_3,spec_4,spec_5],labels,"tables/relative_demand.tex")
+results = [residual_test(panel_data,gd,p) for p in par_vec]
+
+
+writetable(par_vec,[update(se1,spec_1),update(se2,spec_1),update(se3,spec_2),update(se4,spec_3),update(se5,spec_4),update(se6,spec_5)],[spec_1,spec_1,spec_2,spec_3,spec_4,spec_5],labels,"tables/relative_demand.tex")

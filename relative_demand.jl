@@ -1,4 +1,4 @@
-using Parameters
+using Parameters, Distributions
 
 # note:
 # - the major steps here are calculating the residuals for relative demand given marital status and year, then interacting them with the appropriate instruments.
@@ -153,6 +153,29 @@ function calc_demand_resids!(it,R,data,pars)
         end
     end
 end
+
+# have to iterate over both
+function residual_test(data,gd,pars)
+    N = size(data,1)
+    N = gd.ngroups
+    R = zeros(N,5)
+    r = zeros(5)
+    for i=1:N
+        for it = gd.starts[i]:gd.ends[i]
+            r[:] .= 0.
+            calc_demand_resids!(it,r,data,pars)
+            if data.year[it]==1997
+                R[i,1] = r[1]
+            elseif data.year[it]==2002
+                R[i,2] = r[3] - r[4]
+            end
+        end
+    end
+    test_stat = sqrt(N)*mean(R[:,1].*R[:,2]) / std(R[:,1])*std(R[:,2])
+    pval = 2*cdf(Normal(),-abs(test_stat))
+    return test_stat,pval
+end
+
 
 # this function creates a stacked vector of moment conditions from a vector of residuals
 # -- it relies on the function gmap to tell it, given variables data at [it], which residuals to use, which instruments to use, and where to place them in the vector g
