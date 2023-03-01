@@ -1,7 +1,7 @@
 # Fdb version 3
-["pdflatex"] 1677264748 "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" "results_new.pdf" "results_new" 1677264748
+["pdflatex"] 1677265511 "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" "results_new.pdf" "results_new" 1677265511
   "../tables/relative_demand.tex" 1677264747 2625 6324ccdd0c75f9ef0bed4717871581d7 ""
-  "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" 1677263717 2582 0ccd853891eba7b57c8ec70da8ca3d18 ""
+  "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" 1677265511 2582 5947e1fca0fe8b105541183402315ea7 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
@@ -45,8 +45,8 @@
   "/usr/local/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1647878959 4410336 7d30a02e9fa9a16d7d1f8d037ba69641 ""
   "/usr/local/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1674674079 2826436 0d4a61304638bec2cd0360cc41b4a4c1 ""
   "/usr/local/texlive/2022/texmf.cnf" 1647878952 577 209b46be99c9075fd74d4c0369380e8c ""
-  "results_new.aux" 1677264748 669 3ab253af8d4e1cbc7e40b41dcd228d9b "pdflatex"
-  "results_new.tex" 1677263717 2582 0ccd853891eba7b57c8ec70da8ca3d18 ""
+  "results_new.aux" 1677265511 669 3ab253af8d4e1cbc7e40b41dcd228d9b "pdflatex"
+  "results_new.tex" 1677265511 2582 5947e1fca0fe8b105541183402315ea7 ""
   (generated)
   "results_new.aux"
   "results_new.log"

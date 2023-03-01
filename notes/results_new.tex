@@ -10,7 +10,7 @@
 \maketitle
 \section*{Preliminaries}
 \begin{itemize}
-    \item Let there be $N$ children indexed by $N$. Let $g(M_{n},Z_{n})$ indicate the moment conditions with marital status $M_{n}=1$ if married.
+    \item Let there be $N$ children indexed by $n$. Let $g(M_{n},Z_{n})$ indicate the moment conditions with marital status $M_{n}=1$ if married.
     \item Data used here is the same as the data from the first draft, not yet using the updated dataset.
 \end{itemize}
 
@@ -23,8 +23,8 @@ Results are slightly different to the draft (found some small errors there).
 \paragraph{Specifications (2)-(6)} arranges the moment function $g$ differently, without distinguishing by marital status (which is added to the set of instruments), and instead assigns values of zero to relative demand residuals that do not apply (those involving father's time) and sets values of instruments that do not apply (those involving father's education) to zero also. Remaining differences between specifications (2)-(6) pertain to observables that affect factor shares, which can be read from the table. In this version moments involving relative demand for childcare on mother's time, for example, will be found in the some position within $g$ regardless of marital status.
 
 \paragraph{Specifications (3)-(6)} use grouped fixed effect estimates from the mother's wage equation, assuming the model:
-\[ \log(W_{mt}) = \mu_{k(m)} + X_{it}\beta + \epsilon_{it} \]
-where $X_{it}$ includes education dummies, age and age squared, and $k(m)\in\{1,2,...,K\}$ is mother $m$'s type. It is estimated via an iterative clustering algorithm.
+\[ \log(W_{mt}) = \mu_{k(m)} + X_{mt}\beta + \epsilon_{mt} \]
+where $X_{mt}$ includes education dummies, age and age squared, and $k(m)\in\{1,2,...,K\}$ is mother $m$'s type. It is estimated via an iterative clustering algorithm.
 
 \paragraph{Specifications (3) and (4)} uses dummies for Types (2) and (3) from a clustering routine (using the above approach) with $K=3$, where types are sorted in ascending order by their estimated value $\mu_{k}$.
 
