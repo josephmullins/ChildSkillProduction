@@ -12,9 +12,17 @@
 \begin{itemize}
     \item Let there be $N$ children indexed by $n$. Let $g(M_{n},Z_{n})$ indicate the moment conditions with marital status $M_{n}=1$ if married.
     \item Data used here is the same as the data from the first draft, not yet using the updated dataset.
+    \item Let the vector of production parameters to be estimated be $(\rho,\gamma,\phi,\phi_{\theta},\delta)$ where $(\rho,\gamma)$ are the elasticity parameters, $\phi$ represents the coefficients on observables that determine the factor shares, $\phi_{\theta}$ is the vector of coefficients that determine $\theta$ (TFP), and $\delta$ is the vector of cobb-douglas factor shares in the outer aggregator.
+    \item We use $\tilde{\cdot}$ to indicate the \emph{perceived} value of a production parameter as it can be inferred from the demand system.
+    \item As in the original paper, we exploit that:
+     \[ \mathcal{J}_{n,t} = \Phi_{\mathcal{J},m}(\Pi_{n,t},Z_{n,t})\tau_{m,n,t},\ \mathcal{J}\in\{Y_{C},g,\tau_{f}\} \]
+    where $\Pi_{n,t}$ is the vector of prices for child $n$ at time $t$ and $Z_{n,t}$ is the vector of observables that can plausible shift factor shares. We suppress dependence of $\Phi$ on the parameters $(\tilde{\rho},\tilde{\gamma},\tilde{\phi})$.
 \end{itemize}
 
-\section*{Quick Summary of Specifications}
+\section*{Relative Demand: Quick Summary of Specifications}
+As before, relative demand is summarized by the parameters $(\tilde{\rho},\tilde{\gamma},\tilde{\phi})$ which can be estimated by forming moment conditions on the difference between observed input ratios and those predicted by prices (with deviations explained only by measurement error in inputs).
+
+We try a few specifications, as described below.
 
 \paragraph{Specification (1)} replicates the approach from the first draft of the paper, where moments for singled and married individuals are stacked on top of each other:
 \[ g(Z_{n}) = \left[\begin{array}{c}(1-M_{n})g(0,Z_{n}) \\ M_{n} g(1,Z_{n})\end{array}\right].\]
@@ -28,18 +36,55 @@ where $X_{mt}$ includes education dummies, age and age squared, and $k(m)\in\{1,
 
 \paragraph{Specifications (3) and (4)} uses dummies for Types (2) and (3) from a clustering routine (using the above approach) with $K=3$, where types are sorted in ascending order by their estimated value $\mu_{k}$.
 
+Results are reported in Table \ref{res1} below.
+
 \paragraph{Specifications (5) and (6)} instead uses the estimated value of $\mu_{k(m)}$ for each $m$, with $K=10$.
 
+\subsection*{Testing correlation in residuals}
+Assuming that measurement error is not correlated over time, any correlation in the relative demand residuals over time can be explained by persistent unobserved heterogeneity in demand. The results below report a simple test of the null hypothesis that no such heterogeneity exists, which implies that the test statistic:
+\[ T_{N} = \sqrt{N}\frac{\sum_{n}\xi_{Y,m,n,0}\xi_{Y,m,n,5}}{\sqrt{s^2_{Y,m,0}s^2_{Y,m,5}}} \]
+is asymptotically standard normal under the null. Here, $\xi_{Y,m,n,t}$ is the residual in the demand for childcare relative to mother's time for child $n$ at time $t$ and $s^2_{Y,m,t}$ is the corresponding sample variance across individuals.
 
-\section*{Estimation Results}
+\section*{Adding Skill Outcomes}
+
+Next, the intertemporal moment conditions are expanded to include intertemporal moment conditions on skill outcomes. Differently from the original approach, the overall input $X_{n,t}$ must be imputed using separate relative demand parameters. For the case of single mothers (for example) this is:
+
+\[ X_{n,t}(\Pi_{n,t}) = \left(\left(a_{m}(\phi_{m},Z_{n,t}) + a_{g,t}(\phi_{g},Z_{n,t})\Phi_{g,m}(\Pi_{n,t},Z_{n,t})^\rho\right)^{\gamma/
+\rho} + \Phi_{Y,m}(\Pi_{n,t},Z_{n,t})^\gamma\right)^{1/\gamma}\tau_{m,n,t}
+ \]
+where the $\Phi$ functions depend on the perceived production parameters $(\tilde{\rho},\tilde{\gamma},\tilde{\phi})$ and total investment additional depends on the true values of these parameters. For simplicity, let $\kappa=(\phi_{m},\phi_{f},\phi_{g},\rho,\gamma)$, so we can write:
+\[ X_{n,t} = \mathcal{X}(\Pi_{n,t},Z_{n,t},\tilde{\kappa},\kappa)\tau_{m,n,t}.\]
+As in the previous draft, we must iterate the outcome equation forward and using a modeling assumption to impute investment in missing periods. Let $\overline{p}(\Pi_{n,t},Z_{n,t},\tilde{\kappa})$ indicate the \emph{perceived} composite price of $X$. In the case of no binding borrowing constraints (for example), will result in a final estimating equation:
+
+\[\lambda^{-1}_{S}S_{n,5} = Z_{n,0}\tilde{\phi}_\theta + \sum_{t=0}^4\delta_{2}^{4-t}\delta_{1}\ln\left(\frac{\overline{p}(\Pi_{n,0},Z_{n,0},\tilde{\kappa})\mathcal{X}(\Pi_{n,t},Z_{n,t},\tilde{\kappa},\kappa)\tau^0_{m,n,0}}{\overline{p}(\Pi_{n,t},Z_{n,t}\tilde{\kappa})}\right) + \delta^5_{2}\lambda_{S}^{-1}S_{n,0} + \xi_{S,n} \]
+where $\xi_{S,n}$ collects measurement error in $\tau_{m,n,0}$ as well as measurement error in $S_{n,5}$ and $S_{n,0}$. To account for measurement error in both time investment and skills, future observations of time investment ($\tau_{m,n,5}$) are used to instrument for $\tau_{m,n,0}$, and the second measure of skills (applied problems if letter-word is used as the outcome, and vice versa) is used to instrument for the outcome score.
+
+\subsection*{Note on testing}
+To test the cross-equation restrictions that $\kappa=\tilde{\kappa}$, we estimate the unrestricted version of the model by adding the intertemporal moment conditions to those using relative demand, and exploit that under the null:
+\[ N(\hat{\tilde{\kappa}} - \hat{\kappa})^{T}(\hat{V}_{\tilde{\kappa}} + \hat{V}_{\tilde{\kappa}} -2\hat{V}_{\kappa,\tilde{\kappa}^{T}})^{-1}(\hat{\tilde{\kappa}} - \hat{\kappa}) \rightarrow_{d}\chi^2_{p} \]
+where $p$ is the number of members of $\kappa$ and $V_{\kappa}$ is the asymptotic variance of $\hat{\kappa}$, $V_{\tilde{\kappa}}$ is the asymptotic variance of $\hat{\tilde{\kappa}}$, and $V_{\kappa,\tilde{\kappa}^{T}}$ is the asymptotic covariance.
+
+Assuming failure of the test above, I will also plan to test a subset of the restrictions by excluding the intercept terms in each of ($\phi_{m},\phi_{f},\phi_{g}$) and their perceived counterparts.
+
+
 
 \newgeometry{top=0in}
-\begin{table}\footnotesize\caption{GMM Estimation of Relative Demand System}
+\begin{table}\footnotesize\caption{\label{res1}GMM Estimation of Relative Demand System}
     \begin{center}
         \input{../tables/relative_demand}
         \captionsetup{width=0.7\textwidth}
         %\caption*{Summary of Specifications Goes Here}
     \end{center}
-    \end{table}
+\end{table}
+
+
 \end{document}
 
+
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

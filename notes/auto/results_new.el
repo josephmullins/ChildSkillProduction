@@ -3,10 +3,11 @@
  (lambda ()
    (TeX-run-style-hooks
     "latex2e"
-    "output"
+    "../tables/relative_demand"
     "article"
     "art10"
     "booktabs"
-    "caption"))
+    "caption"
+    "geometry"))
  :latex)
 
