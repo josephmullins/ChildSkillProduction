@@ -76,6 +76,8 @@ panel_data[!,:logprice_f_g] = panel_data.logwage_f .- panel_data.logprice_g
 #select!(panel_data,Not(:age))
 #panel_data = innerjoin(panel_data,ind_data[:,[:KID,:age]],on=:KID)
 
+
+break
 # ----------------------------- #
 
 #---- write the update function:

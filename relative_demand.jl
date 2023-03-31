@@ -76,46 +76,6 @@ function factor_shares(pars,data,it,mar_stat)
     end 
 end
 
-#function:
-# suppose 97 and 02 are uncorrelated
-#
-# use different ratios (right now must code a different function)
-# recall: 97: use c/m,f/m 
-# recall: 02: use c/m,f/m,c/g,m/g,f/g
-function calc_demand_resids!(it,R97,R02,data,pars)
-    lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars,data,it) #<- does this factor in missing data?
-    if data.year[it]==1997
-        if !ismissing(data.log_mtime[it]) & !ismissing(data.logwage_m[it])
-            if !ismissing(data.log_chcare[it])
-                R97[1] = data.log_chcare[it] - data.log_mtime[it] - (lϕc - lϕm) - data.logprice_c[it]
-            end
-            if !ismissing(data.log_ftime[it]) #<- what about missing prices?
-                R97[2] = data.log_ftime[it] - data.log_mtime[it] - (lϕf - lϕm)
-            end
-        end
-    # recall: 02: use c/m,f/m,c/g,m/g,f/g
-    elseif data.year[it]==2002
-        if !ismissing(data.log_mtime[it]) & !ismissing(data.logwage_m[it])
-            if !ismissing(data.log_chcare[it])
-                R02[1] = data.log_chcare[it] - data.log_mtime[it] - (lϕc - lϕm) - data.logprice_c[it]
-            end
-            if !ismissing(data.log_ftime[it]) #<- what about missing prices?
-                R02[2] = data.log_ftime[it] - data.log_mtime[it] - (lϕf - lϕm)
-            end
-        end
-        if !ismissing(data.log_good[it])
-            if !ismissing(data.log_chcare[it])
-                R02[3] = data.log_chcare[it] - data.log_good[it] - lϕc - (data.logprice_c[it] - data.logprice_g[it])
-            end
-            if !ismissing(data.log_mtime[it]) #& !ismissing(data.logwage_m[it]) #<- include for missing wage?
-                R02[4] = data.log_mtime[it] - data.log_good[it] - lϕm + data.logprice_g[it]
-            end
-            if !ismissing(data.log_ftime[it]) #& !ismissing(data.logwage_f[it]) #<- include for missing wage?
-                R02[5] = data.log_ftime[it] - data.log_good[it] - lϕf + data.logprice_g[it]
-            end
-        end
-    end
-end
 
 # this function calculates residuals in relative demand after checking that the data are available
 function calc_demand_resids!(it,R,data,pars)
