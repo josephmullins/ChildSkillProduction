@@ -144,19 +144,23 @@ function demand_moments_stacked!(pars,n,g,R,data,spec)
     # --- 1997 relative demand moments
     it = (n-1)*6 + 1
     R[:] .= 0.
-    calc_demand_resids!(it,R,data,pars)
-    resids = view(R,[1])
-    g_it = view(g,spec.g_idx_97)
-    stack_moments!(g_it,resids,data,spec.zlist_97,it)
+    if data.prices_observed[it]
+        calc_demand_resids!(it,R,data,pars)
+        resids = view(R,[1])
+        g_it = view(g,spec.g_idx_97)
+        stack_moments!(g_it,resids,data,spec.zlist_97,it)
+    end
 
     # --- 2002 relative demand moments
     it = n*6 
     r_idx = [4,5,3,1]
     R[:] .= 0.
-    calc_demand_resids!(it,R,data,pars)
-    resids = view(R,r_idx)
-    g_it = view(g,spec.g_idx_02)
-    stack_moments!(g_it,resids,data,spec.zlist_02,it)
+    if data.prices_observed[it]
+        calc_demand_resids!(it,R,data,pars)
+        resids = view(R,r_idx)
+        g_it = view(g,spec.g_idx_02)
+        stack_moments!(g_it,resids,data,spec.zlist_02,it)
+    end
 end
 
 

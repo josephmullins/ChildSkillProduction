@@ -51,10 +51,26 @@ panel_data[!,:log_ftime] = panel_data.log_ftime .- panel_data.logwage_f
 # --- we want to think aboyt how else to do this potentially
 # -- example: build in a missing data check in the moment function
 
-#panel_data = panel_data[.!ismissing.(panel_data.mar_stat),:]
+# STEP (1) impute m_ed using previous year for all observations
+N = length(unique(panel_data.KID))
+for n=1:N
+    it_97 = (n-1)*6 + 1
+    it_02 = n*6
+    it_01 = n*6 - 1
+    panel_data.m_ed[it_02] = panel_data.m_ed[it_01]
+    ii = ((n-1)*6 + 2):it_02
+    panel_data.age[ii] .= panel_data.age[it_97] .+ collect(1:5)
+end
+
+# STEP (2)
+
 panel_data = panel_data[.!ismissing.(panel_data.price_g),:] #<- drop observations with missing prices (goods)
 panel_data = panel_data[.!ismissing.(panel_data.m_wage),:] #<- drop observations with missing prices (mother's wage)
 panel_data = panel_data[.!(panel_data.mar_stat .& ismissing.(panel_data.f_wage)),:] #<- drop with missing prices (father's wage)
+panel_data = panel_data[panel_data.price_missing.==0,:]
+
+panel_data[!,:prices_observed] = .!panel_data.price_missing
+
 # panel_data[!,:goods] = panel_data.Toys .+ panel_data.tuition .+ panel_data.comm_grps .+ panel_data.lessons .+ panel_data.tutoring .+ panel_data.sports .+ panel_data.SchSupplies
 # panel_data[!,:log_good] = replace(log.(panel_data.goods),-Inf => missing)
 panel_data.m_ed = replace(panel_data.m_ed,">16" => "16","<12" => "12") #<-  simplify the education categories
@@ -62,11 +78,9 @@ panel_data.f_ed = replace(panel_data.f_ed,">16" => "16","<12" => "12")
 m_ed = make_dummy(panel_data,:m_ed)
 f_ed = make_dummy(panel_data,:f_ed)
 panel_data[.!panel_data.mar_stat,f_ed] .= 0. #<- make zero by default. this won't work all the time
-panel_data = panel_data[.!ismissing.(panel_data.age),:]
 panel_data.logwage_f = coalesce.(panel_data.logwage_f,0) #<- make these into zeros to avoid a problem with instruments
 panel_data[!,:div] = .!panel_data.mar_stat
 panel_data[!,:const] .= 1.
-panel_data = panel_data[panel_data.price_missing.==0,:]
 #panel_data = subset(panel_data,:year => x->(x.==1997) .| (x.==2002)) #<- for now, limit to years 1997 and 2002
 
 # ordering of residuals: c/m,f/m,c/g,m/g,f/g
@@ -78,9 +92,6 @@ panel_data[!,:logprice_c_g] = panel_data.logprice_c .- panel_data.logprice_g
 panel_data[!,:logprice_m_g] = panel_data.logwage_m .- panel_data.logprice_g
 panel_data[!,:logprice_f_g] = panel_data.logwage_f .- panel_data.logprice_g
 
-# overwrite age and marital status to see if this gets old estimates back
-#select!(panel_data,Not(:age))
-#panel_data = innerjoin(panel_data,ind_data[:,[:KID,:age]],on=:KID)
 
 
 break
@@ -117,25 +128,30 @@ function initial_guess(spec)
 end
 
 
-gfunc!(x,n,g,resids,data,gd,gmap,spec) = demand_moments_stacked!(update(x,spec),n,g,resids,data,spec)
+gfunc!(x,n,g,resids,data,spec) = demand_moments_stacked!(update(x,spec),n,g,resids,data,spec)
 
+n97 = length(spec_1.vg) + 1 
+n02 = (length(spec_1.vg)+1)*2 + length(spec_1.vf) + length(spec_1.vm) + 2
+nmom = n97+n02
+W = I(nmom)
+
+g = zeros(nmom)
+resids = zeros(5)
+
+# TODO: test the function gfunc! on x0
+x0 = initial_guess(spec_1)
+
+
+@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_1)
+
+#res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1)
+
+break
 # all of the specifications here calculate moments using the child as the observational unit
 gd = groupby(panel_data,:KID)
 
 
 # Specification (1): spec_1 with version_1 of moments
-x0 = initial_guess(spec_1)
-
-n97s = length(spec_1.vm)
-n02s = length(spec_1.vm)*3
-n97m = length(spec_1.vg)
-n02m = length(spec_1.vg)*2 + length(spec_1.vm) + length(spec_1.vf) + 1
-nmom = n97s+n02s+n97m+n02m
-N = length(unique(panel_data.KID))
-W = I(nmom)
-
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v1,spec_1)
-res1,se1 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v1,spec_1)
 
 # Specification (2): spec_1 with version_2 of moments
 n97 = length(spec_1.vg) + 1 
@@ -143,8 +159,8 @@ n02 = (length(spec_1.vg)+1)*2 + length(spec_1.vf) + length(spec_1.vm) + 2
 nmom = n97+n02
 W = I(nmom)
 
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v2,spec_1)
-res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_1)
+@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_1)
+res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1)
 
 # Specification (3): spec_2 with version_2 of moments
 x0 = initial_guess(spec_2)
