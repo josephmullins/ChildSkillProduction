@@ -138,21 +138,27 @@ end
 
 
 # this function creates a stacked vector of moment conditions from a vector of residuals
-# -- it relies on the function gmap to tell it, given variables data at [it], which residuals to use, which instruments to use, and where to place them in the vector g
-#
-# this version does the same but assumes that the function spits out the list of instruments instead of an index for existing instruments
-# args... contains all the arguments that might potentially be needed by the function gmap
-function demand_moments_stacked!(pars,n,g,R,data,gd,gmap,args...)
-    for it=gd.starts[n]:gd.ends[n]
-        R[:] .= 0.
-        g_idx,zlist,r_idx = gmap(data,it,args...) #<- returns which part of g to write to, which instruments to use, and which residuals to use, based on [it] observables. Not all residuals are calculated or used for each observation.
-        calc_demand_resids!(it,R,data,pars)
-        resids = view(R,r_idx)
-        g_it = view(g,g_idx)
-        stack_moments!(g_it,resids,data,zlist,it)
-    end
+function demand_moments_stacked!(pars,n,g,R,data,spec)
+    # assume a balanced panel of observations
+
+    # --- 1997 relative demand moments
+    it = (n-1)*6 + 1
+    R[:] .= 0.
+    calc_demand_resids!(it,R,data,pars)
+    resids = view(R,[1])
+    g_it = view(g,spec.g_idx_97)
+    stack_moments!(g_it,resids,data,spec.zlist_97,it)
+
+    # --- 2002 relative demand moments
+    it = n*6 
+    r_idx = [4,5,3,1]
+    R[:] .= 0.
+    calc_demand_resids!(it,R,data,pars)
+    resids = view(R,r_idx)
+    g_it = view(g,spec.g_idx_02)
+    stack_moments!(g_it,resids,data,spec.zlist_02,it)
 end
-# thought: this can be a general function in estimation_tools by requiring residuals be calculated elsewhere
+
 
 
 # functions below for the nonlinear least squares estimator. Possibly deprecated.: 

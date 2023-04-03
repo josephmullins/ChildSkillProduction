@@ -14,6 +14,7 @@ nclusters = 3
 
 # -- Read in wage data from the mother's panel;
 wage_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/MotherPanelCDS.csv",missingstring = "NA"))
+wage_data = subset(wage_data,:m_wage => x->x.>0,skipmissing=true)
 wage_data[!,:logwage_m] = log.(wage_data.m_wage)
 wage_data[!,:age_sq] = wage_data.age_mother.^2
 wage_data[!,:const] .= 1.
@@ -45,6 +46,11 @@ panel_data[!,:logprice_c] = log.(panel_data.p_4f) # alternative is p_4c
 panel_data[!,:log_mtime] = panel_data.log_mtime .- panel_data.logwage_m
 panel_data[!,:log_ftime] = panel_data.log_ftime .- panel_data.logwage_f
 
+
+# in this section we drop for missing variables and this makes the panel unbalanced.
+# --- we want to think aboyt how else to do this potentially
+# -- example: build in a missing data check in the moment function
+
 #panel_data = panel_data[.!ismissing.(panel_data.mar_stat),:]
 panel_data = panel_data[.!ismissing.(panel_data.price_g),:] #<- drop observations with missing prices (goods)
 panel_data = panel_data[.!ismissing.(panel_data.m_wage),:] #<- drop observations with missing prices (mother's wage)
@@ -61,7 +67,7 @@ panel_data.logwage_f = coalesce.(panel_data.logwage_f,0) #<- make these into zer
 panel_data[!,:div] = .!panel_data.mar_stat
 panel_data[!,:const] .= 1.
 panel_data = panel_data[panel_data.price_missing.==0,:]
-panel_data = subset(panel_data,:year => x->(x.==1997) .| (x.==2002)) #<- for now, limit to years 1997 and 2002
+#panel_data = subset(panel_data,:year => x->(x.==1997) .| (x.==2002)) #<- for now, limit to years 1997 and 2002
 
 # ordering of residuals: c/m,f/m,c/g,m/g,f/g
 # -- make some price ratios to pass as instruments:
@@ -111,7 +117,7 @@ function initial_guess(spec)
 end
 
 
-gfunc!(x,n,g,resids,data,gd,gmap,spec) = demand_moments_stacked!(update(x,spec),n,g,resids,data,gd,gmap,spec)
+gfunc!(x,n,g,resids,data,gd,gmap,spec) = demand_moments_stacked!(update(x,spec),n,g,resids,data,spec)
 
 # all of the specifications here calculate moments using the child as the observational unit
 gd = groupby(panel_data,:KID)
