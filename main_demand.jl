@@ -64,10 +64,10 @@ end
 
 # STEP (2)
 
-panel_data = panel_data[.!ismissing.(panel_data.price_g),:] #<- drop observations with missing prices (goods)
-panel_data = panel_data[.!ismissing.(panel_data.m_wage),:] #<- drop observations with missing prices (mother's wage)
-panel_data = panel_data[.!(panel_data.mar_stat .& ismissing.(panel_data.f_wage)),:] #<- drop with missing prices (father's wage)
-panel_data = panel_data[panel_data.price_missing.==0,:]
+# panel_data = panel_data[.!ismissing.(panel_data.price_g),:] #<- drop observations with missing prices (goods)
+# panel_data = panel_data[.!ismissing.(panel_data.m_wage),:] #<- drop observations with missing prices (mother's wage)
+# panel_data = panel_data[.!(panel_data.mar_stat .& ismissing.(panel_data.f_wage)),:] #<- drop with missing prices (father's wage)
+# panel_data = panel_data[panel_data.price_missing.==0,:]
 
 panel_data[!,:prices_observed] = .!panel_data.price_missing
 
@@ -144,7 +144,7 @@ x0 = initial_guess(spec_1)
 
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_1)
 
-#res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1)
+res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1)
 
 break
 # all of the specifications here calculate moments using the child as the observational unit
