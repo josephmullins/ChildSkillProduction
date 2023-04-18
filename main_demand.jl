@@ -45,7 +45,8 @@ panel_data[!,:logprice_c] = log.(panel_data.p_4f) # alternative is p_4c
 #panel_data[!,:log_chcare] = replace(log.(panel_data.chcare),-Inf => missing)
 panel_data[!,:log_mtime] = panel_data.log_mtime .- panel_data.logwage_m
 panel_data[!,:log_ftime] = panel_data.log_ftime .- panel_data.logwage_f
-
+# NOTE: need to fix this so it is missing for married couples if father's wage is missing
+panel_data[!,:log_total_income] = log.(panel_data.m_wage .+ coalesce.(panel_data.f_wage,0))
 
 # in this section we drop for missing variables and this makes the panel unbalanced.
 # --- we want to think aboyt how else to do this potentially

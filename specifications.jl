@@ -9,7 +9,7 @@ function build_spec(spec)
     g_idx_02 = (n97+1):(n97+n02)
     zlist_02 = [(spec.vm...,:logprice_m_g),
     (spec.vf...,:logprice_f_g),
-    (spec.vg...,:logprice_c_g),
+    (spec.vg...,:logprice_c_g), #<= here we are assuming that spec.vg ⊃ spec.vm and spec.vf
     (spec.vg...,:logprice_c_m)]
     return (vm = spec.vm, vf = spec.vf, vθ = spec.vθ, vg = spec.vg,
     g_idx_97 = g_idx_97, zlist_97 = zlist_97,
