@@ -51,5 +51,29 @@ spec_5 = build_spec((vm = [:mar_stat;:div;:mu_k;m_ed[2:3];:age;:num_0_5],
         vg = [:mar_stat;:div;:mu_k;m_ed[2:3];f_ed[2:3];:age;:num_0_5]))
 
 
-# a second helper function that inherits a specification for relative demand and adds details for production given a list of instruments
-
+# a second helper function that builds a specification as above, but does so including info relevant to production
+function build_spec_prod(spec)
+        n97 = length(spec.vg)+1
+        n02 = (length(spec.vg)+1)*2 + length(spec.vf) + length(spec.vm) + 2
+        g_idx_97 = 1:n97
+        zlist_97 =  [(spec.vg...,:logprice_c_m)]
+        g_idx_02 = (n97+1):(n97+n02)
+        zlist_02 = [(spec.vm...,:logprice_m_g),
+        (spec.vf...,:logprice_f_g),
+        (spec.vg...,:logprice_c_g), #<= here we are assuming that spec.vg ⊃ spec.vm and spec.vf
+        (spec.vg...,:logprice_c_m)]
+        # create the positions in which to write moments for each t
+        g_idx_prod = []
+        gpos = (n97+n02)
+        for t in eachindex(spec.zlist_prod)
+                K = sum(length(z) for z in spec.list_prod[t]) #<- number of moments
+                push!(g_idx_prod,gpos+1:gpos+K)
+                gpos += K
+        end
+        return (vm = spec.vm, vf = spec.vf, vθ = spec.vθ, vg = spec.vg,
+        g_idx_97 = g_idx_97, zlist_97 = zlist_97,
+        g_idx_02 = g_idx_02, zlist_02 = zlist_02,
+        g_idx_prod = g_idx_prod,zlist_prod_t = spec.zlist_prod_t,zlist_prod = spec.zlist_prod
+        )
+end
+# NEXT: test the moment functions with all of this
