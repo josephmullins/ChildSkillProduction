@@ -83,4 +83,18 @@ end
 # notes: results_new.pdf describes how to calculate X
 
 function calc_Φ_m(pars1,pars2,data,it)
+    
+    lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it) #relative input ratios from perceived parameters
+    lΦY = log(Φg) + lϕc #is this correct??
+    
+    @unpack ρ,γ = pars2 #implied 
+    ag,am,af = factor_shares(pars2,data,it,true)
+
+    #g_t = Φg*τ_{m,t}, τ_{m,t} = g_t/Φg
+    #not sure I'm interpreting these equations correctly/might be combining equations I'm not supposed to be
+    Φm = ((am+ag*Φg^ρ)^(γ/ρ)+exp(lΦY)^γ)^(1/γ) #here I have X_{t}/τ_{m,t} as  composite investment relative to mothers time = Φm
+
+    lΦm=log(Φm) 
+
+    return lΦm,log_price_index
 end
