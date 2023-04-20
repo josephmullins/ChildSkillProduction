@@ -47,14 +47,24 @@ function production_demand_moments_stacked!(pars,n,g,R,data,spec,savings=true)
 
 end
 
+# this function requires the following elements in the specification, spec:
+# - z_list_prod_t: a collection of time indices that indicate which time periods each set of instruments come from
+# - z_list_prod: a collection of collections (of collections) of instrument names for each time period in z_list_prod_t for each residual
+# - g_idx_prod: a collection of unit ranges that indicate where stacked_moments should write to for each t
+# example: suppose we want to use AP in 97 and tau_m in 02 for R[1] and LW in 97 and tau_m in 02 for R[2], and just a constant for R[3] and R[4], then we would have:
+ # zlist_prod_t = [0,5]
+ # zlist_prod = ([[:AP],[:LW]],[[:tau_m],[:tau_m]]) # let's check this
 function production_moments_stacked!(pars,n,g,R,data,spec,savings=true)
     R[:] .= 0.
     it97 = (n-1)*6+1
     if data.all_prices[it97]
         calc_production_resids!(n,R,data,pars,savings)
         resids = view(R,1:4)
-        g_n = view(g,spec.g_idx_prod)
-        stack_moments!(g_n,resids,data,spec.zlist_prod,it97)
+        for j in eachindex(spec.zlist_prod)
+            g_n = view(g,spec.g_idx_prod[j])
+            it = it97 + spec.zlist_prod_t[j]
+            stack_moments!(g_n,resids,data,spec.zlist_prod[j],it)
+        end
     end
 end
 

@@ -51,4 +51,5 @@ spec_5 = build_spec((vm = [:mar_stat;:div;:mu_k;m_ed[2:3];:age;:num_0_5],
         vg = [:mar_stat;:div;:mu_k;m_ed[2:3];f_ed[2:3];:age;:num_0_5]))
 
 
+# a second helper function that inherits a specification for relative demand and adds details for production given a list of instruments
 
