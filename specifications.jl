@@ -51,6 +51,8 @@ spec_5 = build_spec((vm = [:mar_stat;:div;:mu_k;m_ed[2:3];:age;:num_0_5],
         vg = [:mar_stat;:div;:mu_k;m_ed[2:3];f_ed[2:3];:age;:num_0_5]))
 
 
+
+
 # a second helper function that builds a specification as above, but does so including info relevant to production
 function build_spec_prod(spec)
         n97 = length(spec.vg)+1
@@ -66,7 +68,7 @@ function build_spec_prod(spec)
         g_idx_prod = []
         gpos = (n97+n02)
         for t in eachindex(spec.zlist_prod)
-                K = sum(length(z) for z in spec.list_prod[t]) #<- number of moments
+                K = sum(length(z) for z in spec.zlist_prod[t]) #<- number of moments
                 push!(g_idx_prod,gpos+1:gpos+K)
                 gpos += K
         end
@@ -77,3 +79,13 @@ function build_spec_prod(spec)
         )
 end
 # NEXT: test the moment functions with all of this
+
+# using cluster dummies and using just prices in 97 as production instruments:
+spec_1p =  build_spec_prod((vm = [:mar_stat;:div;cluster_dummies[2:nclusters];:age;:num_0_5],
+vf = [:const;f_ed[2:3];:age;:num_0_5],
+vθ = [:const;:mar_stat;:age;cluster_dummies[2:nclusters];:num_0_5],
+vg = [:mar_stat;:div;cluster_dummies[2:nclusters];f_ed[2:3];:age;:num_0_5],
+zlist_prod_t = [0,5],
+zlist_prod = [[[:vθ;:logprice_c_g;:logprice_m_g;:logprice_f_g;:AP],[:vθ;:logprice_c_g;:logprice_m_g;:logprice_f_g;:LW],[:const],[:const]],[[:tau_m],[:tau_m],[nothing],[nothing]]])
+)
+
