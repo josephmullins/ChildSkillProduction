@@ -131,6 +131,10 @@ end
 
 gfunc!(x,n,g,resids,data,spec) = demand_moments_stacked!(update(x,spec),n,g,resids,data,spec)
 
+# call this function instead and get it to work using a production specification
+production_moments_stacked!(update(x,spec),n,g,resids,data,spec)
+
+
 n97 = length(spec_1.vg) + 1 
 n02 = (length(spec_1.vg)+1)*2 + length(spec_1.vf) + length(spec_1.vm) + 2
 nmom = n97+n02

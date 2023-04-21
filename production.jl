@@ -2,7 +2,6 @@
 
 
 # TODO:
-# push then switch to new branch for these edits
 
 # then write to add production moments to the bottom
 #   - need to add some version of prices!
@@ -18,7 +17,7 @@
 function calc_production_resids!(n,R,data,pars,savings=true)
     it97 = (n-1)*6 + 1
     it02 = n*6
-
+    # this function call is assumed to return a coefficient lΦm where $X_{it} = τ_{m,it} / exp(lΦm)
     lΦm,log_price_97 = calc_Φ_m(pars,data,it97)
     lX97 = data.log_mtime[it97] - lΦm
     Ψ0 = pars.δ[1]*pars.δ[2]^4*lX97
@@ -82,19 +81,26 @@ end
 # notes: log_input_ratios will return input ratios relative to goods
 # notes: results_new.pdf describes how to calculate X
 
+# function to return lΦm where X_{i,t} = τ_{m} / exp(lΦm)
 function calc_Φ_m(pars1,pars2,data,it)
     
     lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it) #relative input ratios from perceived parameters
-    lΦY = log(Φg) + lϕc #is this correct??
+    # lϕm is log(mother's time / goods)
+    # so exp(-lϕm) is goods / mother's time
+    # lϕc is log(childcare / goods) so 
+    # lϕc - lϕm is log(childcare / mother's time)
     
     @unpack ρ,γ = pars2 #implied 
     ag,am,af = factor_shares(pars2,data,it,true)
 
     #g_t = Φg*τ_{m,t}, τ_{m,t} = g_t/Φg
     #not sure I'm interpreting these equations correctly/might be combining equations I'm not supposed to be
-    Φm = ((am+ag*Φg^ρ)^(γ/ρ)+exp(lΦY)^γ)^(1/γ) #here I have X_{t}/τ_{m,t} as  composite investment relative to mothers time = Φm
-
-    lΦm=log(Φm) 
+    if data.mar_stat[it]
+        Φm = ((am + af*exp(lϕf - lϕm)^ρ + ag*exp(-lϕm)^ρ)^(γ/ρ)+exp(lϕc - lϕm)^γ)^(1/γ)
+    else
+        Φm = ((am+ag*exp(-lϕm)^ρ)^(γ/ρ)+exp(lϕc - lϕm)^γ)^(1/γ) #here I have X_{t}/τ_{m,t} as  composite investment relative to mothers time = Φm
+    end
+    lΦm=-log(Φm) 
 
     return lΦm,log_price_index
 end
