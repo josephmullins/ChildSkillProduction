@@ -7,7 +7,6 @@ using Parameters, Distributions
 # (2) to change how the moments are arranged flexibly
 # - the function demand_moments_stacked calculates the moments by calling
 # - the key is that this function uses an input function *gmap*: a function that tells demand_moments_stacked where to write the moments, which residuals to use, and which instruments to use for each residual given the year and marital status of the individual. The gmap function must be written specially for each specification
-# - is this the best way to do it?
 
 
 @with_kw struct CESmod
@@ -46,8 +45,7 @@ function log_input_ratios(ρ,γ,ay,am,ag,logwage_m,logprice_g,logprice_c)
     return lϕm,lϕc,log_price_index,Φg
 end
 
-# QUESTION: how do we want to do this?
-# splitting the dataframe may slow us down a lot
+# a function that uses the functions above depending on marital status (and whether data are available?)
 function log_input_ratios(pars,data,it)
     @unpack ρ,γ = pars
     if data.mar_stat[it]
@@ -77,7 +75,9 @@ function factor_shares(pars,data,it,mar_stat)
 end
 
 
-# this function calculates residuals in relative demand after checking that the data are available
+# this function calculates residuals in relative demand 
+# TODO: compare to version with relative expenditures
+# NOTE: this does not check if data are available, that must be checked before calling this function
 function calc_demand_resids!(it,R,data,pars)
     lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars,data,it) #<- does this factor in missing data?
     # in 97: c/m, f/m (no goods available in 97)
@@ -114,22 +114,19 @@ function calc_demand_resids!(it,R,data,pars)
     end
 end
 
-# have to iterate over both
-function residual_test(data,gd,pars)
-    N = size(data,1)
-    N = gd.ngroups
+# residual test
+function residual_test(data,N,pars)
     R = zeros(N,5)
     r = zeros(5)
-    for i=1:N
-        for it = gd.starts[i]:gd.ends[i]
-            r[:] .= 0.
-            calc_demand_resids!(it,r,data,pars)
-            if data.year[it]==1997
-                R[i,1] = r[1]
-            elseif data.year[it]==2002
-                R[i,2] = r[3] - r[4]
-            end
-        end
+    for n=1:N
+        it97 = (n-1)*6 + 1
+        r[:] .= 0.
+        calc_demand_resids!(it97,r,data,pars)
+        R[i,1] = r[1]
+        it02 = n*6
+        r[:] .= 0.
+        calc_demand_resids!(it02,r,data,pars)
+        R[i,2] = r[3] - r[4]
     end
     test_stat = sqrt(N)*mean(R[:,1].*R[:,2]) / std(R[:,1])*std(R[:,2])
     pval = 2*cdf(Normal(),-abs(test_stat))
@@ -161,33 +158,4 @@ function demand_moments_stacked!(pars,n,g,R,data,spec)
         g_it = view(g,spec.g_idx_02)
         stack_moments!(g_it,resids,data,spec.zlist_02,it)
     end
-end
-
-
-
-# functions below for the nonlinear least squares estimator. Possibly deprecated.: 
-function weighted_nlls(P,W97,W02,data)
-    ssq = 0
-    r97 = zeros(typeof(P.βm[1]),2)
-    r02 = zeros(typeof(P.βm[2]),5)
-    gd = groupby(data,:KID)
-    for i in 1:gd.ngroups
-        #println(i)
-        r97[:] .= 0.
-        r02[:] .= 0.
-        for it in gd.starts[i]:gd.ends[i]
-            calc_demand_resids!(it,r97,r02,data,P)
-        end
-        ssq += r97'*W97*r97 + r02'*W02*r02
-    end
-    return ssq/gd.ngroups
-end
-
-function weighted_nlls(gd,i,P,W97,W02,data)
-    r97 = zeros(typeof(P.ρ),2)
-    r02 = zeros(typeof(P.ρ),5)
-    for it in gd.starts[i]:gd.ends[i]
-        calc_demand_resids!(it,r97,r02,data,P)
-    end
-    return r97'*W97*r97 + r02'*W02*r02
 end

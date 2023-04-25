@@ -3,7 +3,8 @@ using Optim
 include("estimation_tools.jl")
 include("relative_demand.jl")
 
-
+d = DataFrame(CSV.File("/Users/joseph/Dropbox/PSID_CDS/data-derived/psid_fam.csv"))
+break
 
 # --------  read in the data:
 # -- For now, we're using the old data. A task is to replicate how these data were created
