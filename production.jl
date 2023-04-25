@@ -29,7 +29,7 @@ function calc_production_resids!(n,R,data,pars,savings=true)
             Ψ0 += pars.δ[1]*pars.δ[2]^(4-t)*(data.log_total_income - log_price_index) #<- assume that father's log wage is coded as zero for single parents
         end
     end
-    Ψ0 += linear_combination(pars.βθ,spec.vm,data,it)
+    Ψ0 += linear_combination(pars.βθ,spec.vθ,data,it)
     R[1] = data.AP[it02] / pars.λ - Ψ0 - pars.δ[2]^5 * data.AP[it97] / pars.λ
     R[2] = data.LW[it02] - Ψ0 - pars.δ[2]^5 * data.LW[it97]
     R[3] = (data.AP[it02] - pars.λ*data.LW[it02])*data.LW[it97]
