@@ -19,7 +19,7 @@ using Parameters, Distributions
     βf = zeros(2)
     βg = zeros(2)
     βθ = zeros(2)
-    spec = (vm = [:const,:mar_stat],vf = [:const],vθ = [:const,:mar_stat],vg = [:const,:mar_stat])
+    spec = (vm = [:constant,:mar_stat],vf = [:constant],vθ = [:constant,:mar_stat],vg = [:constant,:mar_stat])
 end
 
 function CESmod(spec)

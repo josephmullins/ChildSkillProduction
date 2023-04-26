@@ -53,7 +53,7 @@ end
 # when a M-vector of resids, *resid*, must be interacted with M different sets of instruments and stacked.
 
 # this version assumes we have the residuals already. I think this is better
-function stack_moments!(g,rvec,data,z_vars,n)
+function stack_moments!(g,rvec,data::DataFrame,z_vars,n)
     # g: the vector to add moments to
     # rvec: the vector of residuals
     # z_vars: an array of arrays of instrument names to take from data. z_vars[k] is the array of instrument names for the kth residual
@@ -63,6 +63,21 @@ function stack_moments!(g,rvec,data,z_vars,n)
         for m in eachindex(z_vars[k])
             zv = z_vars[k][m]
             g[pos] += rvec[k]*data[n,zv]
+            pos += 1
+        end
+    end
+end
+
+function stack_moments!(g,rvec,data,z_vars,n)
+    # g: the vector to add moments to
+    # rvec: the vector of residuals
+    # z_vars: an array of arrays of instrument names to take from data. z_vars[k] is the array of instrument names for the kth residual
+    # n: the row number for the data
+    pos = 1
+    for k in eachindex(z_vars) 
+        for m in eachindex(z_vars[k])
+            zv = z_vars[k][m]
+            g[pos] += rvec[k]*data[zv][n]
             pos += 1
         end
     end
@@ -107,13 +122,25 @@ end
 
 # function to take a linear combination given a vector and a list of variables
 # assumption: we have type dummies in data. then it's straightforward.
-function linear_combination(β,vars,data,n)
+function linear_combination(β,vars,data::DataFrame,n)
     r = 0 #<- not assuming a constant term
     for j in eachindex(vars)
-        if vars[j]==:const #<- this condition is unnecessary: we simply add a variable =1 named :const to the dataset
+        if vars[j]==:constant #<- this condition is unnecessary: we simply add a variable =1 named :constant to the dataset
             r += β[j]
         else
             @views r += β[j]*data[n,vars[j]]
+        end
+    end
+    return r
+end
+
+function linear_combination(β,vars,data,n)
+    r = 0 #<- not assuming a constant term
+    for j in eachindex(vars)
+        if vars[j]==:constant #<- this condition is unnecessary: we simply add a variable =1 named :constant to the dataset
+            r += β[j]
+        else
+            @views r += β[j]*data[vars[j]][n]
         end
     end
     return r
@@ -163,11 +190,11 @@ function generate_cluster_assignment(dat,vlist,fe,nclusters)
 end
 
 function cluster_routine_robust(dat,vlist,nclusters,maxiter = 100)
-    lW,X,d = get_wage_data(dat,[:const;vlist],false)
+    lW,X,d = get_wage_data(dat,[:constant;vlist],false)
     # get an initial assignment by clustering on residuals
 
     coef=inv(X'X)*X'lW
-    d[!,:resid] = d.logwage_m .- predict_wage(d,[:const;vlist],coef)
+    d[!,:resid] = d.logwage_m .- predict_wage(d,[:constant;vlist],coef)
     dn = combine(groupby(d,:MID),:resid => mean)
     result = kmeans(dn[!,:resid_mean]', nclusters; maxiter=100, display=:iter)
     dn[!,:cluster] = result.assignments
