@@ -29,7 +29,7 @@ function calc_production_resids!(n,R,data,pars,savings=true)
             Ψ0 += pars.δ[1]*pars.δ[2]^(4-t)*(data.log_total_income - log_price_index) #<- assume that father's log wage is coded as zero for single parents
         end
     end
-    Ψ0 += linear_combination(pars.βθ,spec.vθ,data,it)
+    Ψ0 += linear_combination(pars.βθ,pars.spec.vθ,data,it97)
     R[1] = data.AP[it02] / pars.λ - Ψ0 - pars.δ[2]^5 * data.AP[it97] / pars.λ
     R[2] = data.LW[it02] - Ψ0 - pars.δ[2]^5 * data.LW[it97]
     R[3] = (data.AP[it02] - pars.λ*data.LW[it02])*data.LW[it97]
@@ -39,8 +39,9 @@ end
 
 # this function creates a stacked vector of moment conditions from a vector of residuals
 function production_demand_moments_stacked!(pars,n,g,R,data,spec,savings=true)
+    println(n)
     # first do relative demand moments
-    demand_moments_stacked!(pars,n,g,R,data,spec,savings)
+    demand_moments_stacked!(pars,n,g,R,data,spec)
 
     production_moments_stacked!(pars,n,g,R,data,spec,savings)
 
@@ -56,7 +57,7 @@ end
 function production_moments_stacked!(pars,n,g,R,data,spec,savings=true)
     R[:] .= 0.
     it97 = (n-1)*6+1
-    if data.all_prices[it97]
+    if data.all_prices[it97] && data.mtime_valid[it97]
         calc_production_resids!(n,R,data,pars,savings)
         resids = view(R,1:4)
         for j in eachindex(spec.zlist_prod)

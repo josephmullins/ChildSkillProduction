@@ -19,6 +19,7 @@ using Parameters, Distributions
     βf = zeros(2)
     βg = zeros(2)
     βθ = zeros(2)
+    λ = 1.
     spec = (vm = [:constant,:mar_stat],vf = [:constant],vθ = [:constant,:mar_stat],vg = [:constant,:mar_stat])
 end
 

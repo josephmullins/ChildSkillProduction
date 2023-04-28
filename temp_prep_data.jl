@@ -10,7 +10,9 @@ panel_data[!,:constant] .= 1.
 panel_data[!,:mar_stat] = panel_data.curr_married.==1
 panel_data[!,:div] = panel_data.curr_married.==0
 panel_data[!,f_ed] = coalesce.(panel_data[:,f_ed],0.)
-
+panel_data[!,:all_prices] = panel_data.ind_price_97_01.==1
+i02 = panel_data.year.>=2002
+panel_data[i02,:all_prices] = panel_data.ind_price_02_06[i02].==1
 
 # prices:
 #v_prices = [:prices_observed,:logwage_m,:logwage_f,:logprice_g,:logprice_c,:logprice_c_m,:logprice_m_f,:logprice_c_g,:logprice_m_g,:logprice_f_g]
@@ -28,7 +30,7 @@ panel_data[!,:logprice_m_g] = panel_data.logwage_m .- panel_data.logprice_g
 panel_data[!,:logprice_f_g] = panel_data.logwage_f .- panel_data.logprice_g
 
 
-# inputs
+# inputs and outputs
 #v_inputs = [:log_mtime,:log_ftime,:log_chcare,:log_good,:log_total_income]
 
 panel_data[!,:log_mtime] = panel_data.ln_tau_m
@@ -36,6 +38,16 @@ panel_data[!,:log_ftime] = panel_data.ln_tau_f
 panel_data[!,:log_chcare] = panel_data.ln_chcare_exp
 panel_data[!,:log_good] = panel_data.ln_hhinvest
 panel_data[!,:log_total_income] = log.(panel_data.m_wage .+ coalesce.(panel_data.f_wage,0))
+panel_data[!,:AP_valid] = .!ismissing.(panel_data.AP)
+panel_data[!,:LW_valid] = .!ismissing.(panel_data.LW)
+panel_data[!,:AP] = coalesce.(panel_data.AP,0.)
+panel_data[!,:LW] = coalesce.(panel_data.LW,0.)
+panel_data[!,:mtime_valid] = .!ismissing.(panel_data.log_mtime) .& .!ismissing.(panel_data.m_ed)
+panel_data[!,:ftime_valid] = .!ismissing.(panel_data.log_ftime) .| .!panel_data.mar_stat
+panel_data[!,:log_mtime] = coalesce.(panel_data.log_mtime,0.)
+panel_data[!,:log_ftime] = coalesce.(panel_data.log_ftime,0.)
+
+
 
 # vlist = [v_demogs;v_prices;v_inputs]
 # data = NamedTuple(zip((v for v in vlist),(panel_data[!,v] for v in vlist)))

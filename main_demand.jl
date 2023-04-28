@@ -8,7 +8,7 @@ include("relative_demand.jl")
 # Step 1: create the data object
 panel_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/psid_fam.csv",missingstring = ["","NA"]))
 panel_data[!,:MID] = panel_data.mid
-nclusters = 3
+num_clusters = 3
 
 # -- Read in wage data from the mother's panel;
 wage_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/MotherPanelCDS.csv",missingstring = "NA"))
@@ -19,19 +19,20 @@ m_ed = make_dummy(wage_data,:m_ed)
 vl=[m_ed[2:end];:m_exper;:m_exper2]
 
 
-wage_types = cluster_routine_robust(wage_data,vl,nclusters)
+wage_types = cluster_routine_robust(wage_data,vl,num_clusters)
 
 wage_types_k10 = cluster_routine_robust(wage_data,vl,10,500)
 wage_types_k10 = rename(select(wage_types_k10,[:MID,:center]),:center => :mu_k)
 
 # --- alternatively using the naive clustering algorithm which won't work if we include education in vl
-# wage_types = generate_cluster_assignment(wage_data,vl,true,nclusters)
+# wage_types = generate_cluster_assignment(wage_data,vl,true,num_clusters)
 # wage_types_k10 = generate_cluster_assignment(wage_data,vl,true,10)
 # wage_types_k10 = rename(select(wage_types_k10,[:MID,:center]),:center => :mu_k)
 
 panel_data=innerjoin(panel_data, wage_types, on = :MID) #merging in cluster types
 panel_data = innerjoin(panel_data,wage_types_k10,on = :MID) # mergining in centers for K=10 clustering
 cluster_dummies=make_dummy(panel_data,:cluster) #cluster dummies made
+
 
 panel_data = panel_data[panel_data.year.<=2002,:] #<- for now, limit to years <=2002. We need to update code eventually.
 include("temp_prep_data.jl")
@@ -89,6 +90,8 @@ x0 = initial_guess(spec_1)
 N = length(unique(panel_data.kid))
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_1)
 
+break
+
 res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1)
 
 # Specification (2): 
@@ -98,8 +101,8 @@ n02 = (length(spec_2.vg)+1)*2 + length(spec_2.vf) + length(spec_2.vm) + 2
 nmom = n97+n02
 W = I(nmom)
 
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v2,spec_2)
-res3,se3 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_2)
+@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_2)
+res3,se3 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_2)
 
 # Specification (3): 
 x0 = initial_guess(spec_3)
@@ -109,8 +112,8 @@ n02 = (length(spec_3.vg)+1)*2 + length(spec_3.vf) + length(spec_3.vm) + 2
 nmom = n97+n02
 W = I(nmom)
 
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v2,spec_3)
-res4,se4 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_3)
+@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_3)
+res4,se4 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_3)
 
 # Specification (4): 
 x0 = initial_guess(spec_4)
@@ -120,8 +123,8 @@ n02 = (length(spec_4.vg)+1)*2 + length(spec_4.vf) + length(spec_4.vm) + 2
 nmom = n97+n02
 W = I(nmom)
 
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v2,spec_4)
-res5,se5 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_4)
+@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_4)
+res5,se5 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_4)
 
 # Specification (5): 
 x0 = initial_guess(spec_5)
@@ -131,8 +134,8 @@ n02 = (length(spec_5.vg)+1)*2 + length(spec_5.vf) + length(spec_5.vm) + 2
 nmom = n97+n02
 W = I(nmom)
 
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,gd,gmap_v2,spec_5)
-res6,se6 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,gd,gmap_v2,spec_5)
+@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_5)
+res6,se6 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_5)
 
 # ----- Write results to a LaTeX table
 
@@ -145,7 +148,7 @@ labels = merge(other_labels,cluster_labels,ed_labels)
 
 par_vec = [update(res1,spec_1),update(res2,spec_1),update(res3,spec_2),update(res4,spec_3),update(res5,spec_4),update(res6,spec_5)]
 
-results = [residual_test(panel_data,gd,p) for p in par_vec]
+results = [residual_test(panel_data,N,p) for p in par_vec]
 pvals = [r[2] for r in results]
 
 writetable(par_vec,[update(se1,spec_1),update(se2,spec_1),update(se3,spec_2),update(se4,spec_3),update(se5,spec_4),update(se6,spec_5)],[spec_1,spec_1,spec_2,spec_3,spec_4,spec_5],labels,pvals,"tables/relative_demand.tex")
