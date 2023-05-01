@@ -88,7 +88,7 @@ function build_spec_prod(spec)
 end
 # NEXT: test the moment functions with all of this
 
-# using cluster dummies and using just prices in 97 as production instruments:
+# using mother's education and using just prices in 97 as production instruments:
 spec_1p =  build_spec_prod((vm = [:mar_stat;:div;m_ed[2:3];:age;:num_0_5],
 vf = [:constant;f_ed[2:3];:age;:num_0_5],
 vθ = [:constant;:mar_stat;:age;m_ed[2:3];:num_0_5],
@@ -98,11 +98,11 @@ zlist_prod = [[[:logprice_c_g;:logprice_m_g;:logprice_f_g;:AP],[:logprice_c_g;:l
 )
 
 
-# spec_1p =  build_spec_prod((vm = [:mar_stat;:div;cluster_dummies[2:end];:age;:num_0_5],
-# vf = [:constant;f_ed[2:3];:age;:num_0_5],
-# vθ = [:constant;:mar_stat;:age;cluster_dummies[2:end];:num_0_5],
-# vg = [:mar_stat;:div;cluster_dummies[2:end];f_ed[2:3];:age;:num_0_5],
-# zlist_prod_t = [0,5],
-# zlist_prod = [[[vθ;:logprice_c_g;:logprice_m_g;:logprice_f_g;:AP],[vθ;:logprice_c_g;:logprice_m_g;:logprice_f_g;:LW],[:constant],[:constant]],[[:tau_m],[:tau_m],[nothing],[nothing]]])
-# )
+spec_2p =  build_spec_prod((vm = [:mar_stat;:div;cluster_dummies[2:end];:age;:num_0_5],
+vf = [:constant;f_ed[2:3];:age;:num_0_5],
+vθ = [:constant;:mar_stat;:age;cluster_dummies[2:end];:num_0_5],
+vg = [:mar_stat;:div;cluster_dummies[2:end];f_ed[2:3];:age;:num_0_5],
+zlist_prod_t = [0,5],
+zlist_prod = [[[:logprice_c_g;:logprice_m_g;:logprice_f_g;:AP],[:logprice_c_g;:logprice_m_g;:logprice_f_g;:LW],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[]]])
+)
 

@@ -6,6 +6,11 @@ include("production.jl")
 panel_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/psid_fam.csv",missingstring = ["","NA"]))
 panel_data[!,:MID] = panel_data.mid
 
+wage_types = DataFrame(CSV.File("wage_types.csv"))
+
+panel_data=innerjoin(panel_data, wage_types, on = :MID) #merging in cluster types
+cluster_dummies=make_dummy(panel_data,:cluster) #cluster dummies made
+
 
 panel_data = panel_data[panel_data.year.<=2002,:] #<- for now, limit to years <=2002. We need to update code eventually.
 include("temp_prep_data.jl")
@@ -35,7 +40,7 @@ function update_inv(pars)
     return [ρ;γ;δ;βm;βf;βg;βθ;λ]
 end
 
-#include("specifications.jl")
+include("specifications.jl")
 
 # function to get the initial guess
 function initial_guess(spec)
@@ -46,29 +51,31 @@ function initial_guess(spec)
     return x0
 end
 
-
-#gfunc!(x,n,g,resids,data,spec) = demand_moments_stacked!(update(x,spec),n,g,resids,data,spec)
+N = length(unique(panel_data.kid))
 
 gfunc!(x,n,g,resids,data,spec) = production_demand_moments_stacked!(update(x,spec),n,g,resids,data,spec)
-
-break
-
-n = 1299
-it97 = (n-1)*6 + 1
-g_n = view(g,spec_1p.g_idx_prod[2])
-it = it97 + spec_1p.zlist_prod_t[2]
-stack_moments!(g_n,R,panel_data,spec_1p.zlist_prod[2],it)
-
 
 # specification (1)
 nmom = spec_1p.g_idx_prod[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_1p)
 
-# SOME SCORES ARE MISSING
-
-
-N = length(unique(panel_data.kid))
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_1p)
-
 res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1p)
+
+p = update(res2,spec_1p)
+p_se = update(se2,spec_1p)
+
+
+# specification (1)
+nmom = spec_2p.g_idx_prod[end][end]
+W = I(nmom)
+x0 = initial_guess(spec_2p)
+
+@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_2p)
+res3,se3 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_2p)
+
+p2 = update(res2,spec_2p)
+p2_se = update(se2,spec_2p)
+
+

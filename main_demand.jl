@@ -8,29 +8,10 @@ include("relative_demand.jl")
 # Step 1: create the data object
 panel_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/psid_fam.csv",missingstring = ["","NA"]))
 panel_data[!,:MID] = panel_data.mid
-num_clusters = 3
 
-# -- Read in wage data from the mother's panel;
-wage_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/MotherPanelCDS.csv",missingstring = "NA"))
-wage_data[!,:logwage_m] = wage_data.ln_wage_m
-wage_data = subset(wage_data,:m_wage => x->x.>0,skipmissing=true)
-wage_data[!,:constant] .= 1.
-m_ed = make_dummy(wage_data,:m_ed)
-vl=[m_ed[2:end];:m_exper;:m_exper2]
-
-
-wage_types = cluster_routine_robust(wage_data,vl,num_clusters)
-
-wage_types_k10 = cluster_routine_robust(wage_data,vl,10,500)
-wage_types_k10 = rename(select(wage_types_k10,[:MID,:center]),:center => :mu_k)
-
-# --- alternatively using the naive clustering algorithm which won't work if we include education in vl
-# wage_types = generate_cluster_assignment(wage_data,vl,true,num_clusters)
-# wage_types_k10 = generate_cluster_assignment(wage_data,vl,true,10)
-# wage_types_k10 = rename(select(wage_types_k10,[:MID,:center]),:center => :mu_k)
+wage_types = DataFrame(CSV.File("wage_types.csv"))
 
 panel_data=innerjoin(panel_data, wage_types, on = :MID) #merging in cluster types
-panel_data = innerjoin(panel_data,wage_types_k10,on = :MID) # mergining in centers for K=10 clustering
 cluster_dummies=make_dummy(panel_data,:cluster) #cluster dummies made
 
 

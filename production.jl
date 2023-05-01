@@ -39,7 +39,6 @@ end
 
 # this function creates a stacked vector of moment conditions from a vector of residuals
 function production_demand_moments_stacked!(pars,n,g,R,data,spec,savings=true)
-    println(n)
     # first do relative demand moments
     demand_moments_stacked!(pars,n,g,R,data,spec)
 
@@ -57,7 +56,8 @@ end
 function production_moments_stacked!(pars,n,g,R,data,spec,savings=true)
     R[:] .= 0.
     it97 = (n-1)*6+1
-    if data.all_prices[it97] && data.mtime_valid[it97]
+    it02 = it97+5
+    if data.all_prices[it97] && data.mtime_valid[it97] && data.mtime_valid[it02]
         calc_production_resids!(n,R,data,pars,savings)
         resids = view(R,1:4)
         for j in eachindex(spec.zlist_prod)
