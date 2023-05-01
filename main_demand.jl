@@ -71,8 +71,6 @@ x0 = initial_guess(spec_1)
 N = length(unique(panel_data.kid))
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_1)
 
-break
-
 res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1)
 
 # Specification (2): 
@@ -127,9 +125,9 @@ other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. Ch
 
 labels = merge(other_labels,cluster_labels,ed_labels)
 
-par_vec = [update(res1,spec_1),update(res2,spec_1),update(res3,spec_2),update(res4,spec_3),update(res5,spec_4),update(res6,spec_5)]
+par_vec = [update(res2,spec_1),update(res3,spec_2),update(res4,spec_3),update(res5,spec_4),update(res6,spec_5)]
 
 results = [residual_test(panel_data,N,p) for p in par_vec]
 pvals = [r[2] for r in results]
 
-writetable(par_vec,[update(se1,spec_1),update(se2,spec_1),update(se3,spec_2),update(se4,spec_3),update(se5,spec_4),update(se6,spec_5)],[spec_1,spec_1,spec_2,spec_3,spec_4,spec_5],labels,pvals,"tables/relative_demand.tex")
+writetable(par_vec,[update(se2,spec_1),update(se3,spec_2),update(se4,spec_3),update(se5,spec_4),update(se6,spec_5)],[spec_1,spec_1,spec_2,spec_3,spec_4,spec_5],labels,pvals,"tables/relative_demand.tex")

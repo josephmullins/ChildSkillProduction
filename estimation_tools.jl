@@ -100,7 +100,7 @@ function estimate_gmm_iterative(x0,gfunc!,iter,W,N,nresids,args...)
         W = inv(Ω)
     end
     println("----- Final Iteration ----------")
-    res = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,args...),x1,LBFGS(),autodiff=:forward,Optim.Options(show_trace=true))
+    res = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,args...),x1,LBFGS(),autodiff=:forward,Optim.Options(show_trace=true)) #,x_tol = 1e-3))
     x1 = res.minimizer
     V = parameter_variance_gmm(x1,gfunc!,W,N,nresids,args...)
     return x1,sqrt.(diag(V))

@@ -21,7 +21,7 @@ panel_data[!,:logwage_m] = panel_data.ln_wage_m
 panel_data[!,:logwage_f] = coalesce.(panel_data.ln_wage_f,0) #<- make these into zeros to avoid a problem with instruments
 panel_data[!,:prices_observed] = panel_data.ind_price.==1
 panel_data[!,:logprice_g] = log.(panel_data.p_avg)
-panel_data[!,:logprice_c] = log.(panel_data.p_yocent_e_cps_cpkt)
+panel_data[!,:logprice_c] = log.(panel_data.p_yocent_e_cps_cpkt) .- log(33*52)
 ### relative prices
 panel_data[!,:logprice_c_m] = panel_data.logprice_c .- panel_data.logwage_m
 panel_data[!,:logprice_m_f] = panel_data.logwage_m .- panel_data.logwage_f

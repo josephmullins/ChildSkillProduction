@@ -66,16 +66,22 @@ res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1p)
 p = update(res2,spec_1p)
 p_se = update(se2,spec_1p)
 
+break
 
-# specification (1)
+# specification (2)
 nmom = spec_2p.g_idx_prod[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_2p)
 
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_2p)
+
+g = zeros(nmom)
+r = zeros(5)
+@time gfunc!(x0,10,g,r,panel_data,spec_2p)
+
 res3,se3 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_2p)
 
-p2 = update(res2,spec_2p)
-p2_se = update(se2,spec_2p)
+p2 = update(res3,spec_2p)
+p2_se = update(se3,spec_2p)
 
 

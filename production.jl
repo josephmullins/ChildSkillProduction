@@ -57,7 +57,7 @@ function production_moments_stacked!(pars,n,g,R,data,spec,savings=true)
     R[:] .= 0.
     it97 = (n-1)*6+1
     it02 = it97+5
-    if data.all_prices[it97] && data.mtime_valid[it97] && data.mtime_valid[it02]
+    if data.all_prices[it97] && data.mtime_valid[it97] && data.mtime_valid[it02] && (data.age[it97]<=12)
         calc_production_resids!(n,R,data,pars,savings)
         resids = view(R,1:4)
         for j in eachindex(spec.zlist_prod)
