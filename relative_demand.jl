@@ -122,12 +122,16 @@ function residual_test(data,N,pars)
     for n=1:N
         it97 = (n-1)*6 + 1
         r[:] .= 0.
-        calc_demand_resids!(it97,r,data,pars)
-        R[n,1] = r[1]
+        if data.prices_observed[it97] && (data.age[it97]<=12)
+            calc_demand_resids!(it97,r,data,pars)
+            R[n,1] = r[1]
+        end
         it02 = n*6
         r[:] .= 0.
-        calc_demand_resids!(it02,r,data,pars)
-        R[n,2] = r[3] - r[4]
+        if data.prices_observed[it02] && (data.age[it02]<=12)
+            calc_demand_resids!(it02,r,data,pars)
+            R[n,2] = r[3] - r[4]
+        end
     end
     test_stat = sqrt(N)*mean(R[:,1].*R[:,2]) / std(R[:,1])*std(R[:,2])
     pval = 2*cdf(Normal(),-abs(test_stat))
