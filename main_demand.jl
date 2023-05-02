@@ -7,6 +7,11 @@ include("relative_demand.jl")
 # -- For now, we're using the old data. A task is to replicate how these data were created
 # Step 1: create the data object
 panel_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/psid_fam.csv",missingstring = ["","NA"]))
+
+# temporary:
+panel_data.mid[ismissing.(panel_data.mid)] .= 6024032
+
+
 panel_data[!,:MID] = panel_data.mid
 
 wage_types = DataFrame(CSV.File("wage_types.csv"))
@@ -71,7 +76,7 @@ x0 = initial_guess(spec_1)
 N = length(unique(panel_data.kid))
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_1)
 
-res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1)
+res2a,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1)
 
 # Specification (2): 
 x0 = initial_guess(spec_2)
@@ -102,8 +107,9 @@ n02 = (length(spec_4.vg)+1)*2 + length(spec_4.vf) + length(spec_4.vm) + 2
 nmom = n97+n02
 W = I(nmom)
 
-@time gmm_criterion(res4,gfunc!,W,N,5,panel_data,spec_4)
+@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_4)
 res5,se5 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_4)
+
 
 # Specification (5): 
 x0 = initial_guess(spec_5)

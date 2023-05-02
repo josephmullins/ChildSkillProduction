@@ -42,7 +42,7 @@ spec_3 = build_spec((vm = [:mar_stat;:div;cluster_dummies[2:end];m_ed[2:3];:age;
 spec_4 = build_spec((vm = [:mar_stat;:div;:mu_k;:age;:num_0_5],
         vf = [:constant;f_ed[2:3];:age;:num_0_5],
         vθ = [:constant,:mar_stat,:age,:num_0_5],
-        vg = [:mar_stat;:div;:mu_k;m_ed[2:3];f_ed[2:3];:age;:num_0_5]))
+        vg = [:mar_stat;:div;:mu_k;f_ed[2:3];:age;:num_0_5]))
 
 # using centers (as above) and education
 spec_5 = build_spec((vm = [:mar_stat;:div;:mu_k;m_ed[2:3];:age;:num_0_5],

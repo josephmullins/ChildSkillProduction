@@ -122,13 +122,13 @@ function residual_test(data,N,pars)
     for n=1:N
         it97 = (n-1)*6 + 1
         r[:] .= 0.
-        if data.prices_observed[it97] && (data.age[it97]<=12)
+        if data.prices_observed[it97] && (data.age[it97]<=12) && (data.ind_not_sample[it97]==0)
             calc_demand_resids!(it97,r,data,pars)
             R[n,1] = r[1]
         end
         it02 = n*6
         r[:] .= 0.
-        if data.prices_observed[it02] && (data.age[it02]<=12)
+        if data.prices_observed[it02] && (data.age[it02]<=12) && (data.ind_not_sample[it97]==0)
             calc_demand_resids!(it02,r,data,pars)
             R[n,2] = r[3] - r[4]
         end
@@ -146,7 +146,7 @@ function demand_moments_stacked!(pars,n,g,R,data,spec)
     # --- 1997 relative demand moments
     it = (n-1)*6 + 1
     R[:] .= 0.
-    if data.prices_observed[it] && (data.age[it]<=12)
+    if data.prices_observed[it] && (data.age[it]<=12) && (data.ind_not_sample[it]==0)
         calc_demand_resids!(it,R,data,pars)
         resids = view(R,[1])
         g_it = view(g,spec.g_idx_97)
@@ -157,7 +157,7 @@ function demand_moments_stacked!(pars,n,g,R,data,spec)
     it = n*6 
     r_idx = [4,5,3,1]
     R[:] .= 0.
-    if data.prices_observed[it] && (data.age[it]<=12)
+    if data.prices_observed[it] && (data.age[it]<=12) && (data.ind_not_sample[it]==0)
         calc_demand_resids!(it,R,data,pars)
         resids = view(R,r_idx)
         g_it = view(g,spec.g_idx_02)
