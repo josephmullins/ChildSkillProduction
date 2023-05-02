@@ -102,7 +102,7 @@ n02 = (length(spec_4.vg)+1)*2 + length(spec_4.vf) + length(spec_4.vm) + 2
 nmom = n97+n02
 W = I(nmom)
 
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_4)
+@time gmm_criterion(res4,gfunc!,W,N,5,panel_data,spec_4)
 res5,se5 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_4)
 
 # Specification (5): 
