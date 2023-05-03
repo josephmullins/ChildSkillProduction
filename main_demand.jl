@@ -23,6 +23,14 @@ cluster_dummies=make_dummy(panel_data,:cluster) #cluster dummies made
 panel_data = panel_data[panel_data.year.<=2002,:] #<- for now, limit to years <=2002. We need to update code eventually.
 include("temp_prep_data.jl")
 
+# TEMPORARY EXERCISE: let's merge with the new data to see if it's the new observations that cause the issue:
+panel_data[!,:KID] = panel_data.kid
+old_data = DataFrame(CSV.File("CLMP_v1/data/gmm_full_vertical.csv",missingstring = "NA"))
+
+break
+panel_data = innerjoin(panel_data,old_data[:,[:KID,:year]],on=[:KID,:year])
+
+
 
 # ----------------------------- #
 
