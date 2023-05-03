@@ -24,12 +24,11 @@ panel_data = panel_data[panel_data.year.<=2002,:] #<- for now, limit to years <=
 include("temp_prep_data.jl")
 
 # TEMPORARY EXERCISE: let's merge with the new data to see if it's the new observations that cause the issue:
-panel_data[!,:KID] = panel_data.kid
-old_data = DataFrame(CSV.File("CLMP_v1/data/gmm_full_vertical.csv",missingstring = "NA"))
+# panel_data[!,:KID] = panel_data.kid
+# old_data = DataFrame(CSV.File("CLMP_v1/data/gmm_full_vertical.csv",missingstring = "NA"))
+# panel_data = innerjoin(panel_data,old_data[:,[:KID,:year]],on=[:KID,:year])
 
-break
-panel_data = innerjoin(panel_data,old_data[:,[:KID,:year]],on=[:KID,:year])
-
+sort!(panel_data,[:kid,:year])
 
 
 # ----------------------------- #
@@ -84,7 +83,7 @@ x0 = initial_guess(spec_1)
 N = length(unique(panel_data.kid))
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_1)
 
-res2a,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1)
+res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1)
 
 # Specification (2): 
 x0 = initial_guess(spec_2)

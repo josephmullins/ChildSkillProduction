@@ -45,8 +45,8 @@ panel_data[!,:LW] = coalesce.(panel_data.LW,0.)
 panel_data[!,:mtime_valid] = .!ismissing.(panel_data.log_mtime) .& .!ismissing.(panel_data.m_ed)
 panel_data[!,:ftime_valid] = .!ismissing.(panel_data.log_ftime) .| .!panel_data.mar_stat
 # these two lines cause problems with estimation. I don't know if I even need them!
-panel_data[!,:log_mtime] = coalesce.(panel_data.log_mtime,0.)
-panel_data[!,:log_ftime] = coalesce.(panel_data.log_ftime,0.)
+#panel_data[!,:log_mtime] = coalesce.(panel_data.log_mtime,0.)
+#panel_data[!,:log_ftime] = coalesce.(panel_data.log_ftime,0.)
 
 
 
