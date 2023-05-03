@@ -117,7 +117,6 @@ N = length(unique(panel_data.KID))
 
 res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1)
 
-break
 # Specification (2): 
 x0 = initial_guess(spec_2)
 n97 = length(spec_2.vg) + 1 
@@ -176,4 +175,4 @@ par_vec = [update(res2,spec_1),update(res3,spec_2),update(res4,spec_3),update(re
 results = [residual_test(panel_data,N,p) for p in par_vec]
 pvals = [r[2] for r in results]
 
-writetable(par_vec,[update(se2,spec_1),update(se3,spec_2),update(se4,spec_3),update(se5,spec_4),update(se6,spec_5)],[spec_1,spec_2,spec_3,spec_4,spec_5],labels,pvals,"tables/relative_demand.tex")
+writetable(par_vec,[update(se2,spec_1),update(se3,spec_2),update(se4,spec_3),update(se5,spec_4),update(se6,spec_5)],[spec_1,spec_2,spec_3,spec_4,spec_5],labels,pvals,"tables/relative_demand_old_data.tex")
