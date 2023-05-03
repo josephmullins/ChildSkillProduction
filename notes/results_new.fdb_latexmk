@@ -1,9 +1,9 @@
 # Fdb version 3
-["pdflatex"] 1683058466 "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.pdf" "results_new" 1683058466
-  "../tables/relative_demand.tex" 1683058466 2374 ec55f22755d2cd82fb7b64f841739501 ""
+["pdflatex"] 1683121615 "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.pdf" "results_new" 1683121615
+  "../tables/relative_demand.tex" 1683121612 2305 71840d8b81de8f52f259585d54c92894 ""
   "/etc/texmf/web2c/texmf.cnf" 1620057033 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/home/joseph/.texlive2019/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1000.600pk" 1620228203 11524 69eb2755d7b2dfdcc3fa508c41c90e7f ""
-  "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.aux" 1683058466 721 f64e3b78ee8cc361d38c8c703f1e0663 ""
+  "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.aux" 1683121615 721 f64e3b78ee8cc361d38c8c703f1e0663 ""
   "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" 1679414499 7698 57ba65b4e4a371de67c0e4bf5d22fc8a ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
@@ -50,11 +50,11 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1581979058 38841 ce3692aa899bb693b90b87eaa5d4d84e ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1620057247 4429294 7e37af41c846069ce41e50f05b527231 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1621433964 4791332 e9351a8f388a745f193d486d5826a844 ""
-  "results_new.aux" 1683058466 721 f64e3b78ee8cc361d38c8c703f1e0663 "pdflatex"
+  "results_new.aux" 1683121615 721 f64e3b78ee8cc361d38c8c703f1e0663 "pdflatex"
   "results_new.tex" 1679414499 7698 57ba65b4e4a371de67c0e4bf5d22fc8a ""
   (generated)
+  "results_new.aux"
+  "results_new.log"
+  "results_new.pdf"
   "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.pdf"
   "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.log"
-  "results_new.log"
-  "results_new.aux"
-  "results_new.pdf"
