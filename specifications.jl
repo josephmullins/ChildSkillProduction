@@ -106,3 +106,10 @@ zlist_prod_t = [0,5],
 zlist_prod = [[[:logprice_c_g;:logprice_m_g;:logprice_f_g;:AP],[:logprice_c_g;:logprice_m_g;:logprice_f_g;:LW],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[]]])
 )
 
+spec_3p =  build_spec_prod((vm = [:mar_stat;:div;m_ed[2:3];cluster_dummies[2:end];:age;:num_0_5],
+vf = [:constant;f_ed[2:3];:age;:num_0_5],
+vθ = [:constant;:mar_stat;:age;m_ed[2:3];cluster_dummies[2:end];:num_0_5],
+vg = [:mar_stat;:div;m_ed[2:3];cluster_dummies[2:end];f_ed[2:3];:age;:num_0_5],
+zlist_prod_t = [0,5],
+zlist_prod = [[[:logprice_c_g;:logprice_m_g;:logprice_f_g;:AP],[:logprice_c_g;:logprice_m_g;:logprice_f_g;:LW],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[]]])
+)

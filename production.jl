@@ -14,35 +14,36 @@
 #   g2 = (data.L02[i] - K - δ[2]^5*data.L97[i])*Z_prod[2][i,:]
 #   g5 = [(data.A02[i]-par.λ*data.L02[i])*data.L97[i],data.A02[i]*data.A97[i] - par.λ^2*data.L97[i]*data.L02[i]]
 
-function calc_production_resids!(n,R,data,pars,savings=true)
+function calc_production_resids!(n,R,data,pars1,pars2,savings=true)
     it97 = (n-1)*6 + 1
     it02 = n*6
     # this function call is assumed to return a coefficient lΦm where $X_{it} = τ_{m,it} / exp(lΦm)
-    lΦm,log_price_97 = calc_Φ_m(pars,data,it97)
+    lΦm,log_price_97 = calc_Φ_m(pars1,pars2,data,it97)
     lX97 = data.log_mtime[it97] - lΦm
-    Ψ0 = pars.δ[1]*pars.δ[2]^4*lX97
+    Ψ0 = pars2.δ[1]*pars2.δ[2]^4*lX97
     for t=1:4
-        lϕm,lϕc,log_price_index,Φg = log_input_ratios(pars,data,it97+t)
+        lΦ,log_price_index = calc_Φ_m(pars1,pars2,data,it97+t)
+        #lϕm,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it97+t)
         if savings
-            Ψ0 += pars.δ[1]*pars.δ[2]^(4-t)*(lX97 + log_price_97 - log_price_index)
+            Ψ0 += pars2.δ[1]*pars2.δ[2]^(4-t)*(lX97 + log_price_97 - log_price_index)
         else
-            Ψ0 += pars.δ[1]*pars.δ[2]^(4-t)*(data.log_total_income - log_price_index) #<- assume that father's log wage is coded as zero for single parents
+            Ψ0 += pars2.δ[1]*pars2.δ[2]^(4-t)*(data.log_total_income - log_price_index) #<- assume that father's log wage is coded as zero for single parents
         end
     end
-    Ψ0 += linear_combination(pars.βθ,pars.spec.vθ,data,it97)
-    R[1] = data.AP[it02] / pars.λ - Ψ0 - pars.δ[2]^5 * data.AP[it97] / pars.λ
-    R[2] = data.LW[it02] - Ψ0 - pars.δ[2]^5 * data.LW[it97]
-    R[3] = (data.AP[it02] - pars.λ*data.LW[it02])*data.LW[it97]
-    R[4] = (data.AP[it02]*data.AP[it97] - pars.λ^2*data.LW[it02]*data.LW[it97])
+    Ψ0 += linear_combination(pars2.βθ,pars2.spec.vθ,data,it97)
+    R[1] = data.AP[it02] / pars2.λ - Ψ0 - pars2.δ[2]^5 * data.AP[it97] / pars2.λ
+    R[2] = data.LW[it02] - Ψ0 - pars2.δ[2]^5 * data.LW[it97]
+    R[3] = (data.AP[it02] - pars2.λ*data.LW[it02])*data.LW[it97]
+    R[4] = (data.AP[it02]*data.AP[it97] - pars2.λ^2*data.LW[it02]*data.LW[it97])
 end
 
 
 # this function creates a stacked vector of moment conditions from a vector of residuals
-function production_demand_moments_stacked!(pars,n,g,R,data,spec,savings=true)
+function production_demand_moments_stacked!(pars1,pars2,n,g,R,data,spec,savings=true)
     # first do relative demand moments
-    demand_moments_stacked!(pars,n,g,R,data,spec)
+    demand_moments_stacked!(pars1,n,g,R,data,spec)
 
-    production_moments_stacked!(pars,n,g,R,data,spec,savings)
+    production_moments_stacked!(pars1,pars2,n,g,R,data,spec,savings)
 
 end
 
@@ -53,12 +54,12 @@ end
 # example: suppose we want to use AP in 97 and tau_m in 02 for R[1] and LW in 97 and tau_m in 02 for R[2], and just a constant for R[3] and R[4], then we would have:
  # zlist_prod_t = [0,5]
  # zlist_prod = ([[:AP],[:LW]],[[:tau_m],[:tau_m]]) # let's check this
-function production_moments_stacked!(pars,n,g,R,data,spec,savings=true)
+function production_moments_stacked!(pars1,pars2,n,g,R,data,spec,savings=true)
     R[:] .= 0.
     it97 = (n-1)*6+1
     it02 = it97+5
     if data.all_prices[it97] && data.mtime_valid[it97] && data.mtime_valid[it02] && (data.age[it97]<=12)
-        calc_production_resids!(n,R,data,pars,savings)
+        calc_production_resids!(n,R,data,pars1,pars2,savings)
         resids = view(R,1:4)
         for j in eachindex(spec.zlist_prod)
             g_n = view(g,spec.g_idx_prod[j])

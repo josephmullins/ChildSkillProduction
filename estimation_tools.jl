@@ -304,7 +304,7 @@ function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,spe
     end
 end
 
-function writetable(M,SE,specs,labels,pvals,outfile::String)
+function writetable(M,SE,specs,labels,pvals,outfile::String,production = false)
     form(x) = @sprintf("%0.2f",x)
     formse(x) = string("(",@sprintf("%0.2f",x),")")
     nspec = length(M)
@@ -320,6 +320,14 @@ function writetable(M,SE,specs,labels,pvals,outfile::String)
     for j in 1:2
         write_line!(io,form,M,v[j],0,vname[j])
         write_line!(io,formse,SE,v[j],0)
+    end
+    if production
+        for j in 1:2
+            write_line!(io,form,M,:δ,j,"\$\\delta_{$j}\$")
+            write_line!(io,formse,SE,:δ,j)
+        end
+        write_line!(io,form,M,:λ,0,"\$\\lambda_{AP}\$")
+        write_line!(io,formse,M,:λ,0) 
     end
     # δ_1 and δ_2 #are there delta parameters here?
     #for j in 1:2
