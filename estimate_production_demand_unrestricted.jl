@@ -120,54 +120,6 @@ nmom = spec_1p.g_idx_prod[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_1p)
 
-# using DelimitedFiles
-# x1 = readdlm("ests-2023-5-9")
-# p1,p2 = update(x1,spec_1p)
-
-# Ω = moment_variance(x1,gfunc!,N,nmom,5,panel_data,spec_1p)
-# W = inv(Ω)
-# V = parameter_variance_gmm(x1,gfunc!,W,N,5,panel_data,spec_1p)
-
-# dg = ForwardDiff.jacobian(x->moment_func(x,gfunc!,N,nmom,5,panel_data,spec_1p),x1)
-# Σ = moment_variance(x1,gfunc!,N,nmom,5,panel_data,spec_1p)
-# bread = inv(dg'*W*dg)
-# peanut_butter = dg'*W*Σ*W*dg
-
-# x2 = optimize(x->gmm_criterion(x,gfunc!,W,N,5,panel_data,spec_1p),x1,LBFGS(),autodiff=:forward,Optim.Options(show_trace=true))
-# break
-
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_1p)
-res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1p)
-
-#writedlm("ests-2023-5-9",res2)
-res = optimize(x->gmm_criterion(x,gfunc!,W,N,5,panel_data,spec_1p),x0,LBFGS(),autodiff=:forward,Optim.Options(show_trace=true))
-
-Ω = moment_variance(res.minimizer,gfunc!,N,nmom,5,panel_data,spec_1p)
-W = diagm(1 ./ diag(Ω))
-res2 = optimize(x->gmm_criterion(x,gfunc!,W,N,5,panel_data,spec_1p),res.minimizer,LBFGS(),autodiff=:forward,Optim.Options(show_trace=true))
-
-Ω = moment_variance(res2.minimizer,gfunc!,N,nmom,5,panel_data,spec_1p)
-W = diagm(1 ./ diag(Ω))
-res3 = optimize(x->gmm_criterion(x,gfunc!,W,N,5,panel_data,spec_1p),res2.minimizer,LBFGS(),autodiff=:forward,Optim.Options(show_trace=true))
-
-res4 = optimize(x->gmm_criterion(x,gfunc!,W,N,5,panel_data,spec_1p),res3.minimizer,LBFGS(),autodiff=:forward,Optim.Options(show_trace=true))
-
-Ω = moment_variance(res4.minimizer,gfunc!,N,nmom,5,panel_data,spec_1p)
-W = inv(Ω)
-res5 = optimize(x->gmm_criterion(x,gfunc!,W,N,5,panel_data,spec_1p),res4.minimizer,LBFGS(),autodiff=:forward,Optim.Options(show_trace=true))
-
-
-Ω = moment_variance(res5.minimizer,gfunc!,N,nmom,5,panel_data,spec_1p)
-W = inv(Ω)
-res6 = optimize(x->gmm_criterion(x,gfunc!,W,N,5,panel_data,spec_1p),res5.minimizer,LBFGS(),autodiff=:forward,Optim.Options(show_trace=true))
-
-#interesting
-# we seem to be having an issue with identification here
-
-break
-
-p = update(res2,spec_1p)
-p_se = update(se2,spec_1p)
 
 # specification (2)
 nmom = spec_2p.g_idx_prod[end][end]
@@ -175,10 +127,6 @@ W = I(nmom)
 x0 = initial_guess(spec_2p)
 
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_2p)
-
-g = zeros(nmom)
-r = zeros(5)
-@time gfunc!(x0,10,g,r,panel_data,spec_2p)
 
 res3,se3 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_2p)
 

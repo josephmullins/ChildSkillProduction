@@ -36,7 +36,7 @@ function update(x,spec)
     pos+= nθ
     λ = x[pos]
     P = CESmod(ρ=ρ,γ=γ,δ = δ,βm = βm,βf = βf,βg=βg,βθ=βθ,λ=λ,spec=spec)
-    return P,P
+    return P
 end
 function update_inv(pars)
     @unpack ρ,γ,δ,βm,βf,βg,βθ,λ = pars
@@ -56,7 +56,7 @@ end
 
 N = length(unique(panel_data.kid))
 
-gfunc!(x,n,g,resids,data,spec) = production_demand_moments_stacked!(update(x,spec)...,n,g,resids,data,spec)
+gfunc!(x,n,g,resids,data,spec) = production_demand_moments_stacked2!(update(x,spec),n,g,resids,data,spec)
 
 
 # specification (1)
@@ -64,12 +64,6 @@ nmom = spec_1p.g_idx_prod[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_1p)
 
-
-# let's do a test:
-
-lΦ,log_price_index = calc_Φ_m(update(x0,spec_1p)...,panel_data,1)
-lΦ1,log_price_index2 = calc_Φ_m(update(x0,spec_1p)[1],panel_data,1)
-break
 
 @time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_1p)
 res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1p)
