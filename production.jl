@@ -140,3 +140,119 @@ function calc_Φ_m(pars1,pars2,data,it)
 
     return lΦm,log_price_index
 end
+
+
+# update function for just demand parameters (shouldn't go here!!)
+function update_demand(x,spec)
+    ρ = x[1]
+    γ = x[2]
+    nm = length(spec.vm)
+    βm = x[3:2+nm]
+    pos = 3+nm
+    nf = length(spec.vf)
+    βf = x[pos:pos+nf-1]
+    ng = length(spec.vg)
+    pos += nf
+    βg = x[pos:pos+ng-1]
+    return CESmod(ρ=ρ,γ=γ,βm = βm,βf = βf,βg=βg,spec=spec)
+end
+function demand_inv(pars)
+    @unpack ρ,γ,βm,βf,βg = pars
+    return [ρ;γ;βm;βf;βg]
+end
+
+# attempting to write an update function with some restrictions and some not.
+function update(x,spec,unrestricted)
+    pos = 1 #<- tracks position in the vector of restriction indicators
+    pos2 = 1 #<- tracks position in the vector of parameters
+    ρ = x[1]
+    pos2 += 1
+    if unrestricted[1]
+        ρ2 = x[2]
+        pos2 += 1
+    else
+        ρ2 = ρ 
+    end
+    pos += 1
+    
+    γ = x[pos2]
+    pos2 += 1
+    if unrestricted[pos]
+        γ2 = x[pos2]
+        pos2 += 1
+    else
+        γ2 = γ
+    end
+    pos += 1
+    
+    # cobb-douglas factor shares
+    δ = x[pos2:pos2+1] 
+    pos2 += 2 
+    
+
+    np = length(spec.vm)
+    βm = x[pos2:pos2+np-1]
+    pos2 += np
+    @views r = unrestricted[pos:pos+np-1]
+    βm2 = copy(βm)
+    nu = sum(r)
+    βm2[r] = x[pos2:pos2+nu-1]
+    pos2 += nu
+    pos += np
+
+    np = length(spec.vf)
+    βf = x[pos2:pos2+np-1]
+    pos2 += np
+    @views r = unrestricted[pos:pos+np-1]
+    βf2 = copy(βf)
+    nu = sum(r)
+    βf2[r] = x[pos2:pos2+nu-1]
+    pos2 += nu
+    pos += np
+
+    np = length(spec.vg)
+    βg = x[pos2:pos2+np-1]
+    pos2 += np
+    @views r = unrestricted[pos:pos+np-1]
+    βg2 = copy(βg)
+    nu = sum(r)
+    βg2[r] = x[pos2:pos2+nu-1]
+    pos2 += nu
+    pos += np
+
+    nθ = length(spec.vθ)
+    βθ = x[pos2:pos2+nθ-1]
+    pos2 += nθ
+    λ = x[pos2]
+    P1 = CESmod(ρ=ρ,γ=γ,βm = βm,βf = βf,βg=βg,spec=spec)
+    P2 = CESmod(ρ=ρ2,γ=γ2,δ = δ,βm = βm2,βf = βf2,βg=βg2,βθ=βθ,λ=λ,spec=spec)
+    return P1,P2
+end
+
+# this function assumes a CESmod object that holds indicators of restrictions
+function update_inv(P1,P2,Pu)
+    x = [P1.ρ]
+    if Pu.ρ
+        push!(x,P2.ρ)
+    end
+    push!(x,P1.γ)
+    if Pu.γ
+        push!(x,P2.γ)
+    end
+
+    push!(x,P2.δ...)
+
+    push!(x,P1.βm...)
+    push!(x,P2.βm[Pu.βm]...)
+
+    push!(x,P1.βf...)
+    push!(x,P2.βf[Pu.βf]...)
+
+    push!(x,P1.βg...)
+    push!(x,P2.βg[Pu.βg]...)
+
+    push!(x,P2.βθ...)
+    push!(x,P2.λ)
+    return x
+end
+

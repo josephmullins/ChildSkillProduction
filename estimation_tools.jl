@@ -16,7 +16,7 @@ using Clustering
 function gmm_criterion(x,gfunc!,W,N,nresids,args...)
     nmom = size(W)[1]
     g = moment_func(x,gfunc!,N,nmom,nresids,args...)
-    return g'*W*g
+    return g'*W*g / 2
 end
 
 # issue: want the type of the storage vector to change
@@ -106,6 +106,70 @@ function estimate_gmm_iterative(x0,gfunc!,iter,W,N,nresids,args...)
     return x1,sqrt.(diag(V))
 end
 
+# this function estimates by:
+# (1) running LBFGS for a fixed number of iterations
+# (2) updating the weighting matrix
+# (3) running Newton's method with the new weighting matrix
+# (4) doing a one-step update with optimal weighting
+# (5) reporting all estimates
+function estimate_gmm(x0,gfunc!,W,N,nresids,args...)
+    nmom = size(W,1)
+    # step (1)
+    r1 = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,args...),x0,LBFGS(),autodiff=:forward,Optim.Options(f_calls_limit=100))
+    # step (2)
+    Ω = moment_variance(r1.minimizer,gfunc!,N,nmom,nresids,args...)
+    W = inv(Ω)
+    # step (3)
+    r2 = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,args...),r1.minimizer,Newton(),autodiff=:forward,Optim.Options(show_trace=true))
+    # calculating this variance for now just to compare
+    V = parameter_variance_gmm(r2.minimizer,gfunc!,W,N,nresids,args...)
+    # step (4)
+    Ω = moment_variance(r2.minimizer,gfunc!,N,nmom,nresids,args...)
+    W = inv(Ω)
+    dG = ForwardDiff.jacobian(x->moment_func(x,gfunc!,N,nmom,nresids,args...),r2.minimizer)
+    avar = inv(dG'*W*dG)
+    gn = moment_func(r2.minimizer,gfunc!,N,nmom,nresids,args...)
+    x_est = r2.minimizer .-  avar*dG'*W*gn
+
+    # return some output
+    var = avar / N
+    se = sqrt.(diag(var))
+    se_old = sqrt.(diag(V))
+    return (est1 = x_est,est2 = r2.minimizer,Ω = Ω,avar = avar,se = se,se_old=se_old)
+end
+
+function newton_raphson_approx_step(x1,gfunc!,W,N,nresids,args...)
+    dG = ForwardDiff.jacobian(x->moment_func(x,gfunc!,N,nmom,nresids,args...),x1)
+    Hinv = inv(dG'*W*dG)
+    gn = moment_func(x1,gfunc!,N,nmom,nresids,args...)
+    x2 = x1 - Hinv*dG'*W*gn
+    return x2,Hinv
+end
+
+
+function newton_raphson_exact_step(x1,gfunc!,W,N,nresids,args...)
+    dG = ForwardDiff.jacobian(x->moment_func(x,gfunc!,N,nmom,nresids,args...),x1)
+    H = ForwardDiff.hessian(x->gmm_criterion(x,gfunc!,W,N,nresids,args...),x1)
+    Hinv = inv(H)
+    gn = moment_func(x1,gfunc!,N,nmom,nresids,args...)
+    x2 = x1 - Hinv*dG'*W*gn
+    return x2,Hinv
+end
+
+# this test only works if W is the inverse of a consistent estimate of the variance of g
+function LM_test(x_est,r,gfunc!,W,N,nresids,args...)
+    nmom = size(W,1)
+
+    dG = ForwardDiff.jacobian(x->moment_func(x,gfunc!,N,nmom,nresids,args...),x_est)
+    gn = moment_func(x_est,gfunc!,N,nmom,nresids,args...)
+    Binv = inv(dG'*W*dG)
+
+    # test statistic and p-value
+    pre = dG'*W*gn
+    test_stat = N*pre'*Binv*pre
+    pval = 1-cdf(Chisq(r),test_stat)
+    return test_stat,pval
+end
 
 # ---- Other Utility Functions
 
@@ -118,6 +182,17 @@ function make_dummy(data,var::Symbol)
         data[!,vnames[i]] = data[!,var].==vals[i]
     end
     return vnames
+end
+
+# function to create interaction terms in the data and spit out a list of their names
+function make_interactions(data,V1::Vector{Symbol},V2::Vector{Symbol})
+    names = []
+    for v1 in V1, v2 in V2
+        name = Symbol(v1,"_x_",v2)
+        data[!,name] = data[!,v1].*data[!,v2]
+        push!(names,name)
+    end
+    return names
 end
 
 # function to take a linear combination given a vector and a list of variables

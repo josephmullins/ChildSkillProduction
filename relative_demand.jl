@@ -50,12 +50,12 @@ end
 function log_input_ratios(pars,data,it)
     @unpack ρ,γ = pars
     if data.mar_stat[it]
-        ag,am,af = factor_shares(pars,data,it,true) #<- returns the factor shares.
-        lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(ρ,γ,1.,am,af,ag,data.logwage_m[it],data.logwage_f[it],data.logprice_g[it],data.logprice_c[it])
+        ag,am,af,ay = factor_shares(pars,data,it,true) #<- returns the factor shares.
+        lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(ρ,γ,ay,am,af,ag,data.logwage_m[it],data.logwage_f[it],data.logprice_g[it],data.logprice_c[it])
         return lϕm,lϕf,lϕc,log_price_index,Φg
     else
-        ag,am = factor_shares(pars,data,it,false)
-        lϕm,lϕc,log_price_index,Φg = log_input_ratios(ρ,γ,1.,am,ag,data.logwage_m[it],data.logprice_g[it],data.logprice_c[it])
+        ag,am,ay = factor_shares(pars,data,it,false)
+        lϕm,lϕc,log_price_index,Φg = log_input_ratios(ρ,γ,ay,am,ag,data.logwage_m[it],data.logprice_g[it],data.logprice_c[it])
         lϕf = 0.
         return lϕm,lϕf,lϕc,log_price_index,Φg
     end
@@ -64,14 +64,17 @@ end
 function factor_shares(pars,data,it,mar_stat)
     @unpack βm,βf,βg,spec = pars
     if mar_stat
-        am = linear_combination(βm,spec.vm,data,it)
-        af = linear_combination(βf,spec.vf,data,it)
-        ag = linear_combination(βg,spec.vg,data,it)
-        return exp(ag),exp(am),exp(af)
+        am = exp(linear_combination(βm,spec.vm,data,it))
+        af = exp(linear_combination(βf,spec.vf,data,it))
+        ag = exp(linear_combination(βg,spec.vg,data,it))
+        denom = am+ag+ag+1
+
+        return ag/denom,am/denom,af/denom,1/denom
     else
-        am = linear_combination(βm,spec.vm,data,it)
-        ag = linear_combination(βg,spec.vg,data,it)
-        return exp(ag),exp(am)
+        am = exp(linear_combination(βm,spec.vm,data,it))
+        ag = exp(linear_combination(βg,spec.vg,data,it))
+        denom = am+ag+1
+        return ag/denom,am/denom,1/denom
     end 
 end
 

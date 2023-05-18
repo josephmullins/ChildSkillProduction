@@ -57,56 +57,68 @@ end
 N = length(unique(panel_data.kid))
 
 gfunc!(x,n,g,resids,data,spec) = production_demand_moments_stacked2!(update(x,spec),n,g,resids,data,spec)
+gfunc2!(x,n,g,resids,data,spec,unrestricted) = production_demand_moments_stacked!(update(x,spec,unrestricted)...,n,g,resids,data,spec)
 
 
-# specification (1)
-nmom = spec_1p.g_idx_prod[end][end]
+# ---- specification (1)
+nmom = spec_1p_x.g_idx_prod[end][end]
 W = I(nmom)
-x0 = initial_guess(spec_1p)
+x0 = initial_guess(spec_1p_x)
+
+res1 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_1p_x)
+
+# test restrictions jointly:
+P = update(res1.est1,spec_1p_x)
+W = inv(res1.Ω)
+np_demand = 2+length(spec_1.vm)+length(spec_1.vf)+length(spec_1.vg)
+unrestricted = fill(true,np_demand)
+Pu = update_demand(unrestricted,spec_1)
+x1 = update_inv(P,P,Pu)
+t1,p1 = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
+
+# now try the unrestricted estimator:
+res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted),x1,LBFGS(),autodiff=:forward,Optim.Options(f_calls_limit=200,show_trace=true))
+
+res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted),x1,NewtonTrustRegion(),autodiff=:forward,Optim.Options(iterations=14,show_trace=true))
 
 
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_1p)
-res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1p)
-
-p = update(res2,spec_1p)
-p_se = update(se2,spec_1p)
-
-# specification (2)
-nmom = spec_2p.g_idx_prod[end][end]
+# ---- specification (2)
+nmom = spec_2p_x.g_idx_prod[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_2p)
 
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_2p)
+res2 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_2p_x)
 
-g = zeros(nmom)
-r = zeros(5)
-@time gfunc!(x0,10,g,r,panel_data,spec_2p)
+# test restrictions jointly:
+P = update(res2.est1,spec_2p_x)
+W = inv(res2.Ω)
+np_demand = 2+length(spec_2.vm)+length(spec_2.vf)+length(spec_2.vg)
+unrestricted = fill(true,np_demand)
+Pu = update_demand(unrestricted,spec_2)
+x1 = update_inv(P,P,Pu)
+t2,p2 = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_2p_x,unrestricted)
 
-res3,se3 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_2p)
 
-p2 = update(res3,spec_2p)
-p2_se = update(se3,spec_2p)
-
-# specification (3)
-nmom = spec_3p.g_idx_prod[end][end]
+# ---- specification (3)
+nmom = spec_3p_x.g_idx_prod[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_3p)
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_3p)
 
-res4,se4 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_3p)
+res3 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_3p_x)
 
-p3 = update(res4,spec_3p)
-p3_se = update(se4,spec_3p)
-
-
-# [p.δ p_se.δ p2.δ p2_se.δ p3.δ p3_se.δ]
-
-# display([p.βm p_se.βm spec_1p.vm; "-" "-" "-"; p2.βm p2_se.βm spec_2p.vm; "-" "-" "-" ; p3.βm p3_se.βm spec_3p.vm])
-
-# display([p.βθ p_se.βθ spec_1p.vθ; "-" "-" "-"; p2.βθ p2_se.βθ spec_2p.vθ;  "-" "-" "-"; p3.βθ p3_se.βθ spec_3p.vθ])
+# test restrictions jointly:
+P = update(res3.est1,spec_3p_x)
+W = inv(res3.Ω)
+np_demand = 2+length(spec_3.vm)+length(spec_3.vf)+length(spec_3.vg)
+unrestricted = fill(true,np_demand)
+Pu = update_demand(unrestricted,spec_3)
+x1 = update_inv(P,P,Pu)
+t3,p3 = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_3p_x,unrestricted)
 
 # ----- Write results to a LaTeX table
-# results are different from before. What happened? Is the issue with my code?
+
+# the code below doesn't work yet.
+break
 
 cluster_labels = Dict(zip(cluster_dummies,[string("Type ",string(s)[end]) for s in cluster_dummies]))
 ed_labels = Dict(zip([f_ed[2:3];m_ed[2:3]],["Father: College+","Father: Some College","Mother: Some College","Mother: College+"]))
@@ -115,10 +127,11 @@ other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. Ch
 
 labels = merge(other_labels,cluster_labels,ed_labels)
 
-par_vec = [update(res2,spec_1p)[1],update(res3,spec_2p)[1],update(res4,spec_3p)[1]]
-se_vec = [update(se2,spec_1p)[1],update(se3,spec_2p)[1],update(se4,spec_3p)[1]]
+par_vec = [update(res2,spec_1p),update(res3,spec_2p),update(res4,spec_3p)]
+se_vec = [update(se2,spec_1p),update(se3,spec_2p),update(se4,spec_3p)]
 results = [residual_test(panel_data,N,p) for p in par_vec]
 pvals = [r[2] for r in results]
 
 writetable(par_vec,se_vec,[spec_1,spec_2,spec_3],labels,pvals,"tables/demand_production_restricted.tex",true)
 
+# I don't recall convergence being an issue before

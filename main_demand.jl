@@ -69,65 +69,47 @@ gfunc!(x,n,g,resids,data,spec) = demand_moments_stacked!(update(x,spec),n,g,resi
 # call this function instead and get it to work using a production specification
 #production_moments_stacked!(update(x,spec),n,g,resids,data,spec)
 
+N = length(unique(panel_data.kid))
+
 # Specification (1)
 
-n97 = length(spec_1.vg) + 1 
-n02 = (length(spec_1.vg)+1)*2 + length(spec_1.vf) + length(spec_1.vm) + 2
-nmom = n97+n02
+nmom = spec_1.g_idx_02[end]
 W = I(nmom)
-
-g = zeros(nmom)
-resids = zeros(5)
 x0 = initial_guess(spec_1)
 
-N = length(unique(panel_data.kid))
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_1)
-
-res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1)
+res1 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_1)
+#res2,se2 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_1)
 
 # Specification (2): 
 x0 = initial_guess(spec_2)
-n97 = length(spec_2.vg) + 1 
-n02 = (length(spec_2.vg)+1)*2 + length(spec_2.vf) + length(spec_2.vm) + 2
-nmom = n97+n02
+nmom = spec_2.g_idx_02[end]
 W = I(nmom)
 
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_2)
-res3,se3 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_2)
+res2 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_2)
+#res3,se3 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_2)
 
 # Specification (3): 
 x0 = initial_guess(spec_3)
-
-n97 = length(spec_3.vg) + 1 
-n02 = (length(spec_3.vg)+1)*2 + length(spec_3.vf) + length(spec_3.vm) + 2
-nmom = n97+n02
+nmom = spec_3.g_idx_02[end]
 W = I(nmom)
-
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_3)
-res4,se4 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_3)
+res3 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_3)
+#res4,se4 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_3)
 
 # Specification (4): 
 x0 = initial_guess(spec_4)
-
-n97 = length(spec_4.vg) + 1 
-n02 = (length(spec_4.vg)+1)*2 + length(spec_4.vf) + length(spec_4.vm) + 2
-nmom = n97+n02
+nmom = spec_4.g_idx_02[end]
 W = I(nmom)
-
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_4)
-res5,se5 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_4)
+res4 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_4)
+#res5,se5 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_4)
 
 
 # Specification (5): 
 x0 = initial_guess(spec_5)
-
-n97 = length(spec_5.vg) + 1 
-n02 = (length(spec_5.vg)+1)*2 + length(spec_5.vf) + length(spec_5.vm) + 2
-nmom = n97+n02
+nmom = spec_5.g_idx_02[end]
 W = I(nmom)
+res5 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_5)
 
-@time gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_5)
-res6,se6 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_5)
+#res6,se6 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_5)
 
 # ----- Write results to a LaTeX table
 
@@ -138,9 +120,10 @@ other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. Ch
 
 labels = merge(other_labels,cluster_labels,ed_labels)
 
-par_vec = [update(res2,spec_1),update(res3,spec_2),update(res4,spec_3),update(res5,spec_4),update(res6,spec_5)]
-
+par_vec = [update(res1.est1,spec_1),update(res2.est1,spec_2),update(res3.est1,spec_3),update(res4.est1,spec_4),update(res5.est1,spec_5)]
+#par_vec = [update(res2,spec_1),update(res3,spec_2),update(res4,spec_3),update(res5,spec_4),update(res6,spec_5)]
+se_vec = [update(res1.se,spec_1),update(res2.se,spec_2),update(res3.se,spec_3),update(res4.se,spec_4),update(res5.se,spec_5)]
 results = [residual_test(panel_data,N,p) for p in par_vec]
 pvals = [r[2] for r in results]
 
-writetable(par_vec,[update(se2,spec_1),update(se3,spec_2),update(se4,spec_3),update(se5,spec_4),update(se6,spec_5)],[spec_1,spec_2,spec_3,spec_4,spec_5],labels,pvals,"tables/relative_demand.tex")
+writetable(par_vec,se_vec,[spec_1,spec_2,spec_3,spec_4,spec_5],labels,pvals,"tables/relative_demand.tex")

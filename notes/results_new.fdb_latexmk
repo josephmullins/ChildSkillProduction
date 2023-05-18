@@ -1,9 +1,9 @@
 # Fdb version 3
-["pdflatex"] 1683732435 "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" "results_new.pdf" "results_new" 1683732436
+["pdflatex"] 1684426237 "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" "results_new.pdf" "results_new" 1684426238
   "../tables/demand_production_restricted.tex" 1683732349 1859 9b9f879aef802be6433cb446bcb19cc1 ""
-  "../tables/relative_demand.tex" 1683132911 2316 42ea0f3ae3494a64a4b2bc7a0922ad70 ""
+  "../tables/relative_demand.tex" 1684426237 2323 b3cb688a7a2f0dea115908b7ef47238e ""
   "../tables/relative_demand_old_data.tex" 1683133553 2320 f8f30a8bc92c564fa8c72d6f0b1fd7d2 ""
-  "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" 1683732435 8286 3ea3bca8bdefcc6c573dda744a6ca42b ""
+  "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" 1683732437 8286 3ea3bca8bdefcc6c573dda744a6ca42b ""
   "/usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
@@ -52,8 +52,8 @@
   "/usr/local/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1647878959 4410336 7d30a02e9fa9a16d7d1f8d037ba69641 ""
   "/usr/local/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1674674079 2826436 0d4a61304638bec2cd0360cc41b4a4c1 ""
   "/usr/local/texlive/2022/texmf.cnf" 1647878952 577 209b46be99c9075fd74d4c0369380e8c ""
-  "results_new.aux" 1683732436 1107 efbe314fbdc117352d497da04e1649b3 "pdflatex"
-  "results_new.tex" 1683732435 8286 3ea3bca8bdefcc6c573dda744a6ca42b ""
+  "results_new.aux" 1684426238 1107 efbe314fbdc117352d497da04e1649b3 "pdflatex"
+  "results_new.tex" 1683732437 8286 3ea3bca8bdefcc6c573dda744a6ca42b ""
   (generated)
   "results_new.aux"
   "results_new.log"
