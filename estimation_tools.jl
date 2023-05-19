@@ -112,6 +112,7 @@ end
 # (3) running Newton's method with the new weighting matrix
 # (4) doing a one-step update with optimal weighting
 # (5) reporting all estimates
+# edit this function? to just run Newton again with updated weighting?
 function estimate_gmm(x0,gfunc!,W,N,nresids,args...)
     nmom = size(W,1)
     # step (1)
@@ -126,16 +127,18 @@ function estimate_gmm(x0,gfunc!,W,N,nresids,args...)
     # step (4)
     Ω = moment_variance(r2.minimizer,gfunc!,N,nmom,nresids,args...)
     W = inv(Ω)
+    r2 = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,args...),r2.minimizer,Newton(),autodiff=:forward,Optim.Options(show_trace=true))
+
     dG = ForwardDiff.jacobian(x->moment_func(x,gfunc!,N,nmom,nresids,args...),r2.minimizer)
     avar = inv(dG'*W*dG)
-    gn = moment_func(r2.minimizer,gfunc!,N,nmom,nresids,args...)
-    x_est = r2.minimizer .-  avar*dG'*W*gn
+    #gn = moment_func(r2.minimizer,gfunc!,N,nmom,nresids,args...)
+    x_est = r2.minimizer# .-  avar*dG'*W*gn
 
     # return some output
     var = avar / N
     se = sqrt.(diag(var))
     se_old = sqrt.(diag(V))
-    return (est1 = x_est,est2 = r2.minimizer,Ω = Ω,avar = avar,se = se,se_old=se_old)
+    return (est1 = x_est,est2 = r1.minimizer,Ω = Ω,avar = avar,se = se,se_old=se_old)
 end
 
 function newton_raphson_approx_step(x1,gfunc!,W,N,nresids,args...)

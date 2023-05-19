@@ -77,9 +77,51 @@ x1 = update_inv(P,P,Pu)
 t1,p1 = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
 
 # now try the unrestricted estimator:
-res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted),x1,LBFGS(),autodiff=:forward,Optim.Options(f_calls_limit=200,show_trace=true))
+#res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted),x1,LBFGS(),autodiff=:forward,Optim.Options(f_calls_limit=200,show_trace=true))
 
-res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted),x1,NewtonTrustRegion(),autodiff=:forward,Optim.Options(iterations=14,show_trace=true))
+#res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted),x1,NewtonTrustRegion(),autodiff=:forward,Optim.Options(iterations=14,show_trace=true))
+
+# ---- experiment 2: update the intercept terms in the factor shares:
+P_idx = update_demand(collect(1:np_demand),spec_1p_x)
+unrestricted = fill(false,np_demand)
+unrestricted[[P_idx.βm[1:2];P_idx.βf[1]]] .= true
+Pu = update_demand(unrestricted,spec_1)
+x1 = update_inv(P,P,Pu)
+
+P1,P2 = update(x1,spec_1p_x,unrestricted)
+
+t1u,p1u = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
+
+nresids = 5
+res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,nresids,panel_data,spec_1p_x,unrestricted),x1,NewtonTrustRegion(),autodiff=:forward,Optim.Options(show_trace=true))
+
+p1,p2 = update(res1u.minimizer,spec_1p_x,unrestricted)
+
+
+# now test restrictions again
+unrestricted = fill(true,np_demand)
+Pu = update_demand(unrestricted,spec_1)
+x1 = update_inv(p1,p2,Pu)
+t1,p1 = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
+
+unrestricted = fill(false,np_demand)
+unrestricted[[P_idx.βm;P_idx.βf]] .= true
+Pu = update_demand(unrestricted,spec_1)
+x1 = update_inv(P,P,Pu)
+
+
+t1u,p1u = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
+
+# starts again from the initial estimates
+res1u2 = optimize(x->gmm_criterion(x,gfunc2!,W,N,nresids,panel_data,spec_1p_x,unrestricted),x1,NewtonTrustRegion(),autodiff=:forward,Optim.Options(show_trace=true))
+
+
+break
+# but it looks like there are some changes in the parameters
+P1_idx,P2_idx = update(collect(1:length(x1)),spec_1p_x,unrestricted)
+i_r = [P1_idx.βm[1:2];P2_idx.βm[1:2];P1_idx.βf[1];P2_idx.βf[1]]
+
+
 
 
 # ---- specification (2)
