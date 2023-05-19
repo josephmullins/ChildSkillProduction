@@ -76,6 +76,36 @@ Pu = update_demand(unrestricted,spec_1)
 x1 = update_inv(P,P,Pu)
 t1,p1 = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
 
+# try the one-step estimator:
+res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted),x1,Newton(),autodiff=:forward,Optim.Options(iterations=4,show_trace=true))
+#V = parameter_variance_gmm(res1u.minimizer,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
+
+
+# ----- Here we try a one-step and don't reject because the variance is insane
+dG = ForwardDiff.jacobian(x->moment_func(x,gfunc2!,N,nmom,nresids,panel_data,spec_1p_x,unrestricted),res1u.minimizer)
+var = inv(dG'*W*dG) / N
+
+R = zeros(np_demand,length(x1))
+p1_idx,p2_idx = update(collect(1:length(x1)),spec_1p_x,unrestricted)
+idx1 = [p1_idx.ρ;p1_idx.γ;p1_idx.βm;p1_idx.βf;p1_idx.βg]
+idx2 = [p2_idx.ρ;p2_idx.γ;p2_idx.βm;p2_idx.βf;p2_idx.βg]
+for i in 1:sum(unrestricted); R[i,idx1[i]] = 1; R[i,idx2[i]] = -1; end
+wald_joint = (R*res1u.minimizer)'*inv(R*var*R')*(R*res1u.minimizer)
+# --------
+
+# try estimating just γ and ρ:
+unrestricted = fill(false,np_demand)
+unrestricted[1:2] .= true
+Pu = update_demand(unrestricted,spec_1)
+x1 = update_inv(P,P,Pu)
+t1,p1 = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
+
+# try the one-step estimator:
+# we hit a NaN problem
+res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted),x1,NewtonTrustRegion(),autodiff=:forward,Optim.Options(show_trace=true))
+
+
+
 # now try the unrestricted estimator:
 #res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted),x1,LBFGS(),autodiff=:forward,Optim.Options(f_calls_limit=200,show_trace=true))
 
@@ -115,6 +145,7 @@ t1u,p1u = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_1p_x,unrest
 # starts again from the initial estimates
 res1u2 = optimize(x->gmm_criterion(x,gfunc2!,W,N,nresids,panel_data,spec_1p_x,unrestricted),x1,NewtonTrustRegion(),autodiff=:forward,Optim.Options(show_trace=true))
 
+p1,p2 = update(res1u2.minimizer,spec_1p_x,unrestricted)
 
 break
 # but it looks like there are some changes in the parameters
