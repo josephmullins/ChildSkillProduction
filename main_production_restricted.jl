@@ -76,6 +76,8 @@ Pu = update_demand(unrestricted,spec_1)
 x1 = update_inv(P,P,Pu)
 t1,p1 = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
 
+
+break
 # try the one-step estimator:
 res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted),x1,Newton(),autodiff=:forward,Optim.Options(iterations=4,show_trace=true))
 #V = parameter_variance_gmm(res1u.minimizer,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
@@ -100,7 +102,6 @@ Pu = update_demand(unrestricted,spec_1)
 x1 = update_inv(P,P,Pu)
 t1,p1 = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
 
-# try the one-step estimator:
 # we hit a NaN problem
 res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted),x1,NewtonTrustRegion(),autodiff=:forward,Optim.Options(show_trace=true))
 
@@ -134,6 +135,8 @@ Pu = update_demand(unrestricted,spec_1)
 x1 = update_inv(p1,p2,Pu)
 t1,p1 = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
 
+# experiment 3: change all factor shares
+
 unrestricted = fill(false,np_demand)
 unrestricted[[P_idx.βm;P_idx.βf]] .= true
 Pu = update_demand(unrestricted,spec_1)
@@ -146,6 +149,22 @@ t1u,p1u = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_1p_x,unrest
 res1u2 = optimize(x->gmm_criterion(x,gfunc2!,W,N,nresids,panel_data,spec_1p_x,unrestricted),x1,NewtonTrustRegion(),autodiff=:forward,Optim.Options(show_trace=true))
 
 p1,p2 = update(res1u2.minimizer,spec_1p_x,unrestricted)
+
+# experiment 4: change only coefficient terms in factor shares:
+
+unrestricted = fill(false,np_demand)
+unrestricted[[P_idx.βm[2:end];P_idx.βf[2:end];P_idx.βg[2:end]]] .= true
+Pu = update_demand(unrestricted,spec_1)
+x1 = update_inv(P,P,Pu)
+
+P1,P2 = update(x1,spec_1p_x,unrestricted)
+
+t1u,p1u = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
+
+nresids = 5
+res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,nresids,panel_data,spec_1p_x,unrestricted),x1,NewtonTrustRegion(),autodiff=:forward,Optim.Options(show_trace=true))
+
+p1,p2 = update(res1u.minimizer,spec_1p_x,unrestricted)
 
 break
 # but it looks like there are some changes in the parameters

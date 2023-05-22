@@ -67,7 +67,7 @@ function factor_shares(pars,data,it,mar_stat)
         am = exp(linear_combination(βm,spec.vm,data,it))
         af = exp(linear_combination(βf,spec.vf,data,it))
         ag = exp(linear_combination(βg,spec.vg,data,it))
-        denom = am+ag+ag+1
+        denom = am+ag+af+1
 
         return ag/denom,am/denom,af/denom,1/denom
     else
