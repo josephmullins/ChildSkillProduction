@@ -5,7 +5,9 @@ function build_spec(spec)
     n97 = length(spec.vg)+1
     n02 = (length(spec.vg)+1)*2 + length(spec.vf) + length(spec.vm) + 2
     g_idx_97 = 1:n97
+
     zlist_97 =  [(spec.vg...,:logprice_c_m)]
+
     g_idx_02 = (n97+1):(n97+n02)
     zlist_02 = [(spec.vm...,:logprice_m_g),
     (spec.vf...,:logprice_f_g),
@@ -52,7 +54,6 @@ spec_5 = build_spec((vm = [:constant;:div;:mu_k;m_ed[2:3];:age;:num_0_5],
 
 
 
-
 # a second helper function that builds a specification as above, but does so including info relevant to production
 function build_spec_prod(spec)
         n97 = length(spec.vg)+1
@@ -73,6 +74,7 @@ function build_spec_prod(spec)
 
         # create the positions in which to write moments for each t
         g_idx_prod = []
+        
         gpos = (n97+n02)
         for t in eachindex(spec.zlist_prod)
                 K = sum(length(z) for z in spec.zlist_prod[t]) #<- number of moments
@@ -99,6 +101,7 @@ spec_1p_x = build_spec_prod(
         zlist_prod = [[[interactions_1;:AP],[interactions_1;:LW],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[]]])
 )
 
+
 interactions_2 = make_interactions(panel_data,price_ratios,spec_2.vm)
 
 spec_2p_x = build_spec_prod(
@@ -114,3 +117,8 @@ spec_3p_x = build_spec_prod(
         zlist_prod_t = [0,5],
         zlist_prod = [[[interactions_3;:AP],[interactions_3;:LW],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[]]])
 )
+
+
+spec_1p=spec_1p_x
+spec_2p=spec_2p_x
+spec_3p=spec_3p_x
