@@ -92,19 +92,21 @@ end
 
 price_ratios = [:logprice_c_g;:logprice_m_g;:logprice_f_g]
 interactions_1 = make_interactions(panel_data,price_ratios,spec_1.vm)
+input_instruments = [:log_mtime,:log_ftime_coalesced,:log_chcare_input,:log_good_input]
 
 spec_1p_x = build_spec_prod(
         (vm = spec_1.vm,vf = spec_1.vf, vg = spec_1.vg,vθ = spec_1.vm,
         zlist_prod_t = [0,5],
-        zlist_prod = [[[interactions_1;:AP],[interactions_1;:LW],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[]]])
+        zlist_prod = [[[interactions_1;:AP],[interactions_1;:LW],[:constant;price_ratios],[:constant;price_ratios],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[:log_ftime_coalesced],[:log_ftime_coalesced],[],[]]])
 )
+# try adding more instruments, too?
 
 interactions_2 = make_interactions(panel_data,price_ratios,spec_2.vm)
 
 spec_2p_x = build_spec_prod(
         (vm = spec_2.vm,vf = spec_2.vf, vg = spec_2.vg,vθ = spec_2.vm,
         zlist_prod_t = [0,5],
-        zlist_prod = [[[interactions_2;:AP],[interactions_2;:LW],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[]]])
+        zlist_prod = [[[interactions_2;:AP],[interactions_2;:LW],[interactions_2;:AP],[interactions_2;:LW],[:constant],[:constant]],[[:log_mtime,:log_ftime_coalesced],[:log_mtime,:log_ftime_coalesced],[:log_mtime,:log_ftime_coalesced],[:log_mtime,:log_ftime_coalesced],[],[]]])
 )
 
 interactions_3 = make_interactions(panel_data,price_ratios,spec_3.vm)
@@ -112,5 +114,5 @@ interactions_3 = make_interactions(panel_data,price_ratios,spec_3.vm)
 spec_3p_x = build_spec_prod(
         (vm = spec_3.vm,vf = spec_3.vf, vg = spec_3.vg,vθ = spec_3.vm,
         zlist_prod_t = [0,5],
-        zlist_prod = [[[interactions_3;:AP],[interactions_3;:LW],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[]]])
+        zlist_prod = [[[interactions_3;:AP],[interactions_3;:LW],[interactions_3;:AP],[interactions_3;:LW],[:constant],[:constant]],[[:log_mtime,:log_ftime_coalesced],[:log_mtime,:log_ftime_coalesced],[:log_mtime,:log_ftime_coalesced],[:log_mtime,:log_ftime_coalesced],[],[]]])
 )

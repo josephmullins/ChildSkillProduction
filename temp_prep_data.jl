@@ -43,10 +43,19 @@ panel_data[!,:LW_valid] = .!ismissing.(panel_data.LW)
 panel_data[!,:AP] = coalesce.(panel_data.AP,0.)
 panel_data[!,:LW] = coalesce.(panel_data.LW,0.)
 panel_data[!,:mtime_valid] = .!ismissing.(panel_data.log_mtime) .& .!ismissing.(panel_data.m_ed)
-panel_data[!,:ftime_valid] = .!ismissing.(panel_data.log_ftime) .| .!panel_data.mar_stat
-# these two lines cause problems with estimation. I don't know if I even need them!
-#panel_data[!,:log_mtime] = coalesce.(panel_data.log_mtime,0.)
-#panel_data[!,:log_ftime] = coalesce.(panel_data.log_ftime,0.)
+panel_data[!,:ftime_valid] = .!ismissing.(panel_data.log_ftime) #.| .!panel_data.mar_stat only use non-missing father's time
+
+panel_data[!,:chcare_valid] = .!ismissing.(panel_data.log_chcare)
+
+# these two lines cause problems with estimation. 
+# why? because missing(data.log_mtime[it]) (for example) is called calc_demand_resids!. If we set to zero, no longer coded as missing
+panel_data[!,:log_mtime_coalesced] = coalesce.(panel_data.log_mtime,0.)
+panel_data[!,:log_ftime_coalesced] = coalesce.(panel_data.log_ftime,0.)
+panel_data[!,:log_chcare_input] = coalesce.(panel_data.log_chcare .- panel_data.logprice_c,0.)
+panel_data[!,:log_good_input] = coalesce.(panel_data.log_good .- panel_data.logprice_g,0.)
+
+
+# do these two lines still cause an issue? we'd like to use father's time as an instrument.
 
 
 
