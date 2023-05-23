@@ -115,7 +115,7 @@ res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestric
 # ---- experiment 2: update the intercept terms in the factor shares:
 P_idx = update_demand(collect(1:np_demand),spec_1p_x)
 unrestricted = fill(false,np_demand)
-unrestricted[[P_idx.βm[1:2];P_idx.βf[1]]] .= true
+unrestricted[[P_idx.βm[1];P_idx.βf[1];P_idx.βg[1]]] .= true
 Pu = update_demand(unrestricted,spec_1)
 x1 = update_inv(P,P,Pu)
 
