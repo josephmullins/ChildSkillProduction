@@ -82,6 +82,7 @@ break
 res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted),x1,Newton(),autodiff=:forward,Optim.Options(iterations=4,show_trace=true))
 #V = parameter_variance_gmm(res1u.minimizer,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
 
+for it in 1:1000; if panel_data.year[it]==1997 && panel_data.all_prices[it]; println(factor_shares(p2,panel_data,it,panel_data.mar_stat[it])); end ;end
 
 # ----- Here we try a one-step and don't reject because the variance is insane
 dG = ForwardDiff.jacobian(x->moment_func(x,gfunc2!,N,nmom,nresids,panel_data,spec_1p_x,unrestricted),res1u.minimizer)
