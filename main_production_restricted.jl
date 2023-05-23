@@ -59,14 +59,25 @@ N = length(unique(panel_data.kid))
 gfunc!(x,n,g,resids,data,spec) = production_demand_moments_stacked2!(update(x,spec),n,g,resids,data,spec)
 gfunc2!(x,n,g,resids,data,spec,unrestricted) = production_demand_moments_stacked!(update(x,spec,unrestricted)...,n,g,resids,data,spec)
 
+# things to try (combinations)
+# 1. add interactions and maybe investment proxies for this case #<- get rank issue still
+# 2. try just the constants first, what happens then? #<- ay goes to one (but what if we normalize the inner aggregator?)
+# 3. swapping the residual that has the interaction instruments, does this make a difference? #<- we get a rank issue (?)
 
 # ---- specification (1)
+spec_1p_x = build_spec_prod(
+        (vm = spec_1.vm,vf = spec_1.vf, vg = spec_1.vg,vθ = spec_1.vm,
+        zlist_prod_t = [0,5],
+        zlist_prod = [[[interactions_1;:AP],[interactions_1;:LW],[:constant;price_ratios],[:constant;price_ratios],[:constant;price_ratios],[:constant;price_ratios],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[:log_ftime_coalesced],[:log_ftime_coalesced],[],[],[],[]]])
+)
 nmom = spec_1p_x.g_idx_prod[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_1p_x)
 
-res1 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_1p_x)
+res1 = estimate_gmm(x0,gfunc!,W,N,8,panel_data,spec_1p_x)
 
+
+break
 # test restrictions jointly:
 P = update(res1.est1,spec_1p_x)
 W = inv(res1.Ω)
@@ -74,13 +85,21 @@ np_demand = 2+length(spec_1.vm)+length(spec_1.vf)+length(spec_1.vg)
 unrestricted = fill(true,np_demand)
 Pu = update_demand(unrestricted,spec_1)
 x1 = update_inv(P,P,Pu)
-t1,p1 = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
+t1,p1 = LM_test(x1,sum(unrestricted),gfunc2!,W,N,8,panel_data,spec_1p_x,unrestricted)
 
 
 break
 # try the one-step estimator:
-res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted),x1,Newton(),autodiff=:forward,Optim.Options(iterations=4,show_trace=true))
+gmm_criterion(x1,gfunc2!,W,N,8,panel_data,spec_1p_x,unrestricted)
+gmm_criterion(res1.est1,gfunc!,W,N,8,panel_data,spec_1p_x)
+
+g0=moment_func(x1,gfunc2!,N,nmom,8,panel_data,spec_1p_x,unrestricted)
+g1=moment_func(res1.est1,gfunc!,N,nmom,8,panel_data,spec_1p_x)
+
+
+res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,8,panel_data,spec_1p_x,unrestricted),x1,Newton(),autodiff=:forward,Optim.Options(iterations=4,show_trace=true))
 #V = parameter_variance_gmm(res1u.minimizer,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
+res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,8,panel_data,spec_1p_x,unrestricted),res1u.minimizer,NewtonTrustRegion(),autodiff=:forward,Optim.Options(iterations=20,show_trace=true))
 
 
 # ----- Here we try a one-step and don't reject because the variance is insane
@@ -115,16 +134,16 @@ res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,5,panel_data,spec_1p_x,unrestric
 # ---- experiment 2: update the intercept terms in the factor shares:
 P_idx = update_demand(collect(1:np_demand),spec_1p_x)
 unrestricted = fill(false,np_demand)
-unrestricted[[P_idx.βm[1:2];P_idx.βf[1]]] .= true
+unrestricted[[P_idx.βm[1];P_idx.βf[1];P_idx.βg[1]]] .= true
 Pu = update_demand(unrestricted,spec_1)
 x1 = update_inv(P,P,Pu)
 
 P1,P2 = update(x1,spec_1p_x,unrestricted)
 
-t1u,p1u = LM_test(x1,sum(unrestricted),gfunc2!,W,N,5,panel_data,spec_1p_x,unrestricted)
+t1u,p1u = LM_test(x1,sum(unrestricted),gfunc2!,W,N,8,panel_data,spec_1p_x,unrestricted)
 
 nresids = 5
-res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,nresids,panel_data,spec_1p_x,unrestricted),x1,NewtonTrustRegion(),autodiff=:forward,Optim.Options(show_trace=true))
+res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,8,panel_data,spec_1p_x,unrestricted),x1,NewtonTrustRegion(),autodiff=:forward,Optim.Options(show_trace=true))
 
 p1,p2 = update(res1u.minimizer,spec_1p_x,unrestricted)
 
