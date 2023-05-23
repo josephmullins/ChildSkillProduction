@@ -127,14 +127,16 @@ function calc_Φ_m(pars1,pars2,data,it)
     # lϕc - lϕm is log(childcare / mother's time)
     
     @unpack ρ,γ = pars2 #implied 
-    ag,am,af = factor_shares(pars2,data,it,true)
+    # this is wrong because now we depend on normalization
 
     #g_t = Φg*τ_{m,t}, τ_{m,t} = g_t/Φg
     #not sure I'm interpreting these equations correctly/might be combining equations I'm not supposed to be
     if data.mar_stat[it]
-        Φm = ((am + af*exp(lϕf - lϕm)^ρ + ag*exp(-lϕm)^ρ)^(γ/ρ)+exp(lϕc - lϕm)^γ)^(1/γ)
+        ag,am,af,ay = factor_shares(pars2,data,it,true)
+        Φm = ((am + af*exp(lϕf - lϕm)^ρ + ag*exp(-lϕm)^ρ)^(γ/ρ)+ay*exp(lϕc - lϕm)^γ)^(1/γ)
     else
-        Φm = ((am+ag*exp(-lϕm)^ρ)^(γ/ρ)+exp(lϕc - lϕm)^γ)^(1/γ) #here I have X_{t}/τ_{m,t} as  composite investment relative to mothers time = Φm
+        ag,am,ay = factor_shares(pars2,data,it,false)
+        Φm = ((am+ag*exp(-lϕm)^ρ)^(γ/ρ)+ay*exp(lϕc - lϕm)^γ)^(1/γ) #here I have X_{t}/τ_{m,t} as  composite investment relative to mothers time = Φm
     end
     lΦm=-log(Φm) 
 
