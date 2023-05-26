@@ -31,8 +31,8 @@ end
 function log_input_ratios(ρ,γ,ay,am,af,ag,logwage_m,logwage_f,logprice_g,logprice_c)
     lϕm = 1/(ρ-1)*log(ag/am) + 1/(ρ-1)*(logwage_m - logprice_g)
     lϕf = 1/(ρ-1)*log(ag/af) + 1/(ρ-1)*(logwage_f - logprice_g)
-    lϕc = 1/(γ-1)*log(ag/ay) + (γ-ρ)/(ρ*(γ-1))*log(am*exp(ρ*lϕm) + af*exp(ρ*lϕf) + ag) + 1/(γ-1)*(logprice_c-logprice_g)
-    Φg = ((am*exp(ρ*lϕm) + af*exp(ρ*lϕf) + ag)^(γ/ρ) + ay*exp(lϕc)^γ)^(-1/γ)
+    lϕc = 1/(γ-1)*log((1-ay)*ag/ay) + (γ-ρ)/(ρ*(γ-1))*log(am*exp(ρ*lϕm) + af*exp(ρ*lϕf) + ag) + 1/(γ-1)*(logprice_c-logprice_g)
+    Φg = ((am*exp(ρ*lϕm) + af*exp(ρ*lϕf) + ag)^(γ/ρ)*(1-ay) + ay*exp(lϕc)^γ)^(-1/γ)
     log_price_index = log(Φg) + log(exp(logprice_g) + exp(logprice_c)*exp(lϕc) + exp(logwage_m)*exp(lϕm) + exp(logwage_f)*exp(lϕf))
     return lϕm,lϕf,lϕc,log_price_index,Φg
 end
@@ -40,8 +40,8 @@ end
 # same function as above but for singles (no wage of father to pass)
 function log_input_ratios(ρ,γ,ay,am,ag,logwage_m,logprice_g,logprice_c)
     lϕm = 1/(ρ-1)*log(ag/am) + 1/(ρ-1)*(logwage_m - logprice_g)
-    lϕc = 1/(γ-1)*log(ag/ay) + (γ-ρ)/(ρ*(γ-1))*log(am*exp(ρ*lϕm) + ag) + 1/(γ-1)*(logprice_c-logprice_g)
-    Φg = ((am*exp(ρ*lϕm) + ag)^(γ/ρ) + ay*exp(lϕc)^γ)^(-1/γ)
+    lϕc = 1/(γ-1)*log((1-ay)*ag/ay) + (γ-ρ)/(ρ*(γ-1))*log(am*exp(ρ*lϕm) + ag) + 1/(γ-1)*(logprice_c-logprice_g)
+    Φg = ((am*exp(ρ*lϕm) + ag)^(γ/ρ)*(1-ay) + ay*exp(lϕc)^γ)^(-1/γ)
     log_price_index = log(Φg) + log(exp(logprice_g) + exp(logprice_c)*exp(lϕc) + exp(logwage_m)*exp(lϕm))
     return lϕm,lϕc,log_price_index,Φg
 end
@@ -69,13 +69,13 @@ function factor_shares(pars,data,it,mar_stat)
         ag = exp(linear_combination(βg,spec.vg,data,it))
         denom_outer = am+ag+af+1
         denom_inner = am+ag+af
-        return ag,am,af,1.
+        return ag/denom_inner,am/denom_inner,af/denom_inner,1. /denom_outer
     else
         am = exp(linear_combination(βm,spec.vm,data,it))
         ag = exp(linear_combination(βg,spec.vg,data,it))
         denom_inner = am+ag
         denom_outer = am+ag+1
-        return ag,am,1.
+        return ag/denom_inner,am/denom_inner,1. /denom_outer
     end 
 end
 

@@ -333,7 +333,8 @@ end
 
 # ----------- Tools for writing results to file
 
-function write_line!(io,format,M,v::Symbol,i::Int=0,vname::String="")
+# this function writes to file the value of parameter v in for each element of the vector of results M. This may or may not be a vector.
+function write_line!(io,format,M,v::Symbol,i::Int=0,vname::String="",endline=true)
     nspec = length(M)
     write(io,vname,"&")
     for s in 1:nspec
@@ -343,8 +344,47 @@ function write_line!(io,format,M,v::Symbol,i::Int=0,vname::String="")
             write(io,format(getfield(M[s],v)[i]),"&")
         end
     end
-    write(io,"\\\\","\n")
+    if endline
+        write(io,"\\\\","\n")
+    end
 end
+
+# this function does the same as above but includes p-values
+function write_pars!(io,format,M,Pv,v::Symbol,i::Int=0,vname::String="",endline = true)
+    nspec = length(M)
+    write(io,vname,"&")
+    for s in 1:nspec
+        if i==0
+            pval = getfield(Pv[s],v)
+            pstr = pval_ind(pval)
+            write(io,format(getfield(M[s],v)),pstr,"&")
+        else
+            pval = getfield(M[s],v)[i]
+            pstr = pval_ind(pval)
+            write(io,format(getfield(M[s],v)[i]),pstr,"&")
+        end
+    end
+    if endline
+        write(io,"\\\\","\n")
+    end
+end
+
+function pval_ind(p,char = "*")
+    if p<0.001
+        return string("^{",repeat(char,3),"}")
+    elseif p<0.01
+        return string("^{",repeat(char,2),"}")
+    elseif p<0.05
+        return string("^{",char,"}")
+    else
+        return ""
+    end
+end
+
+function format_pval(form,x,p)
+    return string("\$",form(x),pval_ind(p),"\$")
+end
+
 
 function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,specvar::Symbol)
     nspec = length(M)
@@ -382,6 +422,94 @@ function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,spe
     end
 end
 
+function write_production_table(M,SE,Pp,specs,labels,outfile::String)
+    form(x) = @sprintf("%0.2f",x)
+    formse(x) = string("(",@sprintf("%0.2f",x),")")
+    nspec = length(M)
+    
+    midrule(s) = "\\cmidrule(r){$(2+(s-1)*nspec)-$(1+s*nspec)}"
+    # Write the header:
+    io = open(outfile, "w");
+    write(io,"\\begin{tabular}{l",repeat("c",nspec*4),"}\\\\\\toprule","\n")
+
+    # - work on elasticity parameters
+    write(io," & \\multicolumn{$nspec}{c}{\$\\rho\$} & \\multicolumn{$nspec}{c}{\$\\gamma\$} & \\multicolumn{$nspec}{c}{\$\\delta_{1}\$} & \\multicolumn{$nspec}{c}{\$\\delta_{2}\$} ","\\\\\n")
+    write(io,repeat(["&($s)" for s in 1:nspec],4)...,"\\\\",[midrule(s) for s in 1:4]...,"\n")
+    
+    # -- now write the estimates:
+    
+    # TODO: fix to include p-values
+    write(io,[string("&",format_pval(form,M[s].ρ,Pp[s].ρ)) for s in 1:nspec]...)
+    write(io,[string("&",format_pval(form,M[s].γ,Pp[s].γ)) for s in 1:nspec]...)
+    write(io,[string("&",form(M[s].δ[1])) for s in 1:nspec]...)
+    write(io,[string("&",form(M[s].δ[2])) for s in 1:nspec]...) #automate this?
+    write(io,"\\\\\n")
+    write(io,[string("&",formse(SE[s].ρ)) for s in 1:nspec]...)
+    write(io,[string("&",formse(SE[s].γ)) for s in 1:nspec]...)
+    write(io,[string("&",formse(SE[s].δ[1])) for s in 1:nspec]...)
+    write(io,[string("&",formse(SE[s].δ[2])) for s in 1:nspec]...) #automate this?
+    write(io,"\\\\\n")
+    write(io,repeat("&",4*nspec),"\\\\\n")
+
+    # - Write factor share parameters
+    write(io," & \\multicolumn{$nspec}{c}{\$\\phi_{m}\$: Mother's Time} & \\multicolumn{$nspec}{c}{\$\\phi_{f}\$: Father's Time} & \\multicolumn{$nspec}{c}{\$\\phi_{g}\$: Goods} & \\multicolumn{$nspec}{c}{\$\\phi_{\\theta}\$: TFP} ","\\\\\n")
+    write(io,repeat(["&($s)" for s in 1:nspec],4)...,"\\\\",[midrule(s) for s in 1:4]...,"\n")
+
+    vlist = union([s[specvar] for s in specs, specvar in [:vm,:vf,:vm,:vθ]]...)
+    for v in vlist
+        if v in keys(labels)
+            vname = labels[v]
+            vname = string(vname) #<-?
+        else
+            vname = string(v)
+        end
+        write(io,vname)
+        # write estimates
+        varlist = [:βm,:βf,:βg,:βθ]
+        svarlist = [:vm,:vf,:vg,:vθ]#<- I'm an idiot for calling these different things
+        for k in 1:4
+            var = varlist[k]
+            specvar = svarlist[k]
+            for j in 1:nspec
+                i = findfirst(specs[j][specvar].==v)
+                if isnothing(i)
+                    write(io,"&","-")
+                else
+                    xval = getfield(M[j],var)[i]
+                    if var==:βθ
+                        write(io,"&",form(xval))
+                    else                        
+                        pval = getfield(Pp[j],var)[i]
+                        write(io,"&",format_pval(form,xval,pval))
+                    end
+                end
+            end
+        end
+        write(io,"\\\\\n")
+        # now write standard errors:
+        
+        for k in 1:4
+            var = varlist[k]
+            specvar = svarlist[k]
+            for j in 1:nspec
+                i = findfirst(specs[j][specvar].==v)
+                if isnothing(i)
+                    write(io,"&","-")
+                else
+                    write(io,"&",formse(getfield(SE[j],var)[i]))
+                end
+            end
+        end
+        write(io,"\\\\\n")
+    end 
+    write(io,"\\\\\n")
+    write(io,"\\bottomrule")
+    write(io,"\\end{tabular}")
+    close(io)
+
+end
+
+
 function writetable(M,SE,specs,labels,pvals,outfile::String,production = false)
     form(x) = @sprintf("%0.2f",x)
     formse(x) = string("(",@sprintf("%0.2f",x),")")
@@ -405,7 +533,7 @@ function writetable(M,SE,specs,labels,pvals,outfile::String,production = false)
             write_line!(io,formse,SE,:δ,j)
         end
         write_line!(io,form,M,:λ,0,"\$\\lambda_{AP}\$")
-        write_line!(io,formse,M,:λ,0) 
+        write_line!(io,formse,SE,:λ,0) 
     end
     # δ_1 and δ_2 #are there delta parameters here?
     #for j in 1:2

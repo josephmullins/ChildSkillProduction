@@ -2,7 +2,7 @@
 
 # below: two versions of the functions that take either one or two parameter objects
 
-function calc_production_resids!(n,R,data,pars1,pars2,savings=true)
+function calc_production_resids!(n,R,data,pars1,pars2,savings)
     it97 = (n-1)*6 + 1
     it02 = n*6
     # this function call is assumed to return a coefficient lΦm where $X_{it} = τ_{m,it} / exp(lΦm)
@@ -11,8 +11,8 @@ function calc_production_resids!(n,R,data,pars1,pars2,savings=true)
     Ψ0 = 0
     coeff_X = pars2.δ[1]*pars2.δ[2]^4
     for t=1:4
-        lΦm,lΦf,lΦg,lΦc,log_price_index = calc_Φ_m(pars1,pars2,data,it97+t)
-        #lϕm,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it97+t)
+        #lΦm,lΦf,lΦg,lΦc,log_price_index = calc_Φ_m(pars1,pars2,data,it97+t)
+        lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it97+t)
         if savings
             coeff_X += pars2.δ[1]*pars2.δ[2]^(4-t)
             Ψ0 += pars2.δ[1]*pars2.δ[2]^(4-t)*(log_price_97 - log_price_index)
@@ -48,7 +48,7 @@ function calc_production_resids!(n,R,data,pars1,pars2,savings=true)
 end
 
 # version with one parameter instead of two
-function calc_production_resids!(n,R,data,pars1,savings=true)
+function calc_production_resids!(n,R,data,pars1,savings)
     it97 = (n-1)*6 + 1
     it02 = n*6
     # this function call is assumed to return a coefficient lΦm where $X_{it} = τ_{m,it} / exp(lΦm)
@@ -172,20 +172,22 @@ function calc_Φ_m(pars1,pars2,data,it)
     # lϕc - lϕm is log(childcare / mother's time)
     
     @unpack ρ,γ = pars2 #implied 
-    ag,am,af = factor_shares(pars2,data,it,true)
 
     #g_t = Φg*τ_{m,t}, τ_{m,t} = g_t/Φg
     #not sure I'm interpreting these equations correctly/might be combining equations I'm not supposed to be
     if data.mar_stat[it]
-        Φm = ((am + af*exp(lϕf - lϕm)^ρ + ag*exp(-lϕm)^ρ)^(γ/ρ)+exp(lϕc - lϕm)^γ)^(1/γ)
+        ag,am,af,ay = factor_shares(pars2,data,it,true)
+        Φm = ((am + af*exp(lϕf - lϕm)^ρ + ag*exp(-lϕm)^ρ)^(γ/ρ)*(1-ay)+ay*exp(lϕc - lϕm)^γ)^(1/γ)
     else
-        Φm = ((am+ag*exp(-lϕm)^ρ)^(γ/ρ)+exp(lϕc - lϕm)^γ)^(1/γ) #here I have X_{t}/τ_{m,t} as  composite investment relative to mothers time = Φm
+        ag,am,ay = factor_shares(pars2,data,it,false)
+        Φm = ((am+ag*exp(-lϕm)^ρ)^(γ/ρ)*(1-ay)+ay*exp(lϕc - lϕm)^γ)^(1/γ) #here I have X_{t}/τ_{m,t} as  composite investment relative to mothers time = Φm
     end
     lΦm=-log(Φm) 
     # if X = τm / Φm, and τf / τm = ϕf / ϕm, then: X = (ϕm/ϕf * τm) / Φ_{m}
-    lΦf = lϕm - lϕf - lΦm # 
-    lΦg = lϕm - lΦm
-    lΦc = -lϕc + lϕm - lΦm
+    # so: Φ_{f} = Φ_{m} * ϕ_{f} / ϕ_{m}
+    lΦf = lΦm + lϕf - lϕm # 
+    lΦg = lΦm - lϕm
+    lΦc = lΦm + lϕc - lϕm
     return lΦm,lΦf,lΦg,lΦc,log_price_index
 end
 
