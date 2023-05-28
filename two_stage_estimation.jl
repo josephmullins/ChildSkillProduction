@@ -1,73 +1,37 @@
+###########---------STEP 1: main-demand is run initially to get rel. demand parameters
+
 x0 = initial_guess(spec_2)
 nmom = spec_2.g_idx_02[end]
 W = I(nmom)
 
 res2 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_2) #initial relative demand parameters 
 
-
-###########---------STEP 2: re-initialize panel_data from estimate_production_demand_unrestricted
-
-p1=update(res2.est1,spec_2) #pars1
-
-###########---------STEP 3: checking to see if things will run 
-
-N = length(unique(panel_data.kid))
-
-gfunc!(x,n,g,resids,data,spec) = production_moments_stacked!(p1,update_p(x,spec_2p_x_2s),n,g,resids,data,spec)
-
-nmom = spec_2p_x_2s.g_idx_prod[end][end]
-W = I(nmom)
-x0 = initial_guess_p(spec_2p_x_2s) 
-
-gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_2p_x_2s)
-
-res2s,se2s = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_2p_x_2s)
-#still getting some crazy standard errors for this 
-
-
-###########---------FUNCTIONS/SPECIFICATION: 
+###########---------STEP 2: updated functions
 
 ##a function to build a specification that g_idx_prod begins at the first row of the moment vector
 function build_spec_prod_two_stage(spec)
-    #n97 = length(spec.vg)+1
-    #n02 = (length(spec.vg)+1)*2 + length(spec.vf) + length(spec.vm) + 2
-    #g_idx_97 = 1:n97
-    #zlist_97 =  [(spec.vg...,:logprice_c_m)]
-    #g_idx_02 = (n97+1):(n97+n02)
-    #zlist_02 = [(spec.vm...,:logprice_m_g),
-    #(spec.vf...,:logprice_f_g),
-    #(spec.vg...,:logprice_c_g), #<= here we are assuming that spec.vg ⊃ spec.vm and spec.vf
-    #(spec.vg...,:logprice_c_m)
-    # at vθ to zlist for production moments 
-    zlist_prod = spec.zlist_prod
-    for v in reverse(spec.vg) #<- assuming vg ⊃ vθ,vf,vm. Call union function instead? 
-            pushfirst!(zlist_prod[1][1],v)
-            pushfirst!(zlist_prod[1][2],v)
-    end                
-
-    # create the positions in which to write moments for each t
-    g_idx_prod = []
+        zlist_prod = spec.zlist_prod
+        for v in reverse(spec.vg) #<- assuming vg ⊃ vθ,vf,vm. Call union function instead? 
+                pushfirst!(zlist_prod[1][1],v)
+                pushfirst!(zlist_prod[1][2],v)
+        end                
     
-    gpos = 0
-    for t in eachindex(spec.zlist_prod)
-            K = sum(length(z) for z in spec.zlist_prod[t]) #<- number of moments
-            push!(g_idx_prod,gpos+1:gpos+K)
-            gpos += K
+        # create the positions in which to write moments for each t
+        g_idx_prod = []
+        
+        gpos = 0
+        for t in eachindex(spec.zlist_prod)
+                K = sum(length(z) for z in spec.zlist_prod[t]) #<- number of moments
+                push!(g_idx_prod,gpos+1:gpos+K)
+                gpos += K
+        end
+        
+        return (vm = spec.vm, vf = spec.vf, vθ = spec.vθ, vg = spec.vg,
+        g_idx_prod = g_idx_prod,zlist_prod_t = spec.zlist_prod_t,zlist_prod = zlist_prod
+        )
     end
     
-    return (vm = spec.vm, vf = spec.vf, vθ = spec.vθ, vg = spec.vg,
-    #g_idx_97 = g_idx_97, zlist_97 = zlist_97,
-    #g_idx_02 = g_idx_02, zlist_02 = zlist_02,
-    g_idx_prod = g_idx_prod,zlist_prod_t = spec.zlist_prod_t,zlist_prod = zlist_prod
-    )
-end
-
-spec_2p_x_2s = build_spec_prod_two_stage(
-        (vm = spec_2.vm,vf = spec_2.vf, vg = spec_2.vg,vθ = spec_2.vm,
-        zlist_prod_t = [0,5],
-        zlist_prod = [[[interactions_2;:AP],[interactions_2;:LW],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[]]])
-)
-
+ 
 #this update function from estimate_production_demand_unrestricted, only returing P2
 function update_p(x,spec)
         ρ = x[1]
@@ -100,3 +64,26 @@ function update_p(x,spec)
         x0[5:6] = [0.1,0.9] #<- initial guess for δ
         return x0
     end
+
+
+###########---------STEP 3: checking to see if things will run 
+
+spec_2p_2s = build_spec_prod_two_stage(
+        (vm = spec_2.vm,vf = spec_2.vf, vg = spec_2.vg,vθ = spec_2.vm,
+        zlist_prod_t = [0,5],
+        zlist_prod = [[[interactions_2;:AP],[interactions_2;:LW],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[]]])
+)
+
+p1=update(res2.est1,spec_2) #fix initial parameters from main_demand estimation
+
+N = length(unique(panel_data.kid))
+
+gfunc!(x,n,g,resids,data,spec) = production_moments_stacked!(p1,update_p(x,spec_2p_2s),n,g,resids,data,spec) #this runs now!
+
+nmom = spec_2p_x_2s.g_idx_prod[end][end]
+W = I(nmom)
+x0 = initial_guess_p(spec_2p_x_2s) 
+
+gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_2p_2s)
+
+res2s,se2s = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_2p_2s)
