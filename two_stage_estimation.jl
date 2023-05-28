@@ -80,9 +80,9 @@ N = length(unique(panel_data.kid))
 
 gfunc!(x,n,g,resids,data,spec) = production_moments_stacked!(p1,update_p(x,spec_2p_2s),n,g,resids,data,spec) #this runs now!
 
-nmom = spec_2p_x_2s.g_idx_prod[end][end]
+nmom = spec_2p_2s.g_idx_prod[end][end]
 W = I(nmom)
-x0 = initial_guess_p(spec_2p_x_2s) 
+x0 = initial_guess_p(spec_2p_2s) 
 
 gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_2p_2s)
 
