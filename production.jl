@@ -17,7 +17,7 @@ function calc_production_resids!(n,R,data,pars1,pars2,savings)
             coeff_X += pars2.δ[1]*pars2.δ[2]^(4-t)
             Ψ0 += pars2.δ[1]*pars2.δ[2]^(4-t)*(log_price_97 - log_price_index)
         else
-            Ψ0 += pars2.δ[1]*pars2.δ[2]^(4-t)*(data.log_total_income - log_price_index) #<- assume that father's log wage is coded as zero for single parents
+            Ψ0 += pars2.δ[1]*pars2.δ[2]^(4-t)*(data.log_total_income[it97+t] - log_price_index) #<- assume that father's log wage is coded as zero for single parents
         end
     end
     Ψ0 += linear_combination(pars2.βθ,pars2.spec.vθ,data,it97)
@@ -62,7 +62,7 @@ function calc_production_resids!(n,R,data,pars1,savings)
             coeff_X += pars1.δ[1]*pars1.δ[2]^(4-t)
             Ψ0 += pars1.δ[1]*pars1.δ[2]^(4-t)*(log_price_97 - log_price_index)
         else
-            Ψ0 += pars1.δ[1]*pars1.δ[2]^(4-t)*(data.log_total_income - log_price_index) #<- assume that father's log wage is coded as zero for single parents
+            Ψ0 += pars1.δ[1]*pars1.δ[2]^(4-t)*(data.log_total_income[it97+t] - log_price_index) #<- assume that father's log wage is coded as zero for single parents
         end
     end
     Ψ0 += linear_combination(pars1.βθ,pars1.spec.vθ,data,it97)
