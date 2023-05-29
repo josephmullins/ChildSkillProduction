@@ -64,17 +64,12 @@ function build_spec_prod(spec)
         (spec.vf...,:logprice_f_g),
         (spec.vg...,:logprice_c_g), #<= here we are assuming that spec.vg ⊃ spec.vm and spec.vf
         (spec.vg...,:logprice_c_m)]
-        # at vθ to zlist for production moments 
-        zlist_prod = spec.zlist_prod
-        for v in reverse(spec.vg) #<- assuming vg ⊃ vθ,vf,vm. Call union function instead? 
-                pushfirst!(zlist_prod[1][1],v)
-                pushfirst!(zlist_prod[1][2],v)
-        end                
 
         # create the positions in which to write moments for each t
         g_idx_prod = []
         gpos = (n97+n02)
         for t in eachindex(spec.zlist_prod)
+                
                 K = sum(length(z) for z in spec.zlist_prod[t]) #<- number of moments
                 push!(g_idx_prod,gpos+1:gpos+K)
                 gpos += K
@@ -83,7 +78,7 @@ function build_spec_prod(spec)
         return (vm = spec.vm, vf = spec.vf, vθ = spec.vθ, vg = spec.vg,
         g_idx_97 = g_idx_97, zlist_97 = zlist_97,
         g_idx_02 = g_idx_02, zlist_02 = zlist_02,
-        g_idx_prod = g_idx_prod,zlist_prod_t = spec.zlist_prod_t,zlist_prod = zlist_prod
+        g_idx_prod = g_idx_prod,zlist_prod_t = spec.zlist_prod_t,zlist_prod = spec.zlist_prod
         )
 end
 # NEXT: test the moment functions with all of this
