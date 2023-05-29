@@ -119,10 +119,11 @@ t2,p2 = test_joint_restrictions(res2.est1,W,N,spec_2p_x,panel_data)
 tvec2,pvec2 = test_individual_restrictions(res2.est1,W,N,spec_2p_x,panel_data)
 
 # ---- specification (3)
+# previously we didn't include levels of covariates. This may have been an issue?
 spec_3p_x = build_spec_prod(
         (vm = spec_3.vm,vf = spec_3.vf, vg = spec_3.vg,vθ = spec_3.vm,
         zlist_prod_t = [0,5],
-        zlist_prod = [[[interactions_3;:AP],[interactions_3;:LW],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
+        zlist_prod = [[[:constant;interactions_3;:AP],[:constant;interactions_3;:LW],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
 )
 nmom = spec_3p_x.g_idx_prod[end][end]
 W = I(nmom)

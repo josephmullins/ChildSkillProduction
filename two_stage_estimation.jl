@@ -34,14 +34,12 @@ function build_spec_prod_two_stage(spec)
  
 #this update function from estimate_production_demand_unrestricted, only returing P2
 function update_p(x,spec)
-        ρ = x[1]
-        γ = x[2]
-        ρ2 = x[3]
-        γ2 = x[4]
-        δ = x[5:6] #<- factor shares
+        ρ2 = x[1]
+        γ2 = x[2]
+        δ = x[3:4] #<- factor shares
         nm = length(spec.vm)
-        βm = x[7:6+nm]
-        pos = 7+nm
+        βm = x[5:4+nm]
+        pos = 5+nm
         nf = length(spec.vf)
         βf = x[pos:pos+nf-1]
         ng = length(spec.vg)
@@ -52,18 +50,22 @@ function update_p(x,spec)
         βθ = x[pos:pos+nθ-1]
         pos+= nθ
         λ = x[pos]
-        P1 = CESmod(ρ=ρ,γ=γ,βm = βm,βf = βf,βg=βg,spec=spec)
         P2 = CESmod(ρ=ρ2,γ=γ2,δ = δ,βm = βm,βf = βf,βg=βg,βθ=βθ,λ=λ,spec=spec)
         return P2
-    end
+end
 
-    function initial_guess_p(spec)
+function update_inv(pars)
+    @unpack ρ,γ,βm,βf,βg,βθ,δ,λ = pars
+    return [ρ;γ;δ;βm;βf;βg;βθ;λ]
+end
+
+function initial_guess_p(spec)
         P = CESmod(spec)
-        x0 = update_inv(P,P)
-        x0[1:4] .= -2. #<- initial guess consistent with last time
-        x0[5:6] = [0.1,0.9] #<- initial guess for δ
+        x0 = update_inv(P)
+        x0[1:2] .= -2. #<- initial guess consistent with last time
+        x0[3:4] = [0.1,0.9] #<- initial guess for δ
         return x0
-    end
+end
 
 
 ###########---------STEP 3: checking to see if things will run 
@@ -86,4 +88,7 @@ x0 = initial_guess_p(spec_2p_2s)
 
 gmm_criterion(x0,gfunc!,W,N,5,panel_data,spec_2p_2s)
 
+# TODO: use estimate_gmm instead to see if it improves convergence speed
+# prediction: still no success.
+# THEN: try estimating just δ,λ,βθ, keeping βm,βg,βf and ρ,γ from the first stage
 res2s,se2s = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_2p_2s)

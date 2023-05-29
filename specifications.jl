@@ -92,7 +92,7 @@ end
 
 price_ratios = [:logprice_c_g;:logprice_m_g;:logprice_f_g]
 interactions_1 = make_interactions(panel_data,price_ratios,spec_1.vm)
-input_instruments = [:log_mtime,:log_ftime_coalesced,:log_chcare_input,:log_good_input]
+input_instruments = [:log_mtime,:log_ftime_coalesced,:log_chcare_input,:log_good_input] # <- this doesn't include the levels of the covariates?
 
 spec_1p_x = build_spec_prod(
         (vm = spec_1.vm,vf = spec_1.vf, vg = spec_1.vg,vθ = spec_1.vm,
