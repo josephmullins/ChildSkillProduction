@@ -43,7 +43,7 @@ function update_inv(pars)
     return [ρ;γ;δ;βm;βf;βg;βθ;λ]
 end
 
-include("specifications.jl")
+include("specifications_alt_demand.jl")
 
 # function to get the initial guess
 function initial_guess(spec)
@@ -153,8 +153,8 @@ t5,p5 = test_joint_restrictions(res5.est1,W,N,spec_5p_x,panel_data)
 tvec5,pvec5 = test_individual_restrictions(res5.est1,W,N,spec_5p_x,panel_data)
 
 
-using JLD2
-jldsave("results/production_restricted.jld2"; res1, res2, res3,res5)
+# using JLD2
+# jldsave("results/production_restricted.jld2"; res1, res2, res3,res5)
 
 # results = jldopen("results/production_restricted.jld2")
 # res1 = results["res1"]
@@ -175,77 +175,158 @@ labels = merge(other_labels,cluster_labels,ed_labels)
 
 par_vec = [update(res1.est1,spec_1p_x),update(res2.est1,spec_2p_x),update(res3.est1,spec_3p_x),update(res5.est1,spec_5p_x)]
 se_vec = [update(res1.se,spec_1p_x),update(res2.se,spec_2p_x),update(res3.se,spec_3p_x),update(res5.se,spec_5p_x)]
-pval_vec = [update_demand(pvec1,spec_1),update_demand(pvec2,spec_2),update_demand(pvec3,spec_3),update_demand(pvec5,spec_5p_x)]
+pval_vec = [update_demand(pvec1,spec_1),update_demand(pvec2,spec_2),update_demand(pvec3,spec_3p_x),update_demand(pvec5,spec_5p_x)]
 write_production_table(par_vec,se_vec,pval_vec,[spec_1p_x,spec_2p_x,spec_3p_x,spec_5p_x],labels,"tables/demand_production_restricted.tex"
 )
 
+function model_test(pars1,pars2,data,spec)
+    d97 = data[(data.year.==1997) .& (data.all_prices) .& (data.mtime_valid) .& (data.age.<=12),:]
+    d02 = data[(data.year.==2002) .& (data.mtime_valid),:]
+    d97[!,:Phi_m] .= 0.
+    for n in 1:size(d97,1)
+        # this function call is assumed to return a coefficient lΦm where $X_{it} = τ_{m,it} / exp(lΦm)
+        lΦm,lΦf,lΦg,lΦc,log_price_97 = calc_Φ_m(pars1,pars2,d97,n)
+        #Ψ0 = pars2.δ[1]*pars2.δ[2]^4*lX97
+        Ψ0 = 0
+        d97[n,:Phi_m] = - lΦm
+    end
+    rename!(d97,:AP => :AP97,:LW => :LW97,:log_mtime => :log_mtime_97)
+    keep97 = [:kid;:AP97;:LW97;:log_mtime_97;:log_chcare_input;:log_ftime;:Phi_m;spec.vθ;:logprice_g;:logprice_c;:logwage_m;:logwage_f;:logprice_m_g;:logprice_c_g;:logprice_f_g]
+    keep02 = [:kid;:log_mtime;:AP;:LW]
+    return innerjoin(d97[:,keep97],d02[:,keep02],on=:kid)
+end
+
+P = update(res3.est1,spec_3p_x)
+d = model_test(P,P,panel_data,spec_3p_x)
+using FixedEffectModels
+reg(d,term(:AP) ~ term(:div) + term(:num_0_5) + term(:age) + term(:cluster_2) + term(:cluster_3) + term(m_ed[2]) + term(:m_ed_16) + term(:Phi_m) + (term(:log_mtime_97) + term(:AP97) ~ term(:log_mtime) + term(:LW97)))
+
+reg(d,@formula(Phi_m ~ logprice_m_g + logprice_c_g))
+
+# this regression has some clues: a higher relative price of mother's time is negatively correlated, conditional on time investment.
+# -- this may go away if we instrument for wages.
+# -- but what is the intuition here???
+# -- also: perhaps we should substract the average by age for each test score
+reg(d,term(:AP) ~ term(:div) + term(:num_0_5) + term(:age) + term(:cluster_2) + term(:cluster_3) + term(m_ed[2]) + term(:m_ed_16) + term(:logprice_m_g) + term(:logprice_c_g) + (term(:log_mtime_97) + term(:AP97) ~ term(:log_mtime) + term(:LW97)))
+
+reg(d,term(:LW) ~  term(:logprice_m_g) + term(:logprice_c_g) + (term(:log_mtime_97) + term(:LW97) ~ term(:log_mtime) + term(:AP97)))
+
 
 break
-## NOW: for specification (3), my preferred, let's relax:
+## NOW: for specification (3), my preferred, let's relax coefficients with pvalues<0.05.
  # (1) ρ (2) γ; (2); num_children and type dummies in βm and βg 
 np_demand = 2+length(spec_3.vm)+length(spec_3.vf)+length(spec_3.vg)
 P_idx = update_demand(collect(1:np_demand),spec_3p_x)
-unrestricted = fill(false,np_demand)
-unrestricted[[P_idx.ρ;P_idx.γ;P_idx.βm[[1,3,4,8]];P_idx.βg[[3,4,10]]]] .= true
-P = update(res3.est1,spec_3p_x)
-Pu = update_demand(unrestricted,spec_3)
-x1 = update_inv(P,P,Pu)
 
+# ---- using just the 0.01 cutoff
+unrestricted = pvec3.<0.01
+#unrestricted = fill(false,np_demand)
+#unrestricted[[P_idx.ρ;P_idx.γ;P_idx.βg]] .= true
 P = update(res3.est1,spec_3p_x)
-W = inv(res3.Ω)
-np_demand = 2+length(spec_3p_x.vm)+length(spec_3p_x.vf)+length(spec_3p_x.vg)
-unrestricted = fill(false,np_demand)
-unrestricted[1:2] .= true
 Pu = update_demand(unrestricted,spec_3p_x)
 x1 = update_inv(P,P,Pu)
+
+W = inv(res3.Ω)
+res3u = optimize(x->gmm_criterion(x,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted),x1,Newton(),autodiff=:forward,Optim.Options(iterations=40,show_trace=true))
+
+# --- temporary test to see what's happening :-)
+p1,p2 = update(res3u.minimizer,spec_3p_x,unrestricted)
+
+d = model_test(p1,p2,panel_data,spec_3p_x)
+reg(d,term(:AP) ~ term(:div) + term(:num_0_5) + term(:age) + term(:cluster_2) + term(:cluster_3) + term(m_ed[2]) + term(:m_ed_16) + term(:Phi_m) + (term(:log_mtime_97) + term(:AP97) ~ term(:log_mtime) + term(:LW97)))
+
+# -----------
+
+Ω = moment_variance(res3u.minimizer,gfunc2!,N,size(W,1),8,panel_data,spec_3p_x,unrestricted)
+W = inv(Ω)
+res3ub = optimize(x->gmm_criterion(x,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted),res3u.minimizer,Newton(),autodiff=:forward,Optim.Options(iterations=40,show_trace=true))
+
+
+res4u = optimize(x->gmm_criterion(x,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted),x1,Newton(),autodiff=:forward,Optim.Options(iterations=3,show_trace=true))
+Ω = moment_variance(res4u.minimizer,gfunc2!,N,size(W,1),8,panel_data,spec_3p_x,unrestricted)
+W = inv(Ω)
+res4ub = optimize(x->gmm_criterion(x,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted),res4u.minimizer,Newton(),autodiff=:forward,Optim.Options(iterations=40,show_trace=true))
+
+
+g0 = gmm_criterion(x1,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted)
+
+g1 = res3u.minimum
+DM = 2N*(g0-g1)
+
+# ---- now using the 0.05 cutoff
+unrestricted = pvec3.<0.05
+#unrestricted = fill(false,np_demand)
+#unrestricted[[P_idx.ρ;P_idx.γ;P_idx.βg]] .= true
+P = update(res3.est1,spec_3p_x)
+Pu = update_demand(unrestricted,spec_3p_x)
+x1 = update_inv(P,P,Pu)
+
+W = inv(res3.Ω)
+res3u = optimize(x->gmm_criterion(x,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted),x1,Newton(),autodiff=:forward,Optim.Options(iterations=40,show_trace=true))
+
+g0 = gmm_criterion(x1,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted)
+
+g1 = res3u.minimum
+DM = 2N*(g0-g1)
+
+p1,p2 = update(res3u.minimizer,spec_3p_x,unrestricted)
+
+# this code shows we're still rejecting the joint on the other (but we need to update the weighting matrix, and potentially re-estimate too with new weighting?)
+np_demand = 2+length(spec_3p_x.vm)+length(spec_3p_x.vf)+length(spec_3p_x.vg)
+unrestricted = fill(true,np_demand)
+Pu = update_demand(unrestricted,spec_3p_x)
+x1 = update_inv(p1,p2,Pu)
 LM_test(x1,sum(unrestricted),gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted)
 
 
-W = inv(res3.Ω)
-res3u = optimize(x->gmm_criterion(x,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted),x1,NewtonTrustRegion(),autodiff=:forward,Optim.Options(iterations=40,show_trace=true))
+# OPTIONS:
+# (1) run quasi-bayes with fully unrestricted, using priors from the first stage
+# (2) just show estimates and move on. They are crazy. So what?
+# (3) try using a subset of factor shares that appear significant, go from there.
+# (4)
 
-res3u_b = optimize(x->gmm_criterion(x,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted),res3u.minimizer,Newton(),autodiff=:forward,Optim.Options(iterations=18,show_trace=true))
+break
 
+res3u = optimize(x->gmm_criterion(x,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted),res3u.minimizer,Newton(),autodiff=:forward,Optim.Options(iterations=40,show_trace=true))
+V = parameter_variance_gmm(res3u.minimizer,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted)
+se = sqrt.(diag(V))
+p1,p2 = update(res3u.minimizer,spec_3p_x,unrestricted)
+se1,se2 = update(se,spec_3p_x,unrestricted)
 
-
-gamma_vals = LinRange(-1,0.5,30)
-Q = [gmm_criterion([res3u_b.minimizer[1:3];x;res3u_b.minimizer[5:end]],gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted) for x in gamma_vals]
-using Plots
-plot(gamma_vals,Q)
-xlabel!("\$\\gamma\$")
-ylabel!("gmm criterion")
-savefig("figures/gamma_plot.png")
-
-# TEST: is the gamma going to zero because I'm not allowing factor shares to adjust? let's find out: ANSWER: no.
-
-# WANT: a way to update with certain values fixed?
 unrestricted = fill(false,np_demand)
-unrestricted[[P_idx.γ;P_idx.βm[[1,3,4]];P_idx.βg[[3,4]]]] .= true
+unrestricted[P_idx.βg[[3,4,5,6,10]]] .= true
+P = update(res3.est1,spec_3p_x)
 Pu = update_demand(unrestricted,spec_3)
 x1 = update_inv(P,P,Pu)
 
+
 W = inv(res3.Ω)
-res3u_b = optimize(x->gmm_criterion(x,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted),x1,NewtonTrustRegion(),autodiff=:forward,Optim.Options(show_trace=true))
+res3u = optimize(x->gmm_criterion(x,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted),x1,Newton(),autodiff=:forward,Optim.Options(iterations=40,show_trace=true))
 
 
-x2 = res3u_b.minimizer
-x2[3] = -0.001
-gmm_criterion(x2,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted)
+break
 
+# GET a rank issue. Perhaps we have to update interactions?
+# ALSO: maybe we need to try doing that first. interactions only include spec.vm?
+# ---- specification (6)
+interactions_6 = make_interactions(panel_data,price_ratios,spec_3.vg)
 
+spec_6p_x = build_spec_prod(
+        (vm = spec_3.vg,vf = deleteat!(copy(spec_3.vg),2), vg = spec_3.vg,vθ = spec_3.vg,
+        zlist_prod_t = [0,5],
+        zlist_prod = [[[interactions_6;:AP],[interactions_6;:LW],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
+)
+nmom = spec_6p_x.g_idx_prod[end][end]
+W = I(nmom)
+x0 = initial_guess(spec_6p_x)
+res6 = estimate_gmm(x0,gfunc!,W,N,8,panel_data,spec_6p_x)
 
-gfunc3!(x,n,g,resids,data,spec,unrestricted) = production_demand_moments_stacked!(update_γ(x,spec,unrestricted)...,n,g,resids,data,spec)
+# - test restrictions
+W = inv(res6.Ω)
+t6,p6 = test_joint_restrictions(res6.est1,W,N,spec_6p_x,panel_data)
+tvec6,pvec6 = test_individual_restrictions(res6.est1,W,N,spec_6p_x,panel_data)
 
-
-x1_γ = [res3u_b.minimizer[1:2];res3u_b.minimizer[4:end]]
-g=ForwardDiff.gradient(x->gmm_criterion(x,gfunc3!,W,N,8,panel_data,spec_3p_x,unrestricted),x1_γ)
-
-res3u_c = optimize(x->gmm_criterion(x,gfunc3!,W,N,8,panel_data,spec_3p_x,unrestricted),x1_γ,LBFGS(),autodiff=:forward,Optim.Options(show_trace=true,iterations=20))
-
-H = ForwardDiff.gradient(x->gmm_criterion(x,gfunc3!,W,N,8,panel_data,spec_3p_x,unrestricted),res3u_c.minimizer)
-
-res3u_c = optimize(x->gmm_criterion(x,gfunc3!,W,N,8,panel_data,spec_3p_x,unrestricted),res3u_c.minimizer,Newton(),autodiff=:forward,Optim.Options(show_trace=true))
-
+# tried fully unrestricted case and was too crazy
 
 break
 res1u = optimize(x->gmm_criterion(x,gfunc2!,W,N,8,panel_data,spec_1p_x,unrestricted),x1,Newton(),autodiff=:forward,Optim.Options(iterations=4,show_trace=true))

@@ -53,7 +53,7 @@ function update_inv(pars)
 end
 
 # - load the specifications that we want to use. See that script for more details.
-include("specifications.jl")
+include("specifications_alt_demand.jl")
 
 # function to get the initial guess
 function initial_guess(spec)

@@ -1,9 +1,8 @@
 # Fdb version 3
-["pdflatex"] 1685064958 "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" "results_new.pdf" "results_new" 1685064959
-  "../tables/demand_production_restricted.tex" 1685064958 2975 fdaa1a4f504c9ca415dcb85e381aeeee ""
-  "../tables/relative_demand.tex" 1684866436 2323 b3cb688a7a2f0dea115908b7ef47238e ""
-  "../tables/relative_demand_old_data.tex" 1684866436 2320 f8f30a8bc92c564fa8c72d6f0b1fd7d2 ""
-  "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" 1684958952 8550 b2a592efcc165349cb58cbd8f87179b0 ""
+["pdflatex"] 1685209438 "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" "results_new.pdf" "results_new" 1685209439
+  "../tables/demand_production_restricted.tex" 1685209437 3234 c9d9d6c7d80179c3ab7aad378e47fcdb ""
+  "../tables/relative_demand.tex" 1685112216 2773 22c6b7d095d7e9bd4c1f38cc3b8c7c75 ""
+  "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" 1685137505 8564 29da95d1f0c83eaa46a39c4ca9840e1a ""
   "/usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
@@ -63,8 +62,8 @@
   "/usr/local/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1647878959 4410336 7d30a02e9fa9a16d7d1f8d037ba69641 ""
   "/usr/local/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1674674079 2826436 0d4a61304638bec2cd0360cc41b4a4c1 ""
   "/usr/local/texlive/2022/texmf.cnf" 1647878952 577 209b46be99c9075fd74d4c0369380e8c ""
-  "results_new.aux" 1685064958 1107 efbe314fbdc117352d497da04e1649b3 "pdflatex"
-  "results_new.tex" 1684958952 8550 b2a592efcc165349cb58cbd8f87179b0 ""
+  "results_new.aux" 1685209439 934 2c9762d94175e465858196a02ad9bdec "pdflatex"
+  "results_new.tex" 1685137505 8564 29da95d1f0c83eaa46a39c4ca9840e1a ""
   (generated)
   "results_new.aux"
   "results_new.log"

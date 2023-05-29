@@ -11,8 +11,8 @@ function calc_production_resids!(n,R,data,pars1,pars2,savings)
     Ψ0 = 0
     coeff_X = pars2.δ[1]*pars2.δ[2]^4
     for t=1:4
-        #lΦm,lΦf,lΦg,lΦc,log_price_index = calc_Φ_m(pars1,pars2,data,it97+t)
-        lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it97+t)
+        lΦm,lΦf,lΦg,lΦc,log_price_index = calc_Φ_m(pars1,pars2,data,it97+t)
+        #lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it97+t)
         if savings
             coeff_X += pars2.δ[1]*pars2.δ[2]^(4-t)
             Ψ0 += pars2.δ[1]*pars2.δ[2]^(4-t)*(log_price_97 - log_price_index)
@@ -165,7 +165,7 @@ end
 # function to return lΦm where X_{i,t} = τ_{m} / exp(lΦm)
 function calc_Φ_m(pars1,pars2,data,it)
     
-    lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it) #relative input ratios from perceived parameters
+    lϕm,lϕf,lϕc,lp,Φg = log_input_ratios(pars1,data,it) #relative input ratios from perceived parameters
     # lϕm is log(mother's time / goods)
     # so exp(-lϕm) is goods / mother's time
     # lϕc is log(childcare / goods) so 
@@ -178,15 +178,20 @@ function calc_Φ_m(pars1,pars2,data,it)
     if data.mar_stat[it]
         ag,am,af,ay = factor_shares(pars2,data,it,true)
         Φm = ((am + af*exp(lϕf - lϕm)^ρ + ag*exp(-lϕm)^ρ)^(γ/ρ)*(1-ay)+ay*exp(lϕc - lϕm)^γ)^(1/γ)
+        lΦm=-log(Φm) 
+        lΦg = lΦm - lϕm
+        log_price_index = lΦg + log(exp(data.logprice_g[it]) + exp(data.logprice_c[it])*exp(lϕc) + exp(data.logwage_m[it])*exp(lϕm))
     else
         ag,am,ay = factor_shares(pars2,data,it,false)
         Φm = ((am+ag*exp(-lϕm)^ρ)^(γ/ρ)*(1-ay)+ay*exp(lϕc - lϕm)^γ)^(1/γ) #here I have X_{t}/τ_{m,t} as  composite investment relative to mothers time = Φm
+        lΦm=-log(Φm) 
+        lΦg = lΦm - lϕm
+        log_price_index = lΦg + log(exp(data.logprice_g[it]) + exp(data.logprice_c[it])*exp(lϕc) + exp(data.logwage_m[it])*exp(lϕm))
     end
-    lΦm=-log(Φm) 
+    
     # if X = τm / Φm, and τf / τm = ϕf / ϕm, then: X = (ϕm/ϕf * τm) / Φ_{m}
     # so: Φ_{f} = Φ_{m} * ϕ_{f} / ϕ_{m}
     lΦf = lΦm + lϕf - lϕm # 
-    lΦg = lΦm - lϕm
     lΦc = lΦm + lϕc - lϕm
     return lΦm,lΦf,lΦg,lΦc,log_price_index
 end

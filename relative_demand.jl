@@ -66,16 +66,16 @@ function factor_shares(pars,data,it,mar_stat)
     if mar_stat
         am = exp(linear_combination(βm,spec.vm,data,it))
         af = exp(linear_combination(βf,spec.vf,data,it))
-        ag = exp(linear_combination(βg,spec.vg,data,it))
-        denom_outer = am+ag+af+1
-        denom_inner = am+ag+af
-        return ag/denom_inner,am/denom_inner,af/denom_inner,1. /denom_outer
+        ay = exp(linear_combination(βg,spec.vg,data,it))
+        denom_inner = am+af+1
+        denom_outer = 1+ay
+        return 1/denom_inner,am/denom_inner,af/denom_inner,ay /denom_outer
     else
         am = exp(linear_combination(βm,spec.vm,data,it))
-        ag = exp(linear_combination(βg,spec.vg,data,it))
-        denom_inner = am+ag
-        denom_outer = am+ag+1
-        return ag/denom_inner,am/denom_inner,1. /denom_outer
+        ay = exp(linear_combination(βg,spec.vg,data,it))
+        denom_inner = 1+am
+        denom_outer = 1+ay
+        return 1/denom_inner,am/denom_inner,ay /denom_outer
     end 
 end
 
