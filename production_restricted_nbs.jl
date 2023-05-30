@@ -54,30 +54,6 @@ function initial_guess(spec)
     return x0
 end
 
-function test_individual_restrictions(est,W,N,spec,data)
-    np_demand = 2+length(spec.vm)+length(spec.vf)+length(spec.vg)
-    tvec = zeros(np_demand)
-    pvec = zeros(np_demand)
-    for i in 1:np_demand
-        unrestricted = fill(false,np_demand)
-        unrestricted[i] = true
-        P = update(est,spec)
-        Pu = update_demand(unrestricted,spec)
-        x1 = update_inv(P,P,Pu)
-        tvec[i],pvec[i] = LM_test(x1,sum(unrestricted),gfunc2!,W,N,8,data,spec,unrestricted)
-    end
-    return tvec,pvec
-end
-
-function test_joint_restrictions(est,W,N,spec,data)
-    P = update(est,spec)
-    np_demand = 2+length(spec.vm)+length(spec.vf)+length(spec.vg)
-    unrestricted = fill(true,np_demand)
-    Pu = update_demand(unrestricted,spec)
-    x1 = update_inv(P,P,Pu)
-    return LM_test(x1,sum(unrestricted),gfunc2!,W,N,8,data,spec,unrestricted)
-end
-
 N = length(unique(panel_data.kid))
 
 gfunc!(x,n,g,resids,data,spec) = production_demand_moments_stacked2!(update(x,spec),n,g,resids,data,spec,false)
