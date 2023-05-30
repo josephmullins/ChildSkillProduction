@@ -153,14 +153,8 @@ pval_vec = [update_demand(pvec1,spec_1),update_demand(pvec2,spec_2),update_deman
 write_production_table(par_vec,se_vec,pval_vec,[spec_1p_x,spec_2p_x,spec_3p_x,spec_5p_x],labels,"tables/demand_production_restricted.tex"
 )
 
-break
-
-
-break
 ## NOW: for specification (3), our preferred, we relax coefficients with pvalues<0.05.
 # Then we run another minimization routine and conduct a test using the distance metric
-
-# ---- now using the 0.05 cutoff
 unrestricted = pvec3.<0.05
 P = update(res3.est1,spec_3p_x)
 Pu = update_demand(unrestricted,spec_3p_x)
@@ -179,11 +173,3 @@ v = parameter_variance_gmm(res3u.minimizer,gfunc2!,W,N,8,panel_data,spec_3p_x,un
 SE1,SE2 = update(sqrt.(diag(v)),spec_3p_x,unrestricted)
 
 write_production_table_unrestricted(p1,p2,Pu,SE1,SE2,spec_3p_x,labels,DM,p_val,"tables/demand_spec3_unrestricted.tex")
-
-
-# this code shows we're still rejecting the joint on the other (but we need to update the weighting matrix, and potentially re-estimate too with new weighting?)
-np_demand = 2+length(spec_3p_x.vm)+length(spec_3p_x.vf)+length(spec_3p_x.vg)
-unrestricted = fill(true,np_demand)
-Pu = update_demand(unrestricted,spec_3p_x)
-x1 = update_inv(p1,p2,Pu)
-LM_test(x1,sum(unrestricted),gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted)
