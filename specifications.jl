@@ -19,38 +19,36 @@ end
 
 # ------------ Dependence on Observables --------- #
 # using just education
-spec_1 = (vm = [:constant;:div;m_ed[2:3];:age;:num_0_5],
-        vf = [:constant;f_ed[2:3];:age;:num_0_5],
-        vθ = [:constant,:div,:age,:num_0_5],
+spec_1 = (vm = [:constant;:div;m_ed[2:3];f_ed[2:3];:age;:num_0_5],
+        vf = [:constant;m_ed[2:3];f_ed[2:3];:age;:num_0_5],
+        vθ = [:constant;:div;m_ed[2:3];f_ed[2:3];:age;:num_0_5],
         vg = [:constant;:div;m_ed[2:3];f_ed[2:3];:age;:num_0_5])
 
 spec_1 = build_spec(spec_1)
 
 # using just cluster dummies
-spec_2 = build_spec((vm = [:constant;:div;cluster_dummies[2:end];:age;:num_0_5],
-        vf = [:constant;f_ed[2:3];:age;:num_0_5],
+spec_2 = build_spec((vm = [:constant;:div;cluster_dummies[2:end];f_ed[2:3];:age;:num_0_5],
+        vf = [:constant;cluster_dummies[2:end];f_ed[2:3];:age;:num_0_5],
         vθ = [:constant,:div,:age,:num_0_5],
         vg = [:constant;:div;cluster_dummies[2:end];f_ed[2:3];:age;:num_0_5]))
 
 # using cluster dummies and education
-spec_3 = build_spec((vm = [:constant;:div;cluster_dummies[2:end];m_ed[2:3];:age;:num_0_5],
-        vf = [:constant;f_ed[2:3];:age;:num_0_5],
+spec_3 = build_spec((vm = [:constant;:div;cluster_dummies[2:end];m_ed[2:3];f_ed[2:3];:age;:num_0_5],
+        vf = [:constant;cluster_dummies[2:end];m_ed[2:3];f_ed[2:3];:age;:num_0_5],
         vθ = [:constant,:div,:age,:num_0_5],
         vg = [:constant;:div;cluster_dummies[2:end];m_ed[2:3];f_ed[2:3];:age;:num_0_5]))
 
 # using the center estimates from a clustering exercise with more types
-spec_4 = build_spec((vm = [:constant;:div;:mu_k;:age;:num_0_5],
-        vf = [:constant;f_ed[2:3];:age;:num_0_5],
+spec_4 = build_spec((vm = [:constant;:div;:mu_k;f_ed[2:3];:age;:num_0_5],
+        vf = [:constant;:mu_k;f_ed[2:3];:age;:num_0_5],
         vθ = [:constant,:div,:age,:num_0_5],
         vg = [:constant;:div;:mu_k;f_ed[2:3];:age;:num_0_5]))
 
 # using centers (as above) and education
-spec_5 = build_spec((vm = [:constant;:div;:mu_k;m_ed[2:3];:age;:num_0_5],
-        vf = [:constant;f_ed[2:3];:age;:num_0_5],
+spec_5 = build_spec((vm = [:constant;:div;:mu_k;m_ed[2:3];f_ed[2:3];:age;:num_0_5],
+        vf = [:constant;:mu_k;m_ed[2:3];f_ed[2:3];:age;:num_0_5],
         vθ = [:constant,:div,:age,:num_0_5],
         vg = [:constant;:div;:mu_k;m_ed[2:3];f_ed[2:3];:age;:num_0_5]))
-
-
 
 
 # a second helper function that builds a specification as above, but does so including info relevant to production
@@ -81,33 +79,36 @@ function build_spec_prod(spec)
         g_idx_prod = g_idx_prod,zlist_prod_t = spec.zlist_prod_t,zlist_prod = spec.zlist_prod
         )
 end
-# NEXT: test the moment functions with all of this
 
-# using mother's education and using just prices in 97 as production instruments:
 
 price_ratios = [:logprice_c_g;:logprice_m_g;:logprice_f_g]
 interactions_1 = make_interactions(panel_data,price_ratios,spec_1.vm)
-input_instruments = [:log_mtime,:log_ftime_coalesced,:log_chcare_input,:log_good_input] # <- this doesn't include the levels of the covariates?
+input_instruments = [:log_mtime,:log_ftime_coalesced,:log_chcare_input,:log_good_input] # 
 
 spec_1p_x = build_spec_prod(
         (vm = spec_1.vm,vf = spec_1.vf, vg = spec_1.vg,vθ = spec_1.vm,
         zlist_prod_t = [0,5],
-        zlist_prod = [[[interactions_1;:AP],[interactions_1;:LW],[:constant;price_ratios],[:constant;price_ratios],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[:log_ftime_coalesced],[:log_ftime_coalesced],[],[]]])
+        zlist_prod = [[[spec_1.vg;:log_total_income;interactions_1;:LW],[spec_1.vg;:log_total_income;interactions_1;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
 )
-# try adding more instruments, too?
 
 interactions_2 = make_interactions(panel_data,price_ratios,spec_2.vm)
 
 spec_2p_x = build_spec_prod(
         (vm = spec_2.vm,vf = spec_2.vf, vg = spec_2.vg,vθ = spec_2.vm,
         zlist_prod_t = [0,5],
-        zlist_prod = [[[interactions_2;:AP],[interactions_2;:LW],[interactions_2;:AP],[interactions_2;:LW],[:constant],[:constant]],[[:log_mtime,:log_ftime_coalesced],[:log_mtime,:log_ftime_coalesced],[:log_mtime,:log_ftime_coalesced],[:log_mtime,:log_ftime_coalesced],[],[]]])
+        zlist_prod = [[[spec_2.vg;:log_total_income;interactions_2;:LW],[spec_2.vg;:log_total_income;interactions_2;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
 )
 
 interactions_3 = make_interactions(panel_data,price_ratios,spec_3.vm)
 
-spec_3p_x = build_spec_prod(
-        (vm = spec_3.vm,vf = spec_3.vf, vg = spec_3.vg,vθ = spec_3.vm,
+spec_3p_x = build_spec_prod((vm = spec_3.vm,vf = spec_3.vf, vg = spec_3.vg,vθ = spec_3.vm,
+zlist_prod_t = [0,5],
+zlist_prod = [[[spec_3.vg;:log_total_income;interactions_3;:LW],[spec_3.vg;:log_total_income;interactions_3;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]]))
+
+interactions_5 = make_interactions(panel_data,price_ratios,spec_5.vm)
+
+spec_5p_x = build_spec_prod(
+        (vm = spec_5.vm,vf = spec_5.vf, vg = spec_5.vg,vθ = spec_5.vm,
         zlist_prod_t = [0,5],
-        zlist_prod = [[[interactions_3;:AP],[interactions_3;:LW],[interactions_3;:AP],[interactions_3;:LW],[:constant],[:constant]],[[:log_mtime,:log_ftime_coalesced],[:log_mtime,:log_ftime_coalesced],[:log_mtime,:log_ftime_coalesced],[:log_mtime,:log_ftime_coalesced],[],[]]])
+        zlist_prod = [[[spec_5.vg;:log_total_income;interactions_5;:LW],[spec_5.vg;:log_total_income;interactions_5;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
 )

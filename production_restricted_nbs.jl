@@ -44,7 +44,6 @@ function update_inv(pars)
 end
 
 include("specifications.jl")
-include("specifications_alt_demand.jl")
 
 # function to get the initial guess
 function initial_guess(spec)
@@ -87,11 +86,6 @@ gfunc2!(x,n,g,resids,data,spec,unrestricted) = production_demand_moments_stacked
 # ---- Part 1: estimate the restricted estimator and conduct tests of the equality constraints using the LM statistic
 
 # ---- specification (1)
-spec_1p_x = build_spec_prod(
-        (vm = spec_1.vm,vf = spec_1.vf, vg = spec_1.vg,vθ = spec_1.vm,
-        zlist_prod_t = [0,5],
-        zlist_prod = [[[spec_1.vg;:log_total_income;interactions_1;:LW],[spec_1.vg;:log_total_income;interactions_1;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
-)
 nmom = spec_1p_x.g_idx_prod[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_1p_x)
@@ -104,11 +98,7 @@ tvec1,pvec1 = test_individual_restrictions(res1.est1,W,N,spec_1p_x,panel_data)
 
 
 # ---- specification (2)
-spec_2p_x = build_spec_prod(
-        (vm = spec_2.vm,vf = spec_2.vf, vg = spec_2.vg,vθ = spec_2.vm,
-        zlist_prod_t = [0,5],
-        zlist_prod = [[[spec_2.vg;:log_total_income;interactions_2;:LW],[spec_2.vg;:log_total_income;interactions_2;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
-)
+
 nmom = spec_2p_x.g_idx_prod[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_2p_x)
@@ -120,31 +110,10 @@ t2,p2 = test_joint_restrictions(res2.est1,W,N,spec_2p_x,panel_data)
 tvec2,pvec2 = test_individual_restrictions(res2.est1,W,N,spec_2p_x,panel_data)
 
 # ---- specification (3)
-# previously we didn't include levels of covariates. This may have been an issue?
-spec_3p_x = build_spec_prod((vm = spec_3.vm,vf = spec_3.vf, vg = spec_3.vg,vθ = spec_3.vm,
-zlist_prod_t = [0,5],
-zlist_prod = [[[spec_3.vg;:log_total_income;interactions_3;:LW],[spec_3.vg;:log_total_income;interactions_3;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]]))
 nmom = spec_3p_x.g_idx_prod[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_3p_x)
 res3 = estimate_gmm(x0,gfunc!,W,N,8,panel_data,spec_3p_x)
-
-
-# P = update(res3.est1,spec_3p_x)
-# np_demand = 2+length(spec_3p_x.vm)+length(spec_3p_x.vf)+length(spec_3p_x.vg)
-# unrestricted = fill(true,np_demand)
-# Pu = update_demand(unrestricted,spec_3p_x)
-# x1 = update_inv(P,P,Pu)
-
-# g0 = gmm_criterion(x1,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted)
-# g0 = gmm_criterion(res3.est1,gfunc!,W,N,8,panel_data,spec_3p_x)
-# p1,p2 = update(x1,spec_3p_x,unrestricted)
-
-# resids = zeros(8)
-# g1 = zeros(nmom)
-# g2 = zeros(nmom)
-# gfunc!(res3.est1,24,g1,resids,panel_data,spec_3p_x)
-# gfunc2!(x1,24,g2,resids,panel_data,spec_3p_x,unrestricted)
 
 # - test restrictions
 W = inv(res3.Ω)
@@ -152,13 +121,6 @@ t3,p3 = test_joint_restrictions(res3.est1,W,N,spec_3p_x,panel_data)
 tvec3,pvec3 = test_individual_restrictions(res3.est1,W,N,spec_3p_x,panel_data)
 
 # ---- specification 5
-interactions_5 = make_interactions(panel_data,price_ratios,spec_5.vm)
-
-spec_5p_x = build_spec_prod(
-        (vm = spec_5.vm,vf = spec_5.vf, vg = spec_5.vg,vθ = spec_5.vm,
-        zlist_prod_t = [0,5],
-        zlist_prod = [[[spec_5.vg;:log_total_income;interactions_5;:LW],[spec_5.vg;:log_total_income;interactions_5;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
-)
 nmom = spec_5p_x.g_idx_prod[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_5p_x)

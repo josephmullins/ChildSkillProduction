@@ -438,7 +438,6 @@ function write_production_table(M,SE,Pp,specs,labels,outfile::String)
     
     # -- now write the estimates:
     
-    # TODO: fix to include p-values
     write(io,[string("&",format_pval(form,M[s].ρ,Pp[s].ρ)) for s in 1:nspec]...)
     write(io,[string("&",format_pval(form,M[s].γ,Pp[s].γ)) for s in 1:nspec]...)
     write(io,[string("&",form(M[s].δ[1])) for s in 1:nspec]...)
@@ -510,6 +509,8 @@ function write_production_table(M,SE,Pp,specs,labels,outfile::String)
 end
 
 
+
+
 function writetable(M,SE,specs,labels,pvals,outfile::String,production = false)
     form(x) = @sprintf("%0.2f",x)
     formse(x) = string("(",@sprintf("%0.2f",x),")")
@@ -562,6 +563,133 @@ function writetable(M,SE,specs,labels,pvals,outfile::String,production = false)
     write(io,"\\\\","\n")
 
 
+    write(io,"\\bottomrule")
+    write(io,"\\end{tabular}")
+    close(io)
+
+end
+
+function write_production_table_unrestricted(P1,P2,Pu,SE1,SE2,spec,labels,test_stat,p_val,outfile::String)
+    form(x) = @sprintf("%0.2f",x)
+    formse(x) = string("(",@sprintf("%0.2f",x),")")
+    
+    midrule(s) = "\\cmidrule(r){$(2+(s-1)*2)-$(1+s*2)}"
+    # Write the header:
+    io = open(outfile, "w");
+    write(io,"\\begin{tabular}{lccccccc}","\\toprule","\n")
+    #write(io,"\\begin{tabular}{l",repeat("c",nspec*4),"}\\\\\\toprule","\n")
+
+    # - work on elasticity parameters
+    write(io," & \\multicolumn{2}{c}{\$\\rho\$} & \\multicolumn{2}{c}{\$\\gamma\$} & {\$\\delta_{1}\$} & {\$\\delta_{2}\$} & \$2N(Q_{N} - \\tilde{Q}_{N})\$ ","\\\\\n")
+    write(io," & (R) & (U) & (R) & (U) & - & - & - \\\\","\\cmidrule(r){2-3}","\\cmidrule(r){4-5}","\\cmidrule(r){6-6}","\\cmidrule(r){7-7}","\\cmidrule(r){8-8}","\n")
+    
+    # -- now write the estimates:
+    
+    write(io,"&",form(P1.ρ))
+    if Pu.ρ
+        write(io,"&",form(P2.ρ))
+    else
+        write(io,"& - ")
+    end
+    write(io,"&",form(P1.γ))
+    if Pu.γ
+        write(io,"&",form(P2.γ))
+    else
+        write(io,"& - ")
+    end
+    write(io,"&",form(P2.δ[1]),"&",form(P2.δ[2]),"&",form(test_stat),"\\\\\n")
+
+    # ----- standard errors:
+    write(io,"&",formse(SE1.ρ))
+    if Pu.ρ
+        write(io,"&",formse(SE2.ρ))
+    else
+        write(io,"& - ")
+    end
+    write(io,"&",formse(SE1.γ))
+    if Pu.γ
+        write(io,"&",formse(SE2.γ))
+    else
+        write(io,"& - ")
+    end
+    write(io,"&",formse(SE2.δ[1]),"&",formse(SE2.δ[2]), "&", formse(p_val),"\\\\\n")
+    
+    write(io,"\\\\\n")
+    write(io,repeat("&",7),"\\\\\n")
+
+    # - Write factor share parameters
+    write(io," & \\multicolumn{2}{c}{\$\\phi_{m}\$: Mother's Time} & \\multicolumn{2}{c}{\$\\phi_{f}\$: Father's Time} & \\multicolumn{2}{c}{\$\\phi_{g}\$: Goods} &{\$\\phi_{\\theta}\$: TFP} ","\\\\\n")
+    write(io," & (R) & (U) & (R) & (U) & (R) & (U) & -  \\\\","\\cmidrule(r){2-3}","\\cmidrule(r){4-5}","\\cmidrule(r){6-7}","\\cmidrule(r){8-8}","\n")
+
+    vlist = union([spec[specvar] for specvar in [:vm,:vf,:vm,:vθ]]...)
+    for v in vlist
+        if v in keys(labels)
+            vname = labels[v]
+            vname = string(vname) #<-?
+        else
+            vname = string(v)
+        end
+        write(io,vname)
+        # write estimates
+        varlist = [:βm,:βf,:βg,:βθ]
+        svarlist = [:vm,:vf,:vg,:vθ]#<- I'm an idiot for calling these different things
+        for k in 1:4
+            var = varlist[k]
+            specvar = svarlist[k]
+            i = findfirst(spec[specvar].==v)
+            if isnothing(i)
+                if var==:βθ
+                    write(io,"&","-")
+                else
+                    write(io,"& - & -")
+                end
+            else
+                if var==:βθ
+                    xval = getfield(P2,var)[i]
+                    write(io,"&",form(xval))
+                else
+                    xval = getfield(P1,var)[i]
+                    write(io,"&",form(xval))
+                    if getfield(Pu,var)[i]
+                        xval = getfield(P2,var)[i]
+                        write(io,"&",form(xval))
+                    else
+                        write(io,"& -") 
+                    end
+                end
+            end
+        end
+        write(io,"\\\\\n")
+        # now write standard errors:
+        for k in 1:4
+            var = varlist[k]
+            specvar = svarlist[k]
+            i = findfirst(spec[specvar].==v)
+            if isnothing(i)
+                if var==:βθ
+                    write(io,"&") #,"-")
+                else
+                    write(io," & &")
+                end
+            else
+                if var==:βθ
+                    xval = getfield(SE2,var)[i]
+                    write(io,"&",formse(xval))
+                else
+                    xval = getfield(SE1,var)[i]
+                    write(io,"&",formse(xval))
+                    if getfield(Pu,var)[i]
+                        xval = getfield(SE2,var)[i]
+                        write(io,"&",formse(xval))
+                    else
+                        write(io,"&") # -") 
+                    end
+                end
+            end
+        end
+        write(io,"\\\\\n")
+    end 
+    write(io,"\\\\\n")
     write(io,"\\bottomrule")
     write(io,"\\end{tabular}")
     close(io)

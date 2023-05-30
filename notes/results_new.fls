@@ -218,6 +218,10 @@ INPUT ../tables/demand_production_restricted_nbs.tex
 INPUT ../tables/demand_production_restricted_nbs.tex
 INPUT ../tables/demand_production_restricted_nbs.tex
 INPUT ../tables/demand_production_restricted_nbs.tex
+INPUT ../tables/demand_spec3_unrestricted.tex
+INPUT ../tables/demand_spec3_unrestricted.tex
+INPUT ../tables/demand_spec3_unrestricted.tex
+INPUT ../tables/demand_spec3_unrestricted.tex
 INPUT results_new.aux
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
