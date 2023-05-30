@@ -57,7 +57,8 @@ function calc_production_resids!(n,R,data,pars1,savings)
     coeff_X = pars1.δ[1]*pars1.δ[2]^4
     for t=1:4
         #lΦ,log_price_index = calc_Φ_m(pars1,pars1,data,it97+t)
-        lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it97+t)
+        lΦm,lΦf,lΦg,lΦc,log_price_index = calc_Φ_m(pars1,data,it97+t)
+        #lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it97+t)
         if savings
             coeff_X += pars1.δ[1]*pars1.δ[2]^(4-t)
             Ψ0 += pars1.δ[1]*pars1.δ[2]^(4-t)*(log_price_97 - log_price_index)
@@ -115,7 +116,7 @@ end
 # example: suppose we want to use AP in 97 and tau_m in 02 for R[1] and LW in 97 and tau_m in 02 for R[2], and just a constant for R[3] and R[4], then we would have:
  # zlist_prod_t = [0,5]
  # zlist_prod = ([[:AP],[:LW]],[[:tau_m],[:tau_m]]) # let's check this
-function production_moments_stacked!(pars1,pars2,n,g,R,data,spec,savings=true)
+function production_moments_stacked!(pars1,pars2,n,g,R,data,spec,savings)
     R[:] .= 0.
     it97 = (n-1)*6+1
     it02 = it97+5
@@ -130,7 +131,7 @@ function production_moments_stacked!(pars1,pars2,n,g,R,data,spec,savings=true)
     end
 end
 # version with one parameter instead of two
-function production_moments_stacked!(pars1,n,g,R,data,spec,savings=true)
+function production_moments_stacked!(pars1,n,g,R,data,spec,savings)
     R[:] .= 0.
     it97 = (n-1)*6+1
     it02 = it97+5
@@ -180,7 +181,7 @@ function calc_Φ_m(pars1,pars2,data,it)
         Φm = ((am + af*exp(lϕf - lϕm)^ρ + ag*exp(-lϕm)^ρ)^(γ/ρ)*(1-ay)+ay*exp(lϕc - lϕm)^γ)^(1/γ)
         lΦm=-log(Φm) 
         lΦg = lΦm - lϕm
-        log_price_index = lΦg + log(exp(data.logprice_g[it]) + exp(data.logprice_c[it])*exp(lϕc) + exp(data.logwage_m[it])*exp(lϕm))
+        log_price_index = lΦg + log(exp(data.logprice_g[it]) + exp(data.logprice_c[it])*exp(lϕc) + exp(data.logwage_m[it])*exp(lϕm) + exp(data.logwage_f[it])*exp(lϕf))
     else
         ag,am,ay = factor_shares(pars2,data,it,false)
         Φm = ((am+ag*exp(-lϕm)^ρ)^(γ/ρ)*(1-ay)+ay*exp(lϕc - lϕm)^γ)^(1/γ) #here I have X_{t}/τ_{m,t} as  composite investment relative to mothers time = Φm
@@ -188,7 +189,6 @@ function calc_Φ_m(pars1,pars2,data,it)
         lΦg = lΦm - lϕm
         log_price_index = lΦg + log(exp(data.logprice_g[it]) + exp(data.logprice_c[it])*exp(lϕc) + exp(data.logwage_m[it])*exp(lϕm))
     end
-    
     # if X = τm / Φm, and τf / τm = ϕf / ϕm, then: X = (ϕm/ϕf * τm) / Φ_{m}
     # so: Φ_{f} = Φ_{m} * ϕ_{f} / ϕ_{m}
     lΦf = lΦm + lϕf - lϕm # 

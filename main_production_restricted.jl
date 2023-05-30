@@ -43,6 +43,7 @@ function update_inv(pars)
     return [ρ;γ;δ;βm;βf;βg;βθ;λ]
 end
 
+include("specifications.jl")
 include("specifications_alt_demand.jl")
 
 # function to get the initial guess
@@ -89,7 +90,7 @@ gfunc2!(x,n,g,resids,data,spec,unrestricted) = production_demand_moments_stacked
 spec_1p_x = build_spec_prod(
         (vm = spec_1.vm,vf = spec_1.vf, vg = spec_1.vg,vθ = spec_1.vm,
         zlist_prod_t = [0,5],
-        zlist_prod = [[[spec_1.vg;interactions_1;:LW],[spec_1.vg;interactions_1;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
+        zlist_prod = [[[spec_1.vg;:log_total_income;interactions_1;:LW],[spec_1.vg;:log_total_income;interactions_1;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
 )
 nmom = spec_1p_x.g_idx_prod[end][end]
 W = I(nmom)
@@ -106,7 +107,7 @@ tvec1,pvec1 = test_individual_restrictions(res1.est1,W,N,spec_1p_x,panel_data)
 spec_2p_x = build_spec_prod(
         (vm = spec_2.vm,vf = spec_2.vf, vg = spec_2.vg,vθ = spec_2.vm,
         zlist_prod_t = [0,5],
-        zlist_prod = [[[spec_2.vg;interactions_2;:LW],[spec_2.vg;interactions_2;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
+        zlist_prod = [[[spec_2.vg;:log_total_income;interactions_2;:LW],[spec_2.vg;:log_total_income;interactions_2;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
 )
 nmom = spec_2p_x.g_idx_prod[end][end]
 W = I(nmom)
@@ -122,7 +123,7 @@ tvec2,pvec2 = test_individual_restrictions(res2.est1,W,N,spec_2p_x,panel_data)
 # previously we didn't include levels of covariates. This may have been an issue?
 spec_3p_x = build_spec_prod((vm = spec_3.vm,vf = spec_3.vf, vg = spec_3.vg,vθ = spec_3.vm,
 zlist_prod_t = [0,5],
-zlist_prod = [[[spec_3.vg;interactions_3;:LW],[spec_3.vg;interactions_3;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]]))
+zlist_prod = [[[spec_3.vg;:log_total_income;interactions_3;:LW],[spec_3.vg;:log_total_income;interactions_3;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]]))
 nmom = spec_3p_x.g_idx_prod[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_3p_x)
@@ -139,7 +140,7 @@ interactions_5 = make_interactions(panel_data,price_ratios,spec_5.vm)
 spec_5p_x = build_spec_prod(
         (vm = spec_5.vm,vf = spec_5.vf, vg = spec_5.vg,vθ = spec_5.vm,
         zlist_prod_t = [0,5],
-        zlist_prod = [[[spec_5.vg;interactions_5;:LW],[spec_5.vg;interactions_5;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
+        zlist_prod = [[[spec_5.vg;:log_total_income;interactions_5;:LW],[spec_5.vg;:log_total_income;interactions_5;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
 )
 nmom = spec_5p_x.g_idx_prod[end][end]
 W = I(nmom)
@@ -175,41 +176,6 @@ write_production_table(par_vec,se_vec,pval_vec,[spec_1p_x,spec_2p_x,spec_3p_x,sp
 
 break
 
-# need to clean this up and put it elsewhere
-# also need to add the NBS case!
-
-function model_test(pars1,pars2,data,spec)
-    d97 = data[(data.year.==1997) .& (data.all_prices) .& (data.mtime_valid) .& (data.age.<=12),:]
-    d02 = data[(data.year.==2002) .& (data.mtime_valid),:]
-    d97[!,:Phi_m] .= 0.
-    for n in 1:size(d97,1)
-        # this function call is assumed to return a coefficient lΦm where $X_{it} = τ_{m,it} / exp(lΦm)
-        lΦm,lΦf,lΦg,lΦc,log_price_97 = calc_Φ_m(pars1,pars2,d97,n)
-        #Ψ0 = pars2.δ[1]*pars2.δ[2]^4*lX97
-        Ψ0 = 0
-        d97[n,:Phi_m] = - lΦm
-    end
-    rename!(d97,:AP => :AP97,:LW => :LW97,:log_mtime => :log_mtime_97)
-    keep97 = [:kid;:AP97;:LW97;:log_mtime_97;:log_chcare_input;:log_ftime;:Phi_m;spec.vθ;:logprice_g;:logprice_c;:logwage_m;:logwage_f;:logprice_m_g;:logprice_c_g;:logprice_f_g]
-    keep02 = [:kid;:log_mtime;:AP;:LW]
-    return innerjoin(d97[:,keep97],d02[:,keep02],on=:kid)
-end
-
-P = update(res3.est1,spec_3p_x)
-d = model_test(P,P,panel_data,spec_3p_x)
-using FixedEffectModels
-reg(d,term(:AP) ~ term(:div) + term(:num_0_5) + term(:age) + term(:cluster_2) + term(:cluster_3) + term(m_ed[2]) + term(:m_ed_16) + term(:Phi_m) + (term(:log_mtime_97) + term(:AP97) ~ term(:log_mtime) + term(:LW97)))
-
-reg(d,@formula(Phi_m ~ logprice_m_g + logprice_c_g))
-
-# this regression has some clues: a higher relative price of mother's time is negatively correlated, conditional on time investment.
-# -- this may go away if we instrument for wages.
-# -- but what is the intuition here???
-# -- also: perhaps we should substract the average by age for each test score
-reg(d,term(:AP) ~ term(:div) + term(:num_0_5) + term(:age) + term(:cluster_2) + term(:cluster_3) + term(m_ed[2]) + term(:m_ed_16) + term(:logprice_m_g) + term(:logprice_c_g) + (term(:log_mtime_97) + term(:AP97) ~ term(:log_mtime) + term(:LW97)))
-
-reg(d,term(:LW) ~  term(:logprice_m_g) + term(:logprice_c_g) + (term(:log_mtime_97) + term(:LW97) ~ term(:log_mtime) + term(:AP97)))
-
 
 break
 ## NOW: for specification (3), my preferred, let's relax coefficients with pvalues<0.05.
@@ -228,13 +194,6 @@ x1 = update_inv(P,P,Pu)
 W = inv(res3.Ω)
 res3u = optimize(x->gmm_criterion(x,gfunc2!,W,N,8,panel_data,spec_3p_x,unrestricted),x1,Newton(),autodiff=:forward,Optim.Options(iterations=40,show_trace=true))
 
-# --- temporary test to see what's happening :-)
-p1,p2 = update(res3u.minimizer,spec_3p_x,unrestricted)
-
-d = model_test(p1,p2,panel_data,spec_3p_x)
-reg(d,term(:AP) ~ term(:div) + term(:num_0_5) + term(:age) + term(:cluster_2) + term(:cluster_3) + term(m_ed[2]) + term(:m_ed_16) + term(:Phi_m) + (term(:log_mtime_97) + term(:AP97) ~ term(:log_mtime) + term(:LW97)))
-
-# -----------
 
 Ω = moment_variance(res3u.minimizer,gfunc2!,N,size(W,1),8,panel_data,spec_3p_x,unrestricted)
 W = inv(Ω)
