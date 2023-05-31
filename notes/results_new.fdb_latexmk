@@ -1,9 +1,9 @@
 # Fdb version 3
-["pdflatex"] 1685496757 "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" "results_new.pdf" "results_new" 1685496758
-  "../tables/demand_production_restricted.tex" 1685412885 3211 8567777f282231a0882c082485165b06 ""
-  "../tables/demand_production_restricted_nbs.tex" 1685411303 3195 1d6e8ea957af1f9e857b07192bfb3c8b ""
-  "../tables/demand_spec3_unrestricted.tex" 1685458458 1521 4e0ffc4074a129ce403d6d4140eed2d2 ""
-  "../tables/relative_demand.tex" 1685112216 2773 22c6b7d095d7e9bd4c1f38cc3b8c7c75 ""
+["pdflatex"] 1685551848 "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" "results_new.pdf" "results_new" 1685551849
+  "../tables/demand_production_restricted.tex" 1685551460 3009 33f008743dd1fa2f70fa1cdbab56d4f7 ""
+  "../tables/demand_production_restricted_nbs.tex" 1685497602 3199 ae9ce9ff22d01e4849b5c90ba224f795 ""
+  "../tables/demand_spec3_unrestricted.tex" 1685551847 1493 6b00fd088711d9afe91dfd9d2f9d44f8 ""
+  "../tables/relative_demand.tex" 1685497565 2777 ff57e4a7291b190072b309b695437650 ""
   "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" 1685496756 12129 df73b6c06ea36dbe3d42de44d260a750 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -63,7 +63,7 @@
   "/usr/local/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1647878959 4410336 7d30a02e9fa9a16d7d1f8d037ba69641 ""
   "/usr/local/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1674674079 2826436 0d4a61304638bec2cd0360cc41b4a4c1 ""
   "/usr/local/texlive/2022/texmf.cnf" 1647878952 577 209b46be99c9075fd74d4c0369380e8c ""
-  "results_new.aux" 1685496758 863 f52a204d7cff16a435f41775ee9faae6 "pdflatex"
+  "results_new.aux" 1685551848 863 f52a204d7cff16a435f41775ee9faae6 "pdflatex"
   "results_new.tex" 1685496756 12129 df73b6c06ea36dbe3d42de44d260a750 ""
   (generated)
   "results_new.aux"

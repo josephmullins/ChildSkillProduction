@@ -451,7 +451,7 @@ function write_production_table(M,SE,Pp,specs,labels,outfile::String)
     write(io,repeat("&",4*nspec),"\\\\\n")
 
     # - Write factor share parameters
-    write(io," & \\multicolumn{$nspec}{c}{\$\\phi_{m}\$: Mother's Time} & \\multicolumn{$nspec}{c}{\$\\phi_{f}\$: Father's Time} & \\multicolumn{$nspec}{c}{\$\\phi_{g}\$: Goods} & \\multicolumn{$nspec}{c}{\$\\phi_{\\theta}\$: TFP} ","\\\\\n")
+    write(io," & \\multicolumn{$nspec}{c}{\$\\phi_{m}\$: Mother's Time} & \\multicolumn{$nspec}{c}{\$\\phi_{f}\$: Father's Time} & \\multicolumn{$nspec}{c}{\$\\phi_{Y}\$: Childcare} & \\multicolumn{$nspec}{c}{\$\\phi_{\\theta}\$: TFP} ","\\\\\n")
     write(io,repeat(["&($s)" for s in 1:nspec],4)...,"\\\\",[midrule(s) for s in 1:4]...,"\n")
 
     vlist = union([s[specvar] for s in specs, specvar in [:vm,:vf,:vm,:vθ]]...)
@@ -551,7 +551,7 @@ function writetable(M,SE,specs,labels,pvals,outfile::String,production = false)
     write(io,"& \\multicolumn{$(nspec+1)}{c}{\$\\phi_{f}\$: Father's Time}\\\\\\cmidrule(r){2-$(nspec+2)}")
     write_observables!(io,form,formse,M,SE,specs,labels,:βf,:vf)
     # a_{g}
-    write(io,"& \\multicolumn{$(nspec+1)}{c}{\$\\phi_{g}\$: Goods}\\\\\\cmidrule(r){2-$(nspec+2)}")
+    write(io,"& \\multicolumn{$(nspec+1)}{c}{\$\\phi_{Y}\$: Childcare}\\\\\\cmidrule(r){2-$(nspec+2)}")
     write_observables!(io,form,formse,M,SE,specs,labels,:βg,:vg)
 
     # test results
@@ -618,7 +618,7 @@ function write_production_table_unrestricted(P1,P2,Pu,SE1,SE2,spec,labels,test_s
     write(io,repeat("&",7),"\\\\\n")
 
     # - Write factor share parameters
-    write(io," & \\multicolumn{2}{c}{\$\\phi_{m}\$: Mother's Time} & \\multicolumn{2}{c}{\$\\phi_{f}\$: Father's Time} & \\multicolumn{2}{c}{\$\\phi_{g}\$: Goods} &{\$\\phi_{\\theta}\$: TFP} ","\\\\\n")
+    write(io," & \\multicolumn{2}{c}{\$\\phi_{m}\$: Mother's Time} & \\multicolumn{2}{c}{\$\\phi_{f}\$: Father's Time} & \\multicolumn{2}{c}{\$\\phi_{Y}\$: Childcare} &{\$\\phi_{\\theta}\$: TFP} ","\\\\\n")
     write(io," & (R) & (U) & (R) & (U) & (R) & (U) & -  \\\\","\\cmidrule(r){2-3}","\\cmidrule(r){4-5}","\\cmidrule(r){6-7}","\\cmidrule(r){8-8}","\n")
 
     vlist = union([spec[specvar] for specvar in [:vm,:vf,:vm,:vθ]]...)
