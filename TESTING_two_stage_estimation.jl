@@ -62,8 +62,8 @@ end
 #keeping βm,βg,βf and ρ,γ from the first stage
 #crude way to fix parameters without changing underlying functions?
 function update_limited_p(y,x,spec)
-        ρ2 = x[1]
-        γ2 = x[2]
+        ρ2 = x[1] #<- y.ρ
+        γ2 = x[2] #<- y.γ
         δ = x[3:4] #<- factor shares
         nm = length(spec.vm)
         βm2 = y.βm
@@ -140,6 +140,7 @@ gmm_criterion(x0,gfunc!,W,N,8,panel_data,spec_2p_2s)
 # prediction: still no success.
 # THEN: try estimating just δ,λ,βθ, keeping βm,βg,βf and ρ,γ from the first stage
 res2s_limited,se2s_limited = estimate_gmm_iterative(x0,gfunc!,8,W,N,8,panel_data,spec_2p_2s)
+# <- use estimate_gmm() instead
 
 
 
