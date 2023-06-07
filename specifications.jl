@@ -112,3 +112,7 @@ spec_5p_x = build_spec_prod(
         zlist_prod_t = [0,5],
         zlist_prod = [[[spec_5.vg;:log_total_income;interactions_5;:LW],[spec_5.vg;:log_total_income;interactions_5;:AP],[],[],[],[],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[],[],[],[],[]]])
 )
+
+
+spec_1p=spec_1p_x
+spec_2p=spec_2p_x
