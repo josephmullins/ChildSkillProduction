@@ -54,6 +54,8 @@ function update_p(x,spec)
         return P2
 end
 
+
+
 function update_inv(pars)
     @unpack ρ,γ,βm,βf,βg,βθ,δ,λ = pars
     return [ρ;γ;δ;βm;βf;βg;βθ;λ]
@@ -81,6 +83,7 @@ p1=update(res2.est1,spec_2) #fix initial parameters from main_demand estimation
 N = length(unique(panel_data.kid))
 
 gfunc!(x,n,g,resids,data,spec) = production_moments_stacked!(p1,update_p(x,spec_2p_2s),n,g,resids,data,spec) #this runs now!
+
 
 nmom = spec_2p_2s.g_idx_prod[end][end]
 W = I(nmom)

@@ -1,15 +1,7 @@
-#WRITTEN UPDATES:
-#estimate_gmm did not yield results, similar to estimate_gmm_iterative
-#fixing additional parameter estimates from the first stage also led to a singularity exception
-
-
 ###########---------STEP 1: main-demand is run initially to get rel. demand parameters
 
-x0 = initial_guess(spec_2)
-nmom = spec_2.g_idx_02[end]
-W = I(nmom)
-
-res2 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_2) #initial relative demand parameters 
+include("main_demand.jl") #use this to get res2 
+include("production.jl")
 
 ###########---------STEP 2: updated functions
 
@@ -38,9 +30,9 @@ function build_spec_prod_two_stage(spec)
     
  
 #this update function from estimate_production_demand_unrestricted, only returing P2
-function update_p(y,x,spec)
-        ρ2 = y.ρ
-        γ2 = y.γ
+function update_p(x,spec)
+        ρ2 = x[1]
+        γ2 = x[2]
         δ = x[3:4] #<- factor shares
         nm = length(spec.vm)
         βm = x[5:4+nm]
@@ -62,8 +54,8 @@ end
 #keeping βm,βg,βf and ρ,γ from the first stage
 #crude way to fix parameters without changing underlying functions?
 function update_limited_p(y,x,spec)
-        ρ2 = x[1] #<- y.ρ
-        γ2 = x[2] #<- y.γ
+        ρ2 = y.ρ #<- y.ρ
+        γ2 = y.γ #<- y.γ
         δ = x[3:4] #<- factor shares
         nm = length(spec.vm)
         βm2 = y.βm
@@ -83,12 +75,11 @@ function update_limited_p(y,x,spec)
 end
 
 
-
-
 function update_inv(pars)
     @unpack ρ,γ,βm,βf,βg,βθ,δ,λ = pars
     return [ρ;γ;δ;βm;βf;βg;βθ;λ]
 end
+
 
 function initial_guess_p(spec)
         P = CESmod(spec)
@@ -99,7 +90,7 @@ function initial_guess_p(spec)
 end
 
 
-###########---------STEP 3: checking to see if things will run 
+###########---------STEP 3: testing a limited specification
 
 spec_2p_2s = build_spec_prod_two_stage(
         (vm = spec_2.vm,vf = spec_2.vf, vg = spec_2.vg,vθ = spec_2.vm,
@@ -107,24 +98,6 @@ spec_2p_2s = build_spec_prod_two_stage(
         zlist_prod = [[[interactions_2;:AP],[interactions_2;:LW],[:constant],[:constant]],[[:log_mtime],[:log_mtime],[],[]]])
 )
 
-p1=update(res2.est1,spec_2) #fix initial parameters from main_demand estimation
-interactions_2s = make_interactions(panel_data,price_ratios,spec_2p_2s.vm) #panel_data updated for 
-
-N = length(unique(panel_data.kid))
-
-gfunc!(x,n,g,resids,data,spec) = production_moments_stacked!(p1,update_p(p1,x,spec_2p_2s),n,g,resids,data,spec,true)
-
-nmom = spec_2p_2s.g_idx_prod[end][end]
-W = I(nmom)
-x0 = initial_guess_p(spec_2p_2s) 
-
-gmm_criterion(x0,gfunc!,W,N,8,panel_data,spec_2p_2s)
-
-# TODO: use estimate_gmm instead to see if it improves convergence speed
-# prediction: still no success.
-# THEN: try estimating just δ,λ,βθ, keeping βm,βg,βf and ρ,γ from the first stage
-res2s,se2s = estimate_gmm_iterative(x0,gfunc!,8,W,N,8,panel_data,spec_2p_2s)
-res2s_gmm,se2s_gmm = estimate_gmm(x0,gfunc!,W,N,8,panel_data,spec_2p_2s) #this is not running any better
 
 ##trying things while estimating a limited set of parameters 
 p1=update(res2.est1,spec_2) #fix initial parameters from main_demand estimation
@@ -136,11 +109,29 @@ W = I(nmom)
 x0 = initial_guess_p(spec_2p_2s) 
 gmm_criterion(x0,gfunc!,W,N,8,panel_data,spec_2p_2s)
 
-# TODO: use estimate_gmm instead to see if it improves convergence speed
-# prediction: still no success.
-# THEN: try estimating just δ,λ,βθ, keeping βm,βg,βf and ρ,γ from the first stage
-res2s_limited,se2s_limited = estimate_gmm_iterative(x0,gfunc!,8,W,N,8,panel_data,spec_2p_2s)
-# <- use estimate_gmm() instead
+res2s_limited,se2s_limited = estimate_gmm(x0,gfunc!,W,N,8,panel_data,spec_2p_2s)
+
+
+###########---------Previous specifications 
+
+p1=update(res2.est1,spec_2) #fix initial parameters from main_demand estimation
+interactions_2s = make_interactions(panel_data,price_ratios,spec_2p_2s.vm) 
+
+N = length(unique(panel_data.kid))
+
+gfunc!(x,n,g,resids,data,spec) = production_moments_stacked!(p1,update_p(p1,x,spec_2p_2s),n,g,resids,data,spec,true)
+
+nmom = spec_2p_2s.g_idx_prod[end][end]
+W = I(nmom)
+x0 = initial_guess_p(spec_2p_2s) 
+
+gmm_criterion(x0,gfunc!,W,N,8,panel_data,spec_2p_2s)
+
+
+res2s,se2s = estimate_gmm_iterative(x0,gfunc!,8,W,N,8,panel_data,spec_2p_2s)
+
+res2s_gmm,se2s_gmm = estimate_gmm(x0,gfunc!,W,N,8,panel_data,spec_2p_2s) #this is not running any better
+
 
 
 
