@@ -18,14 +18,14 @@
     \[ f(\cdot) = \left[\left(a_{m}\tau_{m}^\rho+a_{f}\tau_{f}^\rho+a_{g}g^\rho\right)^{\gamma / \rho}(1-a_{Y}) + a_{Y}Y_{c}^{\gamma}\right]^{1/\gamma} \]
     where
     \begin{eqnarray}
-        a_{x} = \frac{\exp(\phi_{x}Z)}{1+\exp(\phi_{m}Z)+\exp(\phi_{f}Z)+\exp(\phi_{g}Z)},\ \forall x\in\{m,f,g\} \nonumber \\
+        a_{x} = \frac{\exp(\phi_{x}Z)}{1+\exp(\phi_{m}Z)+\exp(\phi_{f}Z)},\ \forall x\in\{m,f\} \nonumber \\
+        a_{g} = \frac{1}{1+\exp(\phi_{m}Z)+\exp(\phi_{f}Z)} \nonumber \\
         a_{Y} = \frac{\exp(\phi_{Y}Z)}{1+\exp(\phi_{Y}Z)} \nonumber
     \end{eqnarray}
-    and $a_{f}=0$ for single women. This normalization of factor shares differs slightly from the text, but is necessary to guarantee each aggregator has a Cobb-Douglas form as $\rho$ and $\gamma$ approach 0.
-    \item We use $\tilde{\cdot}$ to indicate the \emph{perceived} value of a production parameter as it can be inferred from the demand system.
-    \item As in the original paper, we exploit that:
-     \[ \mathcal{J}_{n,t} = \Phi_{\mathcal{J},m}(\Pi_{n,t},Z_{n,t})\tau_{m,n,t},\ \mathcal{J}\in\{Y_{C},g,\tau_{f}\} \]
-    where $\Pi_{n,t}$ is the vector of prices for child $n$ at time $t$ and $Z_{n,t}$ is the vector of observables that can plausibly shift factor shares. We suppress dependence of $\Phi$ on the parameters $\tilde{\omega}=(\tilde{\rho},\tilde{\gamma},\tilde{\phi})$.
+    This normalization of factor shares differs slightly from the text, but is necessary to guarantee each aggregator has a Cobb-Douglas form as $\rho$ and $\gamma$ approach 0.
+    \item We use $\tilde{\cdot}$ to indicate the \emph{perceived} value of a production parameter as is implied by the population demand system.
+    \item We let $\Phi_{x,y,n,t}$ be the generic notation for the ratio between any two inputs $x$ and $y$ at time $t$, which depends on the input prices $\Pi_{t}$, factor shares $(\tilde{a}_{g,n,t},\tilde{a}_{m,n,t},\tilde{a}_{f,n,t},\tilde{a}_{Y,n,t})$ and elasticity parametes $(\tilde{\rho},\tilde{\gamma})$. The subscript $n$ and $t$ denotes implicit dependence of the ratio on prices and parameters, though when necessary we make explicit this dependence below.
+    \item The original draft derives expressions for many objects with goods inputs $g_{n,t}$ at the denominator, and in this case the notation $\Phi_{x,n,t}$ is used where it is assumed that this gives the ratio of input $x$ to goods.
 \end{itemize}
 
 \section*{Relative Demand Moments}
@@ -51,22 +51,40 @@ is asymptotically standard normal under the null. Here, $\xi_{Y,m,n,t}$ is the r
 
 Next, the intratemporal moment conditions are expanded to include intertemporal moment conditions on skill outcomes. Differently from the original approach, the overall input $X_{n,t}$ may be imputed using separate relative demand parameters. For the case of single mothers (for example) this is:
 
-\[ X_{n,t}(\Pi_{n,t}) = \left(\left(a_{m}(\phi_{m},Z_{n,t}) + a_{g,t}(\phi_{g},Z_{n,t})\Phi_{g,m}(\Pi_{n,t},Z_{n,t})^\rho\right)^{\gamma/
-\rho} + \Phi_{Y,m}(\Pi_{n,t},Z_{n,t})^\gamma\right)^{1/\gamma}\tau_{m,n,t}
+\[ X_{n,t} = \left(\left(a_{m,n,t} + a_{g,n,t}\Phi_{g,m,n,t}^\rho\right)^{\gamma/
+\rho}(1-a_{Y,n,t}) + a_{Y,n,t}\Phi_{Y,m,n,t}^\gamma\right)^{1/\gamma}\tau_{m,n,t}
  \]
-where the $\Phi$ functions depend on the perceived production parameters $\tilde{\omega}$ and total investment additionally depends on their true values, $\omega$. Write:
-\[ X_{n,t} = \mathcal{X}(\Pi_{n,t},Z_{n,t},\tilde{\omega},\omega)\tau_{m,n,t}.\]
+where the $\Phi$ terms depend on the perceived production parameters $\tilde{\omega}$ and total investment also depends on their true values, $\omega$. Write:
+\[ X_{n,t} = \Phi_{X,m,n,t}\tau_{m,n,t}.\]
+such that dependence on prices, observables, and parameters is made implicit.
 As in the previous draft, we must iterate the outcome equation forward and using a modeling assumption to impute investment in missing periods. Let $\overline{p}(\Pi_{n,t},Z_{n,t},\omega,\tilde{\omega})$ indicate the \emph{effective} composite price of $X$, which can be defined as dollars of expenditure per investment unit:
-\[ \overline{p}(\Pi_{n,t},Z_{n,t},\omega,\tilde{\omega}) = \frac{p_{t}g_{n,t}+P_{c,t}Y_{c,n,t}+W_{m,n,t}\tau_{m,n,t}+W_{f,n,t}\tau_{f,n,t}}{X_{n,t}} \]
+\[ \overline{p}(\Pi_{n,t},Z_{n,t},\omega,\tilde{\omega}) = \frac{p_{n,t}g_{n,t}+P_{Y,n,t}Y_{c,n,t}+W_{m,n,t}\tau_{m,n,t}+W_{f,n,t}\tau_{f,n,t}}{X_{n,t}} \]
 which due to the proportional investment rules, takes the same form as equation (9) in the first draft:
-\[ \overline{p}(\Pi_{n,t},Z_{n,t},\omega,\tilde{\omega}) = \frac{p_{t}+P_{c,t}\Phi_{c,t}+W_{m,n,t}\Phi_{m,t}+W_{f,n,t}\Phi_{f,t}}{\left[\left(a_{m}\Phi_{m,t}^\rho+a_{f}\Phi_{f,t}^\rho+a_{g}\right)^{\gamma / \rho}(1-a_{Y}) + a_{Y}\Phi_{c,t}^{\gamma}\right]^{1/\gamma}} \]
-where one key difference is that the investment ratios: $(\Phi_{m,t},\Phi_{f,t},\Phi_{c,t})$ are calculated using the perceived parameters $\tilde{\omega}$ and not their real values $\omega$.
+\[ \overline{p}(\Pi_{n,t},Z_{n,t},\omega,\tilde{\omega}) = \frac{p_{n,t}+P_{Y,n,t}\Phi_{Y,n,t}+W_{m,n,t}\Phi_{m,n,t}+W_{f,n,t}\Phi_{f,n,t}}{\left[\left(a_{m,n,t}\Phi_{m,n,t}^\rho+a_{f,n,t}\Phi_{f,n,t}^\rho+a_{g,n,t}\right)^{\gamma / \rho}(1-a_{Y,n,t}) + a_{Y,n,t}\Phi_{Y,n,t}^{\gamma}\right]^{1/\gamma}} \]
+where one key difference is that the investment ratios: $(\Phi_{m,n,t},\Phi_{f,n,t},\Phi_{Y,n,t})$ are calculated using the perceived parameters $\tilde{\omega}$ and not their real values $\omega$.
 
-In the case of no binding borrowing constraints (for example), will result in a final estimating equation:
+\subsection*{No Binding Borrowing Constraints}
 
-\[\lambda^{-1}_{S}S_{n,5} = Z_{n,0}\tilde{\phi}_\theta + \sum_{t=0}^4\delta_{2}^{4-t}\delta_{1}\ln\left(\frac{\overline{p}(\Pi_{n,0},Z_{n,0},\tilde{\kappa})\mathcal{X}(\Pi_{n,t},Z_{n,t},\tilde{\kappa},\kappa)\tau^0_{m,n,0}}{\overline{p}(\Pi_{n,t},Z_{n,t}\tilde{\kappa})}\right) + \delta^5_{2}\lambda_{S}^{-1}S_{n,0} + \xi_{S,n} \]
+To impute investment when borrowing constraints do not bind, we begin with the implication that total expenditures in any two years are proportional to each other:
+
+\[ E_{n,t} \propto E_{n,0} \]
+where we can use the derived price index to write this as:
+\[ \overline{p}(\Pi_{n,t},Z_{n,t},\omega,\tilde{\omega})X_{n,t} \propto \overline{p}(\Pi_{n,0},Z_{n,0},\omega,\tilde{\omega})X_{n,0} \]
+Rearranging and using $\Phi_{X,m}$ then gives:
+\[ X_{n,t} \propto \frac{\overline{p}(\Pi_{n,0},Z_{n,0},\omega,\tilde{\omega})\Phi_{X,m,n,0}\tau_{m,n,0}}{\overline{p}(\Pi_{n,t},Z_{n,t},\omega,\tilde{\omega})}\]
+which results in an estimating equation:
+\[\lambda^{-1}_{S}S_{n,5} = Z_{n,0}\tilde{\phi}_\theta + \sum_{t=0}^4\delta_{2}^{4-t}\delta_{1}\ln\left(\frac{\overline{p}(\Pi_{n,0},Z_{n,0},\omega,\tilde{\omega})\Phi_{X,m,n,0}\tau^{o}_{m,n,0}}{\overline{p}(\Pi_{n,t},Z_{n,t},\omega,\tilde{\omega})}\right) + \delta^5_{2}\lambda_{S}^{-1}S_{n,0} + \xi_{S,n} \]
 where $\xi_{S,n}$ collects measurement error in $\tau_{m,n,0}$ as well as measurement error in $S_{n,5}$ and $S_{n,0}$. To account for measurement error in both time investment and skills, future observations of time investment ($\tau_{m,n,5}$) are used to instrument for $\tau_{m,n,0}$, and the second measure of skills (applied problems if letter-word is used as the outcome, and vice versa) is used to instrument for the outcome score.
 
+\subsection*{No Borrowing or Saving}
+In the opposite case, we derive in the paper that:
+\[ E_{n,t} \propto W_{m,n,t}+W_{f,n,t}+y_{n,t} \]
+so that investment can be imputed as:
+\[ X_{n,t} \propto \frac{W_{m,n,t}+W_{f,n,t}+y_{n,t}}{\overline{p}(\Pi_{n,t},Z_{n,t},\omega,\tilde{\omega})} \]
+which results in an estimating equation:
+\[\lambda^{-1}_{S}S_{n,5} = Z_{n,0}\tilde{\phi}_\theta + \sum_{t=1}^4\delta_{2}^{4-t}\delta_{1}\ln\left(\frac{W_{m,n,t}+W_{f,n,t}+y_{n,t}}{\overline{p}(\Pi_{n,t},Z_{n,t},\omega,\tilde{\omega})}\right) + \delta_{1}\delta_{2}^4\ln\left(\Phi_{X,m,n,0}\tau^{o}_{m,n,0}\right) + \delta^5_{2}\lambda_{S}^{-1}S_{n,0} + \xi_{S,n} \]
+
+\subsection*{Estimation and Results}
 Let $\Delta=(\delta,\phi_{\theta},\omega,\tilde{\omega})$ be the full set of parameters. The final vector of moments, $g_{2,N}(\Delta)$ consists of the pair of residuals $(\xi_{LW,n},\xi_{AP,n})$ each interacted with:
 \begin{itemize}
     \item The vector of observables allowed to determine $\theta$.
