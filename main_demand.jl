@@ -6,7 +6,8 @@ include("relative_demand.jl")
 # --------  read in the data:
 # -- For now, we're using the old data. A task is to replicate how these data were created
 # Step 1: create the data object
-panel_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/psid_fam.csv",missingstring = ["","NA"]))
+#panel_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/psid_fam.csv",missingstring = ["","NA"]))
+panel_data = DataFrame(CSV.File("/Users/madisonbozich/Dropbox/PSID_CDS/data-derived/psid_fam.csv",missingstring = ["","NA"]))
 
 # temporary:
 panel_data.mid[ismissing.(panel_data.mid)] .= 6024032
