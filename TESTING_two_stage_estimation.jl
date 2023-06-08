@@ -54,23 +54,13 @@ end
 #keeping βm,βg,βf and ρ,γ from the first stage
 #crude way to fix parameters without changing underlying functions?
 function update_limited_p(y,x,spec)
-        ρ2 = y.ρ #<- y.ρ
-        γ2 = y.γ #<- y.γ
+        ρ = x[1]
+        γ = x[2]
         δ = x[3:4] #<- factor shares
-        nm = length(spec.vm)
-        βm2 = y.βm
-        pos = 5+nm
-        nf = length(spec.vf)
-        βf2 = y.βf
-        ng = length(spec.vg)
-        pos += nf
-        βg2 = y.βg
-        pos += ng
         nθ = length(spec.vθ)
-        βθ = x[pos:pos+nθ-1]
-        pos+= nθ
-        λ = x[pos]
-        P2 = CESmod(ρ=ρ2,γ=γ2,βm=βm2,δ = δ,βf = βf2,βg=βg2,βθ=βθ,λ=λ,spec=spec)
+        βθ = x[5:4+nθ]
+        λ = x[end]
+        P2 = CESmod(ρ=ρ,γ=γ,βm=y.βm,δ = δ,βf = y.βf,βg=y.βg,βθ=βθ,λ=λ,spec=spec)
         return P2
 end
 
@@ -106,7 +96,7 @@ N = length(unique(panel_data.kid))
 gfunc!(x,n,g,resids,data,spec) = production_moments_stacked!(p1,update_limited_p(p1,x,spec_2p_2s),n,g,resids,data,spec,true)
 nmom = spec_2p_2s.g_idx_prod[end][end]
 W = I(nmom)
-x0 = initial_guess_p(spec_2p_2s) 
+x0 = [-2.;-2.;0.1;0.9;zeros(length(spec_2p_2s.vθ));1.]
 gmm_criterion(x0,gfunc!,W,N,8,panel_data,spec_2p_2s)
 
 res2s_limited,se2s_limited = estimate_gmm(x0,gfunc!,W,N,8,panel_data,spec_2p_2s)
