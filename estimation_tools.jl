@@ -69,16 +69,15 @@ function stack_moments!(g,rvec,data::DataFrame,z_vars,n)
     end
 end
 
-function stack_moments!(g,rvec,data,z_vars,n)
+function stack_moments!(g,rvec,data,n)
     # g: the vector to add moments to
     # rvec: the vector of residuals
-    # z_vars: an array of arrays of instrument names to take from data. z_vars[k] is the array of instrument names for the kth residual
+    # data: the data object that holds instruments
     # n: the row number for the data
     pos = 1
-    for k in eachindex(z_vars) 
-        for m in eachindex(z_vars[k])
-            zv = z_vars[k][m]
-            g[pos] += rvec[k]*data[zv][n]
+    for k in eachindex(rvec) 
+        for m in axes(data.Z[k],1)
+            g[pos] += rvec[k]*data.Z[k][m,n]
             pos += 1
         end
     end

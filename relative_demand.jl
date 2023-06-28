@@ -9,7 +9,7 @@ using Parameters, Distributions
 # - the key is that this function uses an input function *gmap*: a function that tells demand_moments_stacked where to write the moments, which residuals to use, and which instruments to use for each residual given the year and marital status of the individual. The gmap function must be written specially for each specification
 
 
-@with_kw struct CESmod
+@with_kw struct CESmod2
     # elasticity parameters
     ρ = -1.5 #
     γ = -3. 
@@ -17,14 +17,14 @@ using Parameters, Distributions
     # coefficient vectors for factor shares
     βm = zeros(2)
     βf = zeros(2)
-    βg = zeros(2)
+    βy = zeros(2)
     βθ = zeros(2)
     λ = 1.
     spec = (vm = [:constant,:mar_stat],vf = [:constant],vθ = [:constant,:mar_stat],vg = [:constant,:mar_stat])
 end
 
-function CESmod(spec)
-    return CESmod(βm = zeros(length(spec.vm)),βf = zeros(length(spec.vf)),βg = zeros(length(spec.vg)),βθ = zeros(length(spec.vθ)),spec=spec)
+function CESmod2(spec)
+    return CESmod2(βm = zeros(length(spec.vm)),βf = zeros(length(spec.vf)),βy = zeros(length(spec.vy)),βθ = zeros(length(spec.vθ)),spec=spec)
 end
 
 
@@ -62,17 +62,17 @@ function log_input_ratios(pars,data,it)
 end
 
 function factor_shares(pars,data,it,mar_stat)
-    @unpack βm,βf,βg,spec = pars
+    @unpack βm,βf,βy,spec = pars
     if mar_stat
         am = exp(linear_combination(βm,spec.vm,data,it))
         af = exp(linear_combination(βf,spec.vf,data,it))
-        ay = exp(linear_combination(βg,spec.vg,data,it))
+        ay = exp(linear_combination(βy,spec.vy,data,it))
         denom_inner = am+af+1
         denom_outer = 1+ay
         return 1/denom_inner,am/denom_inner,af/denom_inner,ay /denom_outer
     else
         am = exp(linear_combination(βm,spec.vm,data,it))
-        ay = exp(linear_combination(βg,spec.vg,data,it))
+        ay = exp(linear_combination(βy,spec.vy,data,it))
         denom_inner = 1+am
         denom_outer = 1+ay
         return 1/denom_inner,am/denom_inner,ay /denom_outer
@@ -144,23 +144,18 @@ end
 
 
 # this function creates a stacked vector of moment conditions from a vector of residuals
-function demand_moments_stacked!(pars,n,g,R,data,spec)
+function demand_moments_stacked!(pars,n,g,R,data)
     # assume a balanced panel of observations
 
     # --- 1997 relative demand moments
     it = (n-1)*11 + 1
-    R[:] .= 0.
     if data.prices_observed[it] && (data.age[it]<=12) && (data.ind_not_sample[it]==0)
         calc_demand_resids!(it,R,data,pars)
         resids = view(R,[1])
-        g_it = view(g,spec.g_idx_97)
-        stack_moments!(g_it,resids,data,spec.zlist_97,it)
     end
 
     # --- 2002 relative demand moments
     it = (n-1)*11 + 6 
-    r_idx = [4,5,3,1]
-    R[:] .= 0.
     if data.prices_observed[it] && (data.age[it]<=12) && (data.ind_not_sample[it]==0)
         calc_demand_resids!(it,R,data,pars)
         resids = view(R,r_idx)
@@ -178,4 +173,18 @@ function demand_moments_stacked!(pars,n,g,R,data,spec)
         g_it = view(g,spec.g_idx_07)
         stack_moments!(g_it,resids,data,spec.zlist_02,it)
     end
+end
+
+function update2(x,spec)
+    ρ = x[1]
+    γ = x[2]
+    nm = length(spec.vm)
+    βm = x[3:2+nm]
+    pos = 3+nm
+    nf = length(spec.vf)
+    βf = x[pos:pos+nf-1]
+    ng = length(spec.vy)
+    pos += nf
+    βy = x[pos:pos+ng-1]
+    return CESmod2(ρ=ρ,γ=γ,βm = βm,βf = βf,βy=βy,spec=spec)
 end
