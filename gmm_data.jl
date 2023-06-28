@@ -106,7 +106,7 @@ gmm_criterion(x0,gfunc!,W,N,9,cd,spec_1)
 res1 = estimate_gmm(x0,gfunc!,W,N,9,cd,spec_1)
 
 include("relative_demand.jl")
-gfunc2!(x,n,g,resids,data,spec) = demand_moments_stacked!(update2(x,spec),n,g,resids,data)
+gfunc2!(x,n,g,resids,data,spec) = demand_moments_stacked!(update2(x,spec),n,g,resids,data,spec)
 
 gmm_criterion(x0,gfunc2!,W,N,9,panel_data,spec_1)
 

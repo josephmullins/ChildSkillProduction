@@ -144,18 +144,23 @@ end
 
 
 # this function creates a stacked vector of moment conditions from a vector of residuals
-function demand_moments_stacked!(pars,n,g,R,data)
+function demand_moments_stacked!(pars,n,g,R,data,spec)
     # assume a balanced panel of observations
 
     # --- 1997 relative demand moments
     it = (n-1)*11 + 1
+    R[:] .= 0.
     if data.prices_observed[it] && (data.age[it]<=12) && (data.ind_not_sample[it]==0)
         calc_demand_resids!(it,R,data,pars)
         resids = view(R,[1])
+        g_it = view(g,spec.g_idx_97)
+        stack_moments!(g_it,resids,data,spec.zlist_97,it)
     end
 
     # --- 2002 relative demand moments
     it = (n-1)*11 + 6 
+    r_idx = [4,5,3,1]
+    R[:] .= 0.
     if data.prices_observed[it] && (data.age[it]<=12) && (data.ind_not_sample[it]==0)
         calc_demand_resids!(it,R,data,pars)
         resids = view(R,r_idx)
