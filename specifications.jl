@@ -11,9 +11,11 @@ function build_spec(spec)
     (spec.vf...,:logprice_f_g),
     (spec.vg...,:logprice_c_g), #<= here we are assuming that spec.vg ⊃ spec.vm and spec.vf
     (spec.vg...,:logprice_c_m)]
+    g_idx_07 = (n97+n02+1):(n97+2n02)
     return (vm = spec.vm, vf = spec.vf, vθ = spec.vθ, vg = spec.vg,
     g_idx_97 = g_idx_97, zlist_97 = zlist_97,
-    g_idx_02 = g_idx_02, zlist_02 = zlist_02 
+    g_idx_02 = g_idx_02, zlist_02 = zlist_02,
+    g_idx_07 = g_idx_07 
     )
 end
 
@@ -62,21 +64,32 @@ function build_spec_prod(spec)
         (spec.vf...,:logprice_f_g),
         (spec.vg...,:logprice_c_g), #<= here we are assuming that spec.vg ⊃ spec.vm and spec.vf
         (spec.vg...,:logprice_c_m)]
+        g_idx_07 = (n97+n02+1):(n97+2n02)
 
         # create the positions in which to write moments for each t
-        g_idx_prod = []
-        gpos = (n97+n02)
+        g_idx_prod_97 = []
+        gpos = (n97+2n02)
         for t in eachindex(spec.zlist_prod)
                 
                 K = sum(length(z) for z in spec.zlist_prod[t]) #<- number of moments
-                push!(g_idx_prod,gpos+1:gpos+K)
+                push!(g_idx_prod_97,gpos+1:gpos+K)
                 gpos += K
         end
-        
+
+        g_idx_prod_02 = []
+        for t in eachindex(spec.zlist_prod)                
+                K = sum(length(z) for z in spec.zlist_prod[t]) #<- number of moments
+                push!(g_idx_prod_02,gpos+1:gpos+K)
+                gpos += K
+        end
+
+
         return (vm = spec.vm, vf = spec.vf, vθ = spec.vθ, vg = spec.vg,
         g_idx_97 = g_idx_97, zlist_97 = zlist_97,
         g_idx_02 = g_idx_02, zlist_02 = zlist_02,
-        g_idx_prod = g_idx_prod,zlist_prod_t = spec.zlist_prod_t,zlist_prod = spec.zlist_prod
+        g_idx_07 = g_idx_07,
+        g_idx_prod_97 = g_idx_prod_97, g_idx_prod_02 = g_idx_prod_02,
+        zlist_prod_t = spec.zlist_prod_t,zlist_prod = spec.zlist_prod
         )
 end
 

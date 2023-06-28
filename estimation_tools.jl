@@ -25,6 +25,7 @@ function moment_func(x,gfunc!,N,nmom,nresids,args...)
     g = zeros(typeof(x[1]),nmom) #<- pre-allocate an array for the moment function to write to
     resids = zeros(typeof(x[1]),nresids) #<- pre-allocate an array to write the residuals.
     for n in 1:N
+        #println(n)
         gfunc!(x,n,g,resids,args...)
     end
     g /= N #
@@ -200,25 +201,25 @@ end
 
 # function to take a linear combination given a vector and a list of variables
 # assumption: we have type dummies in data. then it's straightforward.
-function linear_combination(β,vars,data::DataFrame,n)
-    r = 0 #<- not assuming a constant term
+function linear_combination(β,vars::Vector{Symbol},data::DataFrame,n::Int64)
+    r = 0. #<- not assuming a constant term
     for j in eachindex(vars)
         if vars[j]==:constant #<- this condition is unnecessary: we simply add a variable =1 named :constant to the dataset
             r += β[j]
         else
-            @views r += β[j]*data[n,vars[j]]
+            r += β[j]*data[n,vars[j]]
         end
     end
     return r
 end
 
 function linear_combination(β,vars,data,n)
-    r = 0 #<- not assuming a constant term
+    r = 0. #<- not assuming a constant term
     for j in eachindex(vars)
         if vars[j]==:constant #<- this condition is unnecessary: we simply add a variable =1 named :constant to the dataset
             r += β[j]
         else
-            @views r += β[j]*data[vars[j]][n]
+            r += β[j] * data[vars[j]][n]
         end
     end
     return r

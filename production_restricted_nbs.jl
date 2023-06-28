@@ -13,8 +13,6 @@ wage_types = DataFrame(CSV.File("wage_types.csv"))
 panel_data=innerjoin(panel_data, wage_types, on = :MID) #merging in cluster types
 cluster_dummies=make_dummy(panel_data,:cluster) #cluster dummies made
 
-
-panel_data = panel_data[panel_data.year.<=2002,:] #<- for now, limit to years <=2002. We need to update code eventually.
 include("temp_prep_data.jl")
 
 #---- write the update function:
@@ -62,7 +60,7 @@ gfunc2!(x,n,g,resids,data,spec,unrestricted) = production_demand_moments_stacked
 # ---- Part 1: estimate the restricted estimator and conduct tests of the equality constraints using the LM statistic
 
 # ---- specification (1)
-nmom = spec_1p_x.g_idx_prod[end][end]
+nmom = spec_1p_x.g_idx_prod_02[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_1p_x)
 res1 = estimate_gmm(x0,gfunc!,W,N,8,panel_data,spec_1p_x)
@@ -72,10 +70,9 @@ W = inv(res1.Ω)
 t1,p1 = test_joint_restrictions(res1.est1,W,N,spec_1p_x,panel_data)
 tvec1,pvec1 = test_individual_restrictions(res1.est1,W,N,spec_1p_x,panel_data)
 
-
 # ---- specification (2)
 
-nmom = spec_2p_x.g_idx_prod[end][end]
+nmom = spec_2p_x.g_idx_prod_02[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_2p_x)
 res2 = estimate_gmm(x0,gfunc!,W,N,8,panel_data,spec_2p_x)
@@ -86,7 +83,7 @@ t2,p2 = test_joint_restrictions(res2.est1,W,N,spec_2p_x,panel_data)
 tvec2,pvec2 = test_individual_restrictions(res2.est1,W,N,spec_2p_x,panel_data)
 
 # ---- specification (3)
-nmom = spec_3p_x.g_idx_prod[end][end]
+nmom = spec_3p_x.g_idx_prod_02[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_3p_x)
 res3 = estimate_gmm(x0,gfunc!,W,N,8,panel_data,spec_3p_x)
@@ -97,7 +94,7 @@ t3,p3 = test_joint_restrictions(res3.est1,W,N,spec_3p_x,panel_data)
 tvec3,pvec3 = test_individual_restrictions(res3.est1,W,N,spec_3p_x,panel_data)
 
 # ---- specification 5
-nmom = spec_5p_x.g_idx_prod[end][end]
+nmom = spec_5p_x.g_idx_prod_02[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_5p_x)
 res5 = estimate_gmm(x0,gfunc!,W,N,8,panel_data,spec_5p_x)

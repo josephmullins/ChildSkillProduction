@@ -1,6 +1,6 @@
 
 # demographics
-#v_demogs = [:year;:mar_stat;:div;:constant;m_ed;f_ed;:num_0_5;:age;cluster_dummies[2:nclusters];:mu_k]
+#v_demogs = [:year;:mar_stat;:div;:constant;m_ed;f_ed;:num_0_5;:age;cluster_dummies[2:end];:mu_k]
 
 panel_data.m_ed = replace(panel_data.m_ed,">16" => "16","<12" => "12") #<-  simplify the education categories
 panel_data.f_ed = replace(panel_data.f_ed,">16" => "16","<12" => "12")
@@ -31,7 +31,7 @@ panel_data[!,:logprice_f_g] = panel_data.logwage_f .- panel_data.logprice_g
 
 
 # inputs and outputs
-#v_inputs = [:log_mtime,:log_ftime,:log_chcare,:log_good,:log_total_income]
+#v_inputs = [:log_mtime,:log_ftime,:log_chcare,:log_good,:log_total_income,:AP,:LW]
 
 panel_data[!,:log_mtime] = panel_data.ln_tau_m
 panel_data[!,:log_ftime] = panel_data.ln_tau_f
@@ -55,17 +55,20 @@ panel_data[!,:log_ftime_coalesced] = coalesce.(panel_data.log_ftime,0.)
 panel_data[!,:log_chcare_input] = coalesce.(panel_data.log_chcare .- panel_data.logprice_c,0.)
 panel_data[!,:log_good_input] = coalesce.(panel_data.log_good .- panel_data.logprice_g,0.)
 
-# de-mean test scores in both years
+# de-mean test scores in all years
 i97 = panel_data.year.==1997
 i02 = panel_data.year.==2002
+i07 = panel_data.year.==2007
 ii = panel_data.all_prices .& panel_data.mtime_valid .& (panel_data.age.<=12)
 panel_data.LW[i97] .-= mean(panel_data.LW[i97 .& ii])
 panel_data.AP[i97] .-= mean(panel_data.AP[i97 .& ii])
 panel_data.LW[i02] .-= mean(panel_data.LW[i02 .& panel_data.all_prices .& panel_data.mtime_valid])
 panel_data.AP[i02] .-= mean(panel_data.AP[i02 .& panel_data.all_prices .& panel_data.mtime_valid])
+panel_data.LW[i07] .-= mean(panel_data.LW[i07 .& panel_data.all_prices .& panel_data.mtime_valid])
+panel_data.AP[i07] .-= mean(panel_data.AP[i07 .& panel_data.all_prices .& panel_data.mtime_valid])
 
-# vlist = [v_demogs;v_prices;v_inputs]
-# data = NamedTuple(zip((v for v in vlist),(panel_data[!,v] for v in vlist)))
+#vlist = [v_demogs;v_prices;v_inputs]
+#data = NamedTuple(zip((v for v in vlist),(panel_data[!,v] for v in vlist)))
 
 # other variables
 # :m_pc97

@@ -2,93 +2,104 @@
 
 # below: two versions of the functions that take either one or two parameter objects
 
-function calc_production_resids!(n,R,data,pars1,pars2,savings)
-    it97 = (n-1)*6 + 1
-    it02 = n*6
+function calc_production_resids!(it0,R,data,pars1,pars2,savings)
+    # it0 indicates the period in which skills are initially measured
+    # it5 is the period in whichs skills are next measured:
+    it5 = it0 + 5
     # this function call is assumed to return a coefficient lΦm where $X_{it} = τ_{m,it} / exp(lΦm)
-    lΦm,lΦf,lΦg,lΦc,log_price_97 = calc_Φ_m(pars1,pars2,data,it97)
+    lΦm,lΦf,lΦg,lΦc,log_price_97 = calc_Φ_m(pars1,pars2,data,it0)
     #Ψ0 = pars2.δ[1]*pars2.δ[2]^4*lX97
     Ψ0 = 0
     coeff_X = pars2.δ[1]*pars2.δ[2]^4
     for t=1:4
-        lΦm,lΦf,lΦg,lΦc,log_price_index = calc_Φ_m(pars1,pars2,data,it97+t)
-        #lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it97+t)
+        lΦm,lΦf,lΦg,lΦc,log_price_index = calc_Φ_m(pars1,pars2,data,it0+t)
+        #lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it0+t)
         if savings
             coeff_X += pars2.δ[1]*pars2.δ[2]^(4-t)
             Ψ0 += pars2.δ[1]*pars2.δ[2]^(4-t)*(log_price_97 - log_price_index)
         else
-            Ψ0 += pars2.δ[1]*pars2.δ[2]^(4-t)*(data.log_total_income[it97+t] - log_price_index) #<- assume that father's log wage is coded as zero for single parents
+            Ψ0 += pars2.δ[1]*pars2.δ[2]^(4-t)*(data.log_total_income[it0+t] - log_price_index) #<- assume that father's log wage is coded as zero for single parents
         end
     end
-    Ψ0 += linear_combination(pars2.βθ,pars2.spec.vθ,data,it97)
-    r1 = data.AP[it02] / pars2.λ - Ψ0 - pars2.δ[2]^5 * data.AP[it97] / pars2.λ
-    r2 = data.LW[it02] - Ψ0 - pars2.δ[2]^5 * data.LW[it97]
-    if data.mtime_valid[it97]
-        lX97 = data.log_mtime[it97] - lΦm #<- investment proxy using time investment
-        R[1] = r1 - coeff_X*lX97
-        R[2] = r2 - coeff_X*lX97
+    Ψ0 += linear_combination(pars2.βθ,pars2.spec.vθ,data,it0)
+    r1 = data.AP[it5] / pars2.λ - Ψ0 - pars2.δ[2]^5 * data.AP[it0] / pars2.λ
+    r2 = data.LW[it5] - Ψ0 - pars2.δ[2]^5 * data.LW[it0]
+    if data.mtime_valid[it0]
+        lX97 = data.log_mtime[it0] - lΦm #<- investment proxy using time investment
+        if data.AP_valid[it5] && data.AP_valid[it0]
+            R[1] = r1 - coeff_X*lX97
+        end
+        if data.LW_valid[it5] && data.LW_valid[it0]
+            R[2] = r2 - coeff_X*lX97
+        end
     end
-    if data.ftime_valid[it97]
+    if data.ftime_valid[it0]
         # need to write childcare input as a function of other stuff now too
-        #lX97 = data.log_chcare[it97] - lΦc - log_price_97
-        lX97 = data.log_ftime[it97] - lΦf
+        #lX97 = data.log_chcare[it0] - lΦc - log_price_97
+        lX97 = data.log_ftime[it0] - lΦf
         R[3] = r1 - coeff_X*lX97
         R[4] = r2 - coeff_X*lX97
     end
-    if data.chcare_valid[it97]
+    if data.chcare_valid[it0]
         # need to write childcare input as a function of other stuff now too
-        lX97 = data.log_chcare[it97] - lΦc - log_price_97
-        #lX97 = data.log_ftime[it97] - lΦf
+        lX97 = data.log_chcare[it0] - lΦc - log_price_97
+        #lX97 = data.log_ftime[it0] - lΦf
         R[5] = r1 - coeff_X*lX97
         R[6] = r2 - coeff_X*lX97
     end
 
-    R[7] = (data.AP[it02] - pars2.λ*data.LW[it02])*data.LW[it97]
-    R[8] = (data.AP[it02]*data.AP[it97] - pars2.λ^2*data.LW[it02]*data.LW[it97])
+    R[7] = (data.AP[it5] - pars2.λ*data.LW[it5])*data.LW[it0]
+    R[8] = (data.AP[it5]*data.AP[it0] - pars2.λ^2*data.LW[it5]*data.LW[it0])
 end
 
 # version with one parameter instead of two
-function calc_production_resids!(n,R,data,pars1,savings)
-    it97 = (n-1)*6 + 1
-    it02 = n*6
+function calc_production_resids!(it0,R,data,pars1,savings)
+    # it0 indicates the period in which skills are initially measured
+    # it5 is the period in whichs skills are next measured:
+    it5 = it0 + 5
+
     # this function call is assumed to return a coefficient lΦm where $X_{it} = τ_{m,it} / exp(lΦm)
-    lΦm,lΦf,lΦg,lΦc,log_price_97 = calc_Φ_m(pars1,data,it97)
+    lΦm,lΦf,lΦg,lΦc,log_price_97 = calc_Φ_m(pars1,data,it0)
     Ψ0 = 0
     coeff_X = pars1.δ[1]*pars1.δ[2]^4
     for t=1:4
-        #lΦ,log_price_index = calc_Φ_m(pars1,pars1,data,it97+t)
-        lΦm,lΦf,lΦg,lΦc,log_price_index = calc_Φ_m(pars1,data,it97+t)
-        #lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it97+t)
+        #lΦ,log_price_index = calc_Φ_m(pars1,pars1,data,it0+t)
+        lΦm,lΦf,lΦg,lΦc,log_price_index = calc_Φ_m(pars1,data,it0+t)
+        #lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it0+t)
         if savings
             coeff_X += pars1.δ[1]*pars1.δ[2]^(4-t)
             Ψ0 += pars1.δ[1]*pars1.δ[2]^(4-t)*(log_price_97 - log_price_index)
         else
-            Ψ0 += pars1.δ[1]*pars1.δ[2]^(4-t)*(data.log_total_income[it97+t] - log_price_index) #<- assume that father's log wage is coded as zero for single parents
+            Ψ0 += pars1.δ[1]*pars1.δ[2]^(4-t)*(data.log_total_income[it0+t] - log_price_index) #<- assume that father's log wage is coded as zero for single parents
         end
     end
-    Ψ0 += linear_combination(pars1.βθ,pars1.spec.vθ,data,it97)
-    r1 = data.AP[it02] / pars1.λ - Ψ0 - pars1.δ[2]^5 * data.AP[it97] / pars1.λ
-    r2 = data.LW[it02] - Ψ0 - pars1.δ[2]^5 * data.LW[it97]
-    if data.mtime_valid[it97]
-        lX97 = data.log_mtime[it97] - lΦm #<- investment proxy using time investment
-        R[1] = r1 - coeff_X*lX97
-        R[2] = r2 - coeff_X*lX97
+    Ψ0 += linear_combination(pars1.βθ,pars1.spec.vθ,data,it0)
+    r1 = data.AP[it5] / pars1.λ - Ψ0 - pars1.δ[2]^5 * data.AP[it0] / pars1.λ
+    r2 = data.LW[it5] - Ψ0 - pars1.δ[2]^5 * data.LW[it0]
+    if data.mtime_valid[it0]
+        lX97 = data.log_mtime[it0] - lΦm #<- investment proxy using time investment
+        if data.AP_valid[it5] && data.AP_valid[it0]
+            R[1] = r1 - coeff_X*lX97
+        end
+        if data.LW_valid[it5] && data.LW_valid[it0]
+            R[2] = r2 - coeff_X*lX97
+        end
     end
-    if data.ftime_valid[it97]
+    if data.ftime_valid[it0]
         # need to write childcare input as a function of other stuff now too
-        lX97 = data.log_ftime[it97] - lΦf
+        lX97 = data.log_ftime[it0] - lΦf
         R[3] = r1 - coeff_X*lX97
         R[4] = r2 - coeff_X*lX97
     end
-    if data.chcare_valid[it97]
+    if data.chcare_valid[it0]
         # need to write childcare input as a function of other stuff now too
-        lX97 = data.log_chcare[it97] - lΦc - log_price_97
-        #lX97 = data.log_ftime[it97] - lΦf
+        lX97 = data.log_chcare[it0] - lΦc - log_price_97
+        #lX97 = data.log_ftime[it0] - lΦf
         R[5] = r1 - coeff_X*lX97
         R[6] = r2 - coeff_X*lX97
     end
-    R[7] = (data.AP[it02] - pars1.λ*data.LW[it02])*data.LW[it97]
-    R[8] = (data.AP[it02]*data.AP[it97] - pars1.λ^2*data.LW[it02]*data.LW[it97])
+    R[7] = (data.AP[it5] - pars1.λ*data.LW[it5])*data.LW[it0]
+    R[8] = (data.AP[it5]*data.AP[it0] - pars1.λ^2*data.LW[it5]*data.LW[it0])
 end
 
 
@@ -118,14 +129,24 @@ end
  # zlist_prod = ([[:AP],[:LW]],[[:tau_m],[:tau_m]]) # let's check this
 function production_moments_stacked!(pars1,pars2,n,g,R,data,spec,savings)
     R[:] .= 0.
-    it97 = (n-1)*6+1
+    it97 = (n-1)*11+1
     it02 = it97+5
+    it07 = it02+5
     if data.all_prices[it97] && data.mtime_valid[it97] && data.mtime_valid[it02] && (data.age[it97]<=12)
-        calc_production_resids!(n,R,data,pars1,pars2,savings)
+        calc_production_resids!(it97,R,data,pars1,pars2,savings)
         #resids = view(R,1:6) #<- is this necessary? I don't think so.
         for j in eachindex(spec.zlist_prod)
-            g_n = view(g,spec.g_idx_prod[j])
+            g_n = view(g,spec.g_idx_prod_97[j])
             it = it97 + spec.zlist_prod_t[j]
+            stack_moments!(g_n,R,data,spec.zlist_prod[j],it)
+        end
+    end
+    if data.all_prices[it02] && data.mtime_valid[it02] && data.mtime_valid[it07] && (data.age[it02]<=12)
+        calc_production_resids!(it02,R,data,pars1,pars2,savings)
+        #resids = view(R,1:6) #<- is this necessary? I don't think so.
+        for j in eachindex(spec.zlist_prod)
+            g_n = view(g,spec.g_idx_prod_02[j])
+            it = it02 + spec.zlist_prod_t[j]
             stack_moments!(g_n,R,data,spec.zlist_prod[j],it)
         end
     end
@@ -133,14 +154,24 @@ end
 # version with one parameter instead of two
 function production_moments_stacked!(pars1,n,g,R,data,spec,savings)
     R[:] .= 0.
-    it97 = (n-1)*6+1
+    it97 = (n-1)*11+1
     it02 = it97+5
+    it07 = it02+5
     if data.all_prices[it97] && data.mtime_valid[it97] && data.mtime_valid[it02] && (data.age[it97]<=12)
-        calc_production_resids!(n,R,data,pars1,savings)
+        calc_production_resids!(it97,R,data,pars1,savings)
         #resids = view(R,1:6)
         for j in eachindex(spec.zlist_prod)
-            g_n = view(g,spec.g_idx_prod[j])
+            g_n = view(g,spec.g_idx_prod_97[j])
             it = it97 + spec.zlist_prod_t[j]
+            stack_moments!(g_n,R,data,spec.zlist_prod[j],it)
+        end
+    end
+    if data.all_prices[it02] && data.mtime_valid[it02] && data.mtime_valid[it07] && (data.age[it02]<=12)
+        calc_production_resids!(it02,R,data,pars1,savings)
+        #resids = view(R,1:6)
+        for j in eachindex(spec.zlist_prod)
+            g_n = view(g,spec.g_idx_prod_02[j])
+            it = it02 + spec.zlist_prod_t[j]
             stack_moments!(g_n,R,data,spec.zlist_prod[j],it)
         end
     end

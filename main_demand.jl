@@ -4,33 +4,23 @@ include("estimation_tools.jl")
 include("relative_demand.jl")
 
 # --------  read in the data:
-# -- For now, we're using the old data. A task is to replicate how these data were created
 # Step 1: create the data object
 panel_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/psid_fam.csv",missingstring = ["","NA"]))
-#panel_data = DataFrame(CSV.File("/Users/madisonbozich/Dropbox/PSID_CDS/data-derived/psid_fam.csv",missingstring = ["","NA"]))
 
-# temporary:
-panel_data.mid[ismissing.(panel_data.mid)] .= 6024032
-
+# temporary: we need to fix this!!
+#panel_data.mid[ismissing.(panel_data.mid)] .= 6024032
 
 panel_data[!,:MID] = panel_data.mid
 
 wage_types = DataFrame(CSV.File("wage_types.csv"))
 
-panel_data=innerjoin(panel_data, wage_types, on = :MID) #merging in cluster types
+panel_data=innerjoin(panel_data, wage_types, on = :MID, matchmissing = :notequal) #merging in cluster types
 cluster_dummies=make_dummy(panel_data,:cluster) #cluster dummies made
 
-
-panel_data = panel_data[panel_data.year.<=2002,:] #<- for now, limit to years <=2002. We need to update code eventually.
 include("temp_prep_data.jl")
 
-# TEMPORARY EXERCISE: let's merge with the new data to see if it's the new observations that cause the issue:
-# panel_data[!,:KID] = panel_data.kid
-# old_data = DataFrame(CSV.File("CLMP_v1/data/gmm_full_vertical.csv",missingstring = "NA"))
-# panel_data = innerjoin(panel_data,old_data[:,[:KID,:year]],on=[:KID,:year])
 
-sort!(panel_data,[:kid,:year])
-
+#something is really wrong here
 
 # ----------------------------- #
 
@@ -54,7 +44,8 @@ function update_inv(pars)
 end
 
 # - load the specifications that we want to use. See that script for more details.
-include("specifications_alt_demand.jl")
+#include("specifications_alt_demand.jl")
+include("specifications.jl")
 
 # function to get the initial guess
 function initial_guess(spec)
@@ -72,9 +63,10 @@ gfunc!(x,n,g,resids,data,spec) = demand_moments_stacked!(update(x,spec),n,g,resi
 
 N = length(unique(panel_data.kid))
 
+break
 # Specification (1)
 
-nmom = spec_1.g_idx_02[end]
+nmom = spec_1.g_idx_07[end]
 W = I(nmom)
 x0 = initial_guess(spec_1)
 
@@ -83,22 +75,26 @@ res1 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_1)
 
 # Specification (2): 
 x0 = initial_guess(spec_2)
-nmom = spec_2.g_idx_02[end]
+nmom = spec_2.g_idx_07[end]
 W = I(nmom)
+Ω = moment_variance(x0,gfunc!,N,nmom,5,panel_data,spec_2)
+
 
 res2 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_2)
 #res3,se3 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_2)
+Ω = moment_variance(res2.est1,gfunc!,N,nmom,5,panel_data,spec_2)
 
 # Specification (3): 
 x0 = initial_guess(spec_3)
-nmom = spec_3.g_idx_02[end]
+nmom = spec_3.g_idx_07[end]
 W = I(nmom)
 res3 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_3)
 #res4,se4 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_3)
+Ω = moment_variance(x0,gfunc!,N,nmom,5,panel_data,spec_3)
 
 # Specification (4): 
 x0 = initial_guess(spec_4)
-nmom = spec_4.g_idx_02[end]
+nmom = spec_4.g_idx_07[end]
 W = I(nmom)
 res4 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_4)
 #res5,se5 = estimate_gmm_iterative(x0,gfunc!,5,W,N,5,panel_data,spec_4)
@@ -106,7 +102,7 @@ res4 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_4)
 
 # Specification (5): 
 x0 = initial_guess(spec_5)
-nmom = spec_5.g_idx_02[end]
+nmom = spec_5.g_idx_07[end]
 W = I(nmom)
 res5 = estimate_gmm(x0,gfunc!,W,N,5,panel_data,spec_5)
 

@@ -96,7 +96,7 @@ function calc_demand_resids!(it,R,data,pars)
             end
         end
     # recall: 02: use c/m,f/m,c/g,m/g,f/g
-    elseif data.year[it]==2002
+    elseif data.year[it]==2002 || data.year[it]==2007
         if !ismissing(data.log_mtime[it]) & !ismissing(data.logwage_m[it])
             if !ismissing(data.log_chcare[it])
                 R[1] = data.log_chcare[it] - data.log_mtime[it] - (lϕc - lϕm) - data.logprice_c[it]
@@ -124,13 +124,13 @@ function residual_test(data,N,pars)
     R = zeros(N,5)
     r = zeros(5)
     for n=1:N
-        it97 = (n-1)*6 + 1
+        it97 = (n-1)*11 + 1
         r[:] .= 0.
         if data.prices_observed[it97] && (data.age[it97]<=12) && (data.ind_not_sample[it97]==0)
             calc_demand_resids!(it97,r,data,pars)
             R[n,1] = r[1]
         end
-        it02 = n*6
+        it02 = (n-1)*11 + 6
         r[:] .= 0.
         if data.prices_observed[it02] && (data.age[it02]<=12) && (data.ind_not_sample[it97]==0)
             calc_demand_resids!(it02,r,data,pars)
@@ -148,7 +148,7 @@ function demand_moments_stacked!(pars,n,g,R,data,spec)
     # assume a balanced panel of observations
 
     # --- 1997 relative demand moments
-    it = (n-1)*6 + 1
+    it = (n-1)*11 + 1
     R[:] .= 0.
     if data.prices_observed[it] && (data.age[it]<=12) && (data.ind_not_sample[it]==0)
         calc_demand_resids!(it,R,data,pars)
@@ -158,13 +158,24 @@ function demand_moments_stacked!(pars,n,g,R,data,spec)
     end
 
     # --- 2002 relative demand moments
-    it = n*6 
+    it = (n-1)*11 + 6 
     r_idx = [4,5,3,1]
     R[:] .= 0.
     if data.prices_observed[it] && (data.age[it]<=12) && (data.ind_not_sample[it]==0)
         calc_demand_resids!(it,R,data,pars)
         resids = view(R,r_idx)
         g_it = view(g,spec.g_idx_02)
+        stack_moments!(g_it,resids,data,spec.zlist_02,it)
+    end
+
+    # --- 2007 relative demand moments
+    it = n*11
+    r_idx = [4,5,3,1]
+    R[:] .= 0.
+    if data.prices_observed[it] && (data.age[it]<=12) && (data.ind_not_sample[it]==0)
+        calc_demand_resids!(it,R,data,pars)
+        resids = view(R,r_idx)
+        g_it = view(g,spec.g_idx_07)
         stack_moments!(g_it,resids,data,spec.zlist_02,it)
     end
 end

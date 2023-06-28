@@ -1,9 +1,9 @@
 # Fdb version 3
-["pdflatex"] 1686233149 "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" "results_new.pdf" "results_new" 1686233150
+["pdflatex"] 1687906083 "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" "results_new.pdf" "results_new" 1687907150
   "../tables/demand_production_restricted.tex" 1685551460 3009 33f008743dd1fa2f70fa1cdbab56d4f7 ""
   "../tables/demand_production_restricted_nbs.tex" 1685497602 3199 ae9ce9ff22d01e4849b5c90ba224f795 ""
   "../tables/demand_spec3_unrestricted.tex" 1685551847 1493 6b00fd088711d9afe91dfd9d2f9d44f8 ""
-  "../tables/relative_demand.tex" 1686233149 2775 a50622e584039e0c775a20c585dd9b2c ""
+  "../tables/relative_demand.tex" 1687894636 2326 87b5269253298c66fba7bef9116b101f ""
   "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" 1686100341 13694 cb7167317c943f6e4665ed16c53c64c0 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -63,7 +63,7 @@
   "/usr/local/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1647878959 4410336 7d30a02e9fa9a16d7d1f8d037ba69641 ""
   "/usr/local/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1674674079 2826436 0d4a61304638bec2cd0360cc41b4a4c1 ""
   "/usr/local/texlive/2022/texmf.cnf" 1647878952 577 209b46be99c9075fd74d4c0369380e8c ""
-  "results_new.aux" 1686233150 863 f52a204d7cff16a435f41775ee9faae6 "pdflatex"
+  "results_new.aux" 1687907149 863 f52a204d7cff16a435f41775ee9faae6 "pdflatex"
   "results_new.tex" 1686100341 13694 cb7167317c943f6e4665ed16c53c64c0 ""
   (generated)
   "results_new.aux"

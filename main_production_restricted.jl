@@ -14,7 +14,6 @@ panel_data=innerjoin(panel_data, wage_types, on = :MID) #merging in cluster type
 cluster_dummies=make_dummy(panel_data,:cluster) #cluster dummies made
 
 
-panel_data = panel_data[panel_data.year.<=2002,:] #<- for now, limit to years <=2002. We need to update code eventually.
 include("temp_prep_data.jl")
 
 #---- write the update function:
@@ -60,11 +59,17 @@ gfunc!(x,n,g,resids,data,spec) = production_demand_moments_stacked2!(update(x,sp
 gfunc2!(x,n,g,resids,data,spec,unrestricted) = production_demand_moments_stacked!(update(x,spec,unrestricted)...,n,g,resids,data,spec)
 
 # ---- Part 1: estimate the restricted estimator and conduct tests of the equality constraints using the LM statistic
-
+break
 # ---- specification (1)
-nmom = spec_1p_x.g_idx_prod[end][end]
+nmom = spec_1p_x.g_idx_prod_02[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_1p_x)
+
+#gmm_criterion(x0,gfunc!,W,N,8,panel_data,spec_1p_x)
+#g = zeros(nmom)
+#resids = zeros(8)
+#gfunc!(x0,1,g,resids,panel_data,spec_1p_x)
+
 res1 = estimate_gmm(x0,gfunc!,W,N,8,panel_data,spec_1p_x)
 
 # -- test restrictions (inidividual and joint)
@@ -74,10 +79,23 @@ tvec1,pvec1 = test_individual_restrictions(res1.est1,W,N,spec_1p_x,panel_data)
 
 
 # ---- specification (2)
-nmom = spec_2p_x.g_idx_prod[end][end]
+nmom = spec_2p_x.g_idx_prod_02[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_2p_x)
 res2 = estimate_gmm(x0,gfunc!,W,N,8,panel_data,spec_2p_x)
+
+r1 = optimize(x->gmm_criterion(x,gfunc!,W,N,8,panel_data,spec_2p_x),x0,LBFGS(),autodiff=:forward,Optim.Options(f_calls_limit=100))
+# step (2)
+Ω = moment_variance(r1.minimizer,gfunc!,N,nmom,8,panel_data,spec_2p_x)
+
+Ω = moment_variance(x0,gfunc!,N,nmom,8,panel_data,spec_2p_x)
+
+gfunc3!(x,n,g,resids,data,spec) = demand_moments_stacked!(update(x,spec),n,g,resids,data,spec)
+
+Ω2 = moment_variance(x0,gfunc3!,N,nmom,8,panel_data,spec_2)
+
+
+
 
 # - test restrictions
 W = inv(res2.Ω)
@@ -86,7 +104,7 @@ tvec2,pvec2 = test_individual_restrictions(res2.est1,W,N,spec_2p_x,panel_data)
 
 # ---- specification (3)
 # previously we didn't include levels of covariates. This may have been an issue?
-nmom = spec_3p_x.g_idx_prod[end][end]
+nmom = spec_3p_x.g_idx_prod_02[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_3p_x)
 res3 = estimate_gmm(x0,gfunc!,W,N,8,panel_data,spec_3p_x)
@@ -97,7 +115,7 @@ t3,p3 = test_joint_restrictions(res3.est1,W,N,spec_3p_x,panel_data)
 tvec3,pvec3 = test_individual_restrictions(res3.est1,W,N,spec_3p_x,panel_data)
 
 # ---- specification 5
-nmom = spec_5p_x.g_idx_prod[end][end]
+nmom = spec_5p_x.g_idx_prod_02[end][end]
 W = I(nmom)
 x0 = initial_guess(spec_5p_x)
 res5 = estimate_gmm(x0,gfunc!,W,N,8,panel_data,spec_5p_x)
