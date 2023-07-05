@@ -1,21 +1,40 @@
 # This script describes the different specifications of dependence on observables and moment orderings that we are going to try
 
 # - first, a helper function that builds the specification named tuple using the variables of interest:
+# function build_spec(spec)
+#     n97 = length(spec.vy)+1
+#     n02 = (length(spec.vy)+1)*2 + length(spec.vf) + length(spec.vm) + 2
+#     zlist_97 =  [(spec.vy...,:logprice_c_m)]
+#     zlist_02 = [(spec.vy...,:logprice_c_m),
+#     (spec.vy...,:logprice_c_g),
+#     (spec.vm...,:logprice_m_g),
+#     (spec.vf...,:logprice_f_g),
+#     ]
+#     return (vm = spec.vm, vf = spec.vf, vθ = spec.vθ, vy = spec.vy, 
+#     zlist_97 = zlist_97,
+#     zlist_02 = zlist_02,
+#     zlist_07 = zlist_02
+#     )
+# end
+
 function build_spec(spec)
-    n97 = length(spec.vy)+1
-    n02 = (length(spec.vy)+1)*2 + length(spec.vf) + length(spec.vm) + 2
-    zlist_97 =  [(spec.vy...,:logprice_c_m)]
-    zlist_02 = [(spec.vy...,:logprice_c_m),
-    (spec.vy...,:logprice_c_g),
-    (spec.vm...,:logprice_m_g),
-    (spec.vf...,:logprice_f_g),
-    ]
-    return (vm = spec.vm, vf = spec.vf, vθ = spec.vθ, vy = spec.vy, 
-    zlist_97 = zlist_97,
-    zlist_02 = zlist_02,
-    zlist_07 = zlist_02
-    )
-end
+        n97 = length(spec.vy)+1
+        n02 = (length(spec.vy)+1)*2 + length(spec.vf) + length(spec.vm) + 2
+        g_idx_97 = 1:n97
+        zlist_97 =  [(spec.vy...,:logprice_c_m)]
+        g_idx_02 = (n97+1):(n97+n02)
+        zlist_02 = [(spec.vm...,:logprice_m_g),
+        (spec.vf...,:logprice_f_g),
+        (spec.vy...,:logprice_c_g), #<= here we are assuming that spec.vy ⊃ spec.vm and spec.vf
+        (spec.vy...,:logprice_c_m)]
+        g_idx_07 = (n97+n02+1):(n97+2n02)
+        return (vm = spec.vm, vf = spec.vf, vθ = spec.vθ, vy = spec.vy,
+        g_idx_97 = g_idx_97, zlist_97 = zlist_97,
+        g_idx_02 = g_idx_02, zlist_02 = zlist_02,
+        g_idx_07 = g_idx_07, zlist_07 = zlist_02
+        )
+    end
+    
 
 # ------------ Dependence on Observables --------- #
 # using just education
@@ -85,7 +104,7 @@ function build_spec_prod(spec)
         return (vm = spec.vm, vf = spec.vf, vθ = spec.vθ, vy = spec.vy,
         g_idx_97 = g_idx_97, zlist_97 = zlist_97,
         g_idx_02 = g_idx_02, zlist_02 = zlist_02,
-        g_idx_07 = g_idx_07,
+        g_idx_07 = g_idx_07, zlist_07 = zlist_02,
         g_idx_prod_97 = g_idx_prod_97, g_idx_prod_02 = g_idx_prod_02,
         zlist_prod_t = spec.zlist_prod_t,zlist_prod = spec.zlist_prod
         )

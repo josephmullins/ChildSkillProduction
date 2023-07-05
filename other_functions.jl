@@ -1,3 +1,4 @@
+using Parameters, Distributions
 @with_kw struct CESmod{R}
     # elasticity parameters
     ρ::R = R(-2.)
@@ -12,7 +13,7 @@
 end
 
 function CESmod(spec)
-    return CESmod(βm = zeros(length(spec.vm)),βf = zeros(length(spec.vf)),βy = zeros(length(spec.vy)),βθ = zeros(length(spec.vθ)))
+    return CESmod{Float64}(βm = zeros(length(spec.vm)),βf = zeros(length(spec.vf)),βy = zeros(length(spec.vy)),βθ = zeros(length(spec.vθ)))
 end
 
 function log_input_ratios(ρ,γ,ay,am,af,ag,logwage_m,logwage_f,logprice_g,logprice_c)
@@ -65,7 +66,8 @@ end
 
 function calc_demand_resids!(it,R,data,pars)
     lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars,data,it) #<- does this factor in missing data?
-    # in 97: c/m, f/m (no goods available in 97)
+    # in 97: c/m (no goods available in 97)
+    # no c/f? or f / m?
     if data.year[it]==1997
         if !data.mtime_missing[it]
             if !data.chcare_missing[it]
@@ -93,9 +95,7 @@ function calc_demand_resids!(it,R,data,pars)
     end
 end
 
-function demand_moments_stacked!(pars,n,g,R,data)
-    # assume a balanced panel of observations
-
+function demand_residuals_all!(R,pars,n,data)
     # --- 1997 residuals
     it = (n-1)*11 + 1
     if data.prices_observed[it] && (data.age[it]<=12) && (data.ind_not_sample[it]==0)
@@ -115,6 +115,12 @@ function demand_moments_stacked!(pars,n,g,R,data)
         resids = view(R,6:9)
         calc_demand_resids!(it,resids,data,pars)
     end 
+end
+
+function demand_moments_stacked!(pars,n,g,R,data)
+    # assume a balanced panel of observations
+    fill!(R,0.)
+    demand_residuals_all!(R,pars,n,data)
 
     stack_moments!(g,R,data,n)
 end
@@ -146,3 +152,16 @@ function initial_guess(spec)
     x0[1:2] .= -2. #<- initial guess consistent with last time
     return x0
 end
+
+# here are the categories of things:
+
+# - estimation tools (done)
+# - specifications
+# - gmm_data (done) + functions to build 
+# - prep_data (done, but rename)
+# - parameter definition and update functions
+# - functions to evaluate calculate relative demand residuals and relative demand moments
+#   - separate function to calculate input ratios and price indices?
+# - functions to calculate the production residuals and production moments
+# - functions for testing
+# - we should think about how to calculate this shit.

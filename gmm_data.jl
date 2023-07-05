@@ -1,24 +1,3 @@
-using CSV, DataFrames, Parameters, Random, Printf, LinearAlgebra, Statistics
-using Optim
-include("estimation_tools.jl")
-#include("relative_demand.jl")
-
-# --------  read in the data:
-# Step 1: create the data object
-panel_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/psid_fam.csv",missingstring = ["","NA"]))
-
-# temporary: we need to fix this!!
-#panel_data.mid[ismissing.(panel_data.mid)] .= 6024032
-
-panel_data[!,:MID] = panel_data.mid
-
-wage_types = DataFrame(CSV.File("wage_types.csv"))
-
-panel_data=innerjoin(panel_data, wage_types, on = :MID, matchmissing = :notequal) #merging in cluster types
-cluster_dummies=make_dummy(panel_data,:cluster) #cluster dummies made
-
-include("temp_prep_data.jl")
-include("specifications.jl")
 
 struct child_data
     Xm::Matrix{Float64}
@@ -50,6 +29,13 @@ struct child_data
     # instruments:
     Z::Vector{Matrix{Float64}}
 
+    # skills:
+    all_prices::Vector{Bool} #<- indicates whether the observation can be used for skill outcome moments
+    AP::Vector{Float64}
+    LW::Vector{Float64}
+    AP_missing::Vector{Bool}
+    LW_missing::Vector{Bool}
+
 end
 
 function child_data(data,spec)
@@ -66,6 +52,28 @@ function child_data(data,spec)
     end
     for zv in spec.zlist_07
         push!(Z,coalesce.(hcat([data[data.year.==2007,v] for v in zv]...)',0.))
+    end
+    # have to update the specification
+    for zv in spec.zlist_prod
+        Zt = [] #
+        for i in eachindex(zv)
+            y = 1997+spec.zlist_prod_t[i]
+            for v in zv[i]
+                push!(Zt,Vector{Float64}(coalesce.(data[data.year.==y,v],0.)))
+            end
+        end
+        push!(Z,hcat(Zt...)')
+    end
+    #push!(Z,[Matrix{Float64}(undef,1,0) for i in 1:8]...)
+    for zv in spec.zlist_prod
+        Zt = []
+        for i in eachindex(zv)
+            y = 2002+spec.zlist_prod_t[i]
+            for v in zv[i]
+                push!(Zt,Vector{Float64}(coalesce.(data[data.year.==y,v],0.)))
+            end
+        end
+        push!(Z,hcat(Zt...)')
     end
     return child_data(coalesce.(Xm,0.),
     coalesce.(Xf,0.),
@@ -88,40 +96,11 @@ function child_data(data,spec)
     ismissing.(data.log_ftime),
     ismissing.(data.log_chcare),
     ismissing.(data.log_good),
-    Z)
+    Z,
+    panel_data.all_prices,
+    coalesce.(data.AP,0.),
+    coalesce.(data.LW,0.),
+    ismissing.(data.AP),
+    ismissing.(data.LW)
+    )
 end
-include("other_functions.jl")
-
-gfunc!(x,n,g,resids,data,spec) = demand_moments_stacked!(update(x,spec),n,g,resids,data)
-
-N = length(unique(panel_data.kid))
-
-W = I(nmom)
-x0 = initial_guess(spec_1)
-cd = child_data(panel_data,spec_1)
-nmom = sum([size(z,1) for z in cd.Z])
-
-gmm_criterion(x0,gfunc!,W,N,9,cd,spec_1)
-
-res1 = estimate_gmm(x0,gfunc!,W,N,9,cd,spec_1)
-
-include("relative_demand.jl")
-gfunc2!(x,n,g,resids,data,spec) = demand_moments_stacked!(update2(x,spec),n,g,resids,data,spec)
-
-gmm_criterion(x0,gfunc2!,W,N,9,panel_data,spec_1)
-
-
-# p0 = CESmod(spec_1)
-# @code_warntype demand_moments_stacked!(p0,1,g,R,cd)
-# @code_warntype calc_demand_resids!(1,R,cd,p0)
-
-# @code_warntype log_input_ratios(p0,cd,1)
-
-# @code_warntype factor_shares(p0,cd,1,cd.mar_stat[1])
-
-# @time demand_moments_stacked!(p0,1,g,R,cd)
-# @time calc_demand_resids!(1,R,cd,p0)
-
-# @time log_input_ratios(p0,cd,1)
-
-# @time factor_shares(p0,cd,1,cd.mar_stat[1])

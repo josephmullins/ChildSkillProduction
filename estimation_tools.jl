@@ -75,10 +75,12 @@ function stack_moments!(g,rvec,data,n)
     # data: the data object that holds instruments
     # n: the row number for the data
     pos = 1
-    for k in eachindex(rvec) 
-        for m in axes(data.Z[k],1)
-            g[pos] += rvec[k]*data.Z[k][m,n]
-            pos += 1
+    for k in eachindex(rvec)
+        if !isempty(data.Z[k])
+            for m in axes(data.Z[k],1)
+                g[pos] += rvec[k]*data.Z[k][m,n]
+                pos += 1
+            end
         end
     end
 end
