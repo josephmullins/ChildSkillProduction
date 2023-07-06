@@ -9,7 +9,7 @@ using Parameters, Distributions
 # - the key is that this function uses an input function *gmap*: a function that tells demand_moments_stacked where to write the moments, which residuals to use, and which instruments to use for each residual given the year and marital status of the individual. The gmap function must be written specially for each specification
 
 
-@with_kw struct CESmod2
+@with_kw struct CESmod
     # elasticity parameters
     ρ = -1.5 #
     γ = -3. 
@@ -23,8 +23,8 @@ using Parameters, Distributions
     spec = (vm = [:constant,:mar_stat],vf = [:constant],vθ = [:constant,:mar_stat],vg = [:constant,:mar_stat])
 end
 
-function CESmod2(spec)
-    return CESmod2(βm = zeros(length(spec.vm)),βf = zeros(length(spec.vf)),βy = zeros(length(spec.vy)),βθ = zeros(length(spec.vθ)),spec=spec)
+function CESmod(spec)
+    return CESmod(βm = zeros(length(spec.vm)),βf = zeros(length(spec.vf)),βy = zeros(length(spec.vy)),βθ = zeros(length(spec.vθ)),spec=spec)
 end
 
 

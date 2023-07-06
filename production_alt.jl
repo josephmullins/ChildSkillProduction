@@ -113,6 +113,7 @@ end
 
 # this function creates a stacked vector of moment conditions from a vector of residuals
 function production_demand_moments_relaxed!(pars1,pars2,n,g,R,data,savings=true)
+    fill!(R,0.)
     # first do relative demand moments
     @views demand_residuals_all!(R[1:9],pars1,n,data)
 
@@ -191,7 +192,7 @@ function calc_Φ_m(pars1,pars2,data,it)
         lΦg = lΦm - lϕm
         log_price_index = lΦg + log(exp(data.logprice_g[it]) + exp(data.logprice_c[it])*exp(lϕc) + exp(data.logwage_m[it])*exp(lϕm) + exp(data.logwage_f[it])*exp(lϕf))
     else
-        ag,am,ay = factor_shares(pars2,data,it,false)
+        ag,am,af,ay = factor_shares(pars2,data,it,false)
         Φm = ((am+ag*exp(-lϕm)^ρ)^(γ/ρ)*(1-ay)+ay*exp(lϕc - lϕm)^γ)^(1/γ) #here I have X_{t}/τ_{m,t} as  composite investment relative to mothers time = Φm
         lΦm=-log(Φm) 
         lΦg = lΦm - lϕm
@@ -205,7 +206,7 @@ function calc_Φ_m(pars1,pars2,data,it)
 end
 
 
-# update function for just demand parameters (shouldn't go here!!)
+# update function for just demand parameters 
 function update_demand(x,spec)
     ρ = x[1]
     γ = x[2]
@@ -322,29 +323,7 @@ end
 
 # TODO: fix everything below here. a bit to do still.
 
-function test_individual_restrictions(est,W,N,spec,data)
-    np_demand = 2+length(spec.vm)+length(spec.vf)+length(spec.vy)
-    tvec = zeros(np_demand)
-    pvec = zeros(np_demand)
-    for i in 1:np_demand
-        unrestricted = fill(false,np_demand)
-        unrestricted[i] = true
-        P = update(est,spec)
-        Pu = update_demand(unrestricted,spec)
-        x1 = update_inv(P,P,Pu)
-        tvec[i],pvec[i] = LM_test(x1,sum(unrestricted),gfunc2!,W,N,8,data,spec,unrestricted)
-    end
-    return tvec,pvec
-end
 
-function test_joint_restrictions(est,W,N,spec,data)
-    P = update(est,spec)
-    np_demand = 2+length(spec.vm)+length(spec.vf)+length(spec.vy)
-    unrestricted = fill(true,np_demand)
-    Pu = update_demand(unrestricted,spec)
-    x1 = update_inv(P,P,Pu)
-    return LM_test(x1,sum(unrestricted),gfunc2!,W,N,8,data,spec,unrestricted)
-end
 
 function update(x,spec)
     ρ = x[1]
@@ -395,5 +374,3 @@ function get_moment_names(spec)
     end
     return mname
 end
-
-mn = get_moment_names(spec_1p_x)

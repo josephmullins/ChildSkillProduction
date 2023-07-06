@@ -1,4 +1,4 @@
-using Parameters, Distributions
+using Parameters
 @with_kw struct CESmod{R}
     # elasticity parameters
     ρ::R = R(-2.)
@@ -152,16 +152,3 @@ function initial_guess(spec)
     x0[1:2] .= -2. #<- initial guess consistent with last time
     return x0
 end
-
-# here are the categories of things:
-
-# - estimation tools (done)
-# - specifications
-# - gmm_data (done) + functions to build 
-# - prep_data (done, but rename)
-# - parameter definition and update functions
-# - functions to evaluate calculate relative demand residuals and relative demand moments
-#   - separate function to calculate input ratios and price indices?
-# - functions to calculate the production residuals and production moments
-# - functions for testing
-# - we should think about how to calculate this shit.
