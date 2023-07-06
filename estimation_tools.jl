@@ -294,7 +294,7 @@ function cluster_routine_robust(dat,vlist,nclusters,maxiter = 100)
         # calculate the residual error *not including* the fe:
         d[!,:xb] = d[!,:logwage_m] .- X*β
         # get a new assignment of individuals to groups
-        μk = 0.5*μk + 0.5*μk0
+        #μk = 0.5*μk + 0.5*μk0
         assignment_new = [assign_cluster(d,μk) for d in gd]
         eps = sum((μk .- μk0).^2)
         #eps = sum((assignment .- assignment_new).^2)

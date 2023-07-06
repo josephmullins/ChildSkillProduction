@@ -223,3 +223,20 @@ function production_demand_moments_strict!(pars1,n,g,R,data,savings=true)
 end
 
 # ----------------------------------------------------------- #
+# function to get the names of all the moments
+# -- can be helpful for diagnosing estimation issues
+function get_moment_names(spec)
+    rname = [["c/m","c/m","c/g","m/g","f/g","c/m","c/g","m/g","f/g"];
+    repeat(["AP-m","LW-m","AP-c","LW-c","AP-f","LW-f","L1","L2"],2)]
+    mname = String[]
+    znames = [spec.zlist_97;spec.zlist_02;spec.zlist_07]
+    zp = [vcat([z for z in Z]...) for Z in spec.zlist_prod]
+    zlist = [znames;zp;zp]
+
+    for r in eachindex(rname)
+        for z in zlist[r]
+            push!(mname,string(rname[r],z))
+        end
+    end
+    return mname
+end

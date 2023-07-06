@@ -3,6 +3,7 @@
 # - first, a helper function that builds the specification named tuple using the variables of interest:
 # order of residuals for demand is:
 # c / m, c / g, m / g, f / g
+# m_pred_lnwage_mean_occ_state or f_pred_lnwage_mean_occ_state
 function build_spec(spec)
         n97 = length(spec.vy)+1
         n02 = (length(spec.vy)+1)*2 + length(spec.vf) + length(spec.vm) + 2
@@ -10,8 +11,8 @@ function build_spec(spec)
         zlist_02 = [
         (spec.vy...,:logprice_c_m),
         (spec.vy...,:logprice_c_g), #<= here we are assuming that spec.vy ⊃ spec.vm and spec.vf
-        (spec.vm...,:logprice_m_g),
-        (spec.vf...,:logprice_f_g)
+        (spec.vm...,:m_pred_lnwage_mean_occ_state),
+        (spec.vf...,:f_pred_lnwage_mean_occ_state)
         ]
         return (vm = spec.vm, vf = spec.vf, vθ = spec.vθ, vy = spec.vy,
         zlist_97 = zlist_97,
