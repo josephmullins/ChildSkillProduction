@@ -1,3 +1,4 @@
+using Distributions
 # ----- functions for running tests on parameter estimates
 
 # residual test for correlation between demand residuals in 97 and 02
@@ -16,7 +17,7 @@ function residual_test(data,N,pars)
         r[:] .= 0.
         if data.prices_observed[it02] && (data.age[it02]<=12) && (data.ind_not_sample[it97]==0)
             calc_demand_resids!(it02,r,data,pars)
-            R[n,2] = r[3] - r[4]
+            R[n,2] = r[1] #r[3] - r[4]
         end
     end
     test_stat = sqrt(N)*mean(R[:,1].*R[:,2]) / std(R[:,1])*std(R[:,2])

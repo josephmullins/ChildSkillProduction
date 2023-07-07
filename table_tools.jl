@@ -131,8 +131,8 @@ function write_production_table(M,SE,Pp,specs,labels,outfile::String)
         end
         write(io,vname)
         # write estimates
-        varlist = [:βm,:βf,:βg,:βθ]
-        svarlist = [:vm,:vf,:vg,:vθ]#<- I'm an idiot for calling these different things
+        varlist = [:βm,:βf,:βy,:βθ]
+        svarlist = [:vm,:vf,:vy,:vθ]#<- I'm an idiot for calling these different things
         for k in 1:4
             var = varlist[k]
             specvar = svarlist[k]
@@ -219,7 +219,7 @@ function writetable(M,SE,specs,labels,pvals,outfile::String,production = false)
     write_observables!(io,form,formse,M,SE,specs,labels,:βf,:vf)
     # a_{g}
     write(io,"& \\multicolumn{$(nspec+1)}{c}{\$\\phi_{Y}\$: Childcare}\\\\\\cmidrule(r){2-$(nspec+2)}")
-    write_observables!(io,form,formse,M,SE,specs,labels,:βg,:vg)
+    write_observables!(io,form,formse,M,SE,specs,labels,:βy,:vy)
 
     # test results
     write(io,"& \\multicolumn{$(nspec+1)}{c}{Residual Correlation Test}\\\\\\cmidrule(r){2-$(nspec+2)}")
@@ -298,8 +298,8 @@ function write_production_table_unrestricted(P1,P2,Pu,SE1,SE2,spec,labels,test_s
         end
         write(io,vname)
         # write estimates
-        varlist = [:βm,:βf,:βg,:βθ]
-        svarlist = [:vm,:vf,:vg,:vθ]#<- I'm an idiot for calling these different things
+        varlist = [:βm,:βf,:βy,:βθ]
+        svarlist = [:vm,:vf,:vy,:vθ]#<- I'm an idiot for calling these different things
         for k in 1:4
             var = varlist[k]
             specvar = svarlist[k]

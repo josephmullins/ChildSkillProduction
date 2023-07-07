@@ -19,7 +19,7 @@ cluster_dummies=make_dummy(panel_data,:cluster) #cluster dummies made
 
 
 # - load the specifications that we want to use. See that script for more details.
-include("specifications.jl")
+include("specifications_wage_instruments.jl")
 
 # define the moment function:
 gfunc!(x,n,g,resids,data,spec) = demand_moments_stacked!(update_demand(x,spec),n,g,resids,data)
@@ -110,8 +110,8 @@ include("table_tools.jl")
 cluster_labels = Dict(zip(cluster_dummies,[string("Type ",string(s)[end]) for s in cluster_dummies]))
 ed_labels = Dict(zip([f_ed[2:3];m_ed[2:3]],["Father: College+","Father: Some College","Mother: Some College","Mother: College+"]))
 
+other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. Children 0-5", :const => "Const.", :mu_k => "\$\\mu_{k}\$", :age => "Child Age")
+
 other_labels = Dict(:constant => "Constant",:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. Children 0-5", :const => "Const.", :mu_k => "\$\\mu_{k}\$", :age => "Child Age")
 
-labels = merge(other_labels,cluster_labels,ed_labels)
-
-writetable(par_vec,se_vec,[spec_1,spec_2,spec_3,spec_4,spec_5],labels,pvals,"tables/relative_demand.tex")
+writetable(par_vec,se_vec,[spec_1,spec_2,spec_3,spec_4,spec_5],labels,pvals,"tables/relative_demand_IV.tex")

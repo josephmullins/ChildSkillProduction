@@ -7,17 +7,23 @@
 function build_spec(spec)
         n97 = length(spec.vy)+1
         n02 = (length(spec.vy)+1)*2 + length(spec.vf) + length(spec.vm) + 2
-        zlist_97 =  [(spec.vy...,:logprice_c_m)]
+        zlist_97 =  [(spec.vy...,:logprice_c,:m_pred_lnwage_mean_occ_state)]
         zlist_02 = [
-        (spec.vy...,:logprice_c_m),
+        (spec.vy...,:logprice_c,:m_pred_lnwage_mean_occ_state),
         (spec.vy...,:logprice_c_g), #<= here we are assuming that spec.vy ⊃ spec.vm and spec.vf
         (spec.vm...,:m_pred_lnwage_mean_occ_state),
         (spec.vf...,:f_pred_lnwage_mean_occ_state)
         ]
+        zlist_07 = [
+                (:constant,:logprice_c,:m_pred_lnwage_mean_occ_state),
+                (:constant,:logprice_c_g), 
+                (:constant,:m_pred_lnwage_mean_occ_state),
+                (:constant,:f_pred_lnwage_mean_occ_state)        
+                ]        
         return (vm = spec.vm, vf = spec.vf, vθ = spec.vθ, vy = spec.vy,
         zlist_97 = zlist_97,
         zlist_02 = zlist_02,
-        zlist_07 = zlist_02,
+        zlist_07 = zlist_07,
         zlist_prod = [],zlist_prod_t = []
         )
     end

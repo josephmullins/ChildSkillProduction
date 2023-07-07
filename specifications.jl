@@ -13,10 +13,16 @@ function build_spec(spec)
         (spec.vm...,:logprice_m_g),
         (spec.vf...,:logprice_f_g)
         ]
+        zlist_07 = [
+        (:constant,:logprice_c_m),
+        (:constant,:logprice_c_g), 
+        (:constant,:logprice_m_g),
+        (:constant,:logprice_f_g)        
+        ]
         return (vm = spec.vm, vf = spec.vf, vθ = spec.vθ, vy = spec.vy,
         zlist_97 = zlist_97,
         zlist_02 = zlist_02,
-        zlist_07 = zlist_02,
+        zlist_07 = zlist_07,
         zlist_prod = [],zlist_prod_t = []
         )
     end
@@ -85,7 +91,9 @@ spec_3p_x = (
     zlist_02 = spec_5.zlist_02,
     zlist_07 = spec_5.zlist_07,
     zlist_prod_t = [0,5],
-    zlist_prod = [[[spec_3.vy;:log_total_income;interactions_3;:LW],[:log_mtime]],[[spec_3.vy;:log_total_income;interactions_3;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]])
+    zlist_prod = [[[spec_3.vy;:log_total_income;interactions_3;:LW],[:log_mtime]],[[spec_3.vy;:log_total_income;interactions_3;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
+    #zlist_prod = [[],[[spec_3.vy;:log_total_income;interactions_3;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
+    )
 
 
 interactions_5 = make_interactions(panel_data,price_ratios,spec_5.vy)

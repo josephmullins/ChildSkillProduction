@@ -15,6 +15,7 @@ struct child_data
     logprice_c::Vector{Float64}
     logwage_m::Vector{Float64}
     logwage_f::Vector{Float64}
+    log_total_income::Vector{Float64}
     # inputs
     log_mtime::Vector{Float64}
     log_ftime::Vector{Float64}
@@ -39,10 +40,10 @@ struct child_data
 end
 
 function child_data(data,spec)
-    Xm = hcat([data[!,v] for v in spec_1.vm]...)'
-    Xf = hcat([data[!,v] for v in spec_1.vf]...)'
-    Xy = hcat([data[!,v] for v in spec_1.vy]...)'
-    Xθ = hcat([data[!,v] for v in spec_1.vθ]...)'
+    Xm = hcat([data[!,v] for v in spec.vm]...)'
+    Xf = hcat([data[!,v] for v in spec.vf]...)'
+    Xy = hcat([data[!,v] for v in spec.vy]...)'
+    Xθ = hcat([data[!,v] for v in spec.vθ]...)'
     Z = []
     for zv in spec.zlist_97
         push!(Z,coalesce.(hcat([data[data.year.==1997,v] for v in zv]...)',0.))
@@ -88,6 +89,7 @@ function child_data(data,spec)
     coalesce.(data.logprice_c,0.),
     coalesce.(data.logwage_m,0.),
     coalesce.(data.logwage_f,0.),
+    coalesce.(data.log_total_income,0.),
     coalesce.(data.log_mtime,0.),
     coalesce.(data.log_ftime,0.),
     coalesce.(data.log_chcare,0.),
