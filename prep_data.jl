@@ -13,6 +13,8 @@ panel_data[!,f_ed] = coalesce.(panel_data[:,f_ed],0.)
 panel_data[!,:all_prices] = panel_data.ind_price_97_01.==1
 i02 = panel_data.year.>=2002
 panel_data[i02,:all_prices] = panel_data.ind_price_02_06[i02].==1
+panel_data[!,:ind02] .= panel_data.year.==2002
+panel_data[!,:agesq] .= panel_data.age.^2
 
 # prices:
 #v_prices = [:prices_observed,:logwage_m,:logwage_f,:logprice_g,:logprice_c,:logprice_c_m,:logprice_m_f,:logprice_c_g,:logprice_m_g,:logprice_f_g]

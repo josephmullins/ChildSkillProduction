@@ -89,7 +89,7 @@ function calc_production_resids!(it0,R,data,pars1,pars2,savings)
         end
     end
     @views Ψ0 += dot(pars2.βθ,data.Xθ[:,it0])
-    r1 = data.AP[it5] / pars2.λ - Ψ0 - pars2.δ[2]^5 * data.AP[it0] / pars2.λ
+    r1 = data.AP[it5] / pars2.λ - Ψ0 - pars2.δ[2]^5 * data.LW[it0] #/ pars2.λ
     r2 = data.LW[it5] - Ψ0 - pars2.δ[2]^5 * data.LW[it0]
     if !data.mtime_missing[it0]
         lX97 = data.log_mtime[it0] - lΦm #<- investment proxy using time investment
@@ -158,7 +158,7 @@ function calc_production_resids!(it0,R,data,pars1,savings)
         end
     end
     @views Ψ0 += dot(pars1.βθ,data.Xθ[:,it0])
-    r1 = data.AP[it5] / pars1.λ - Ψ0 - pars1.δ[2]^5 * data.AP[it0] / pars1.λ
+    r1 = data.AP[it5] / pars1.λ - Ψ0 - pars1.δ[2]^5 * data.LW[it0] #/ pars1.λ
     r2 = data.LW[it5] - Ψ0 - pars1.δ[2]^5 * data.LW[it0]
     if !data.mtime_missing[it0]
         lX97 = data.log_mtime[it0] - lΦm #<- investment proxy using time investment

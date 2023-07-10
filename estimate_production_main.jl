@@ -27,7 +27,6 @@ N = length(unique(panel_data.kid))
 gfunc!(x,n,g,resids,data,spec) = production_demand_moments_strict!(update(x,spec),n,g,resids,data,true)
 gfunc2!(x,n,g,resids,data,spec,unrestricted) = production_demand_moments_relaxed!(update(x,spec,unrestricted)...,n,g,resids,data,true)
 
-break
 # ---- Part 1: estimate the restricted estimator and conduct tests of the equality constraints using the LM statistic
 # ---- specification (1)
 data = child_data(panel_data,spec_1p_x)
@@ -61,10 +60,11 @@ W = I(nmom)
 x0 = initial_guess(spec_3p_x)
 res3 = estimate_gmm(x0,gfunc!,W,N,length(data.Z),data,spec_3p_x)
 
-# - test restrictions (inidividual and joint)
+# - test restrictions (individual and joint)
 W = inv(res3.Ω)
 t3,p3 = test_joint_restrictions(res3.est1,W,N,spec_3p_x,data)
 tvec3,pvec3 = test_individual_restrictions(res3.est1,W,N,spec_3p_x,data)
+
 
 # ---- specification 5
 data = child_data(panel_data,spec_5p_x)
@@ -78,6 +78,7 @@ W = inv(res5.Ω)
 t5,p5 = test_joint_restrictions(res5.est1,W,N,spec_5p_x,data)
 tvec5,pvec5 = test_individual_restrictions(res5.est1,W,N,spec_5p_x,data)
 
+include("table_tools.jl")
 
 # Write results to a table
 cluster_labels = Dict(zip(cluster_dummies,[string("Type ",string(s)[end]) for s in cluster_dummies]))
@@ -103,7 +104,6 @@ x1 = update_inv(P,P,Pu)
 W = inv(res3.Ω)
 data = child_data(panel_data,spec_3p_x)
 res3u = optimize(x->gmm_criterion(x,gfunc2!,W,N,length(data.Z),data,spec_3p_x,unrestricted),x1,Newton(),autodiff=:forward,Optim.Options(iterations=40,show_trace=true))
-
 g0 = gmm_criterion(x1,gfunc2!,W,N,length(data.Z),data,spec_3p_x,unrestricted)
 
 g1 = res3u.minimum

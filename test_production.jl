@@ -8,12 +8,8 @@ include("moment_functions.jl")
 # --------  read in the data:
 # Step 1: create the data object
 panel_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/psid_fam.csv",missingstring = ["","NA"]))
-
-# temporary: we need to fix this!!
-#panel_data.mid[ismissing.(panel_data.mid)] .= 6024032
-
-panel_data[!,:MID] = panel_data.mid
-
+include("prep_data.jl")
+panel_data = DataFrame(filter(x-> sum(skipmissing(x.ind_not_sample.==0))>0 || sum(x.all_prices)>0,groupby(panel_data,:kid)))
 wage_types = DataFrame(CSV.File("wage_types.csv"))
 
 panel_data=innerjoin(panel_data, wage_types, on = :MID, matchmissing = :notequal) #merging in cluster types
@@ -30,6 +26,7 @@ N = length(unique(panel_data.kid))
 
 x0 = initial_guess(spec_1p_x)
 data = child_data(panel_data,spec_1p_x)
+
 nmom = sum([size(z,1)*!isempty(z) for z in data.Z])
 W = I(nmom)
 
@@ -64,7 +61,5 @@ include("testing_tools.jl")
 W = inv(res1.Ω)
 t,p = test_joint_restrictions(res1.est1,W,N,spec_1p_x,data)
 tvec,pvec = test_individual_restrictions(res1.est1,W,N,spec_1p_x,data)
-
-
 
 
