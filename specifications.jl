@@ -71,7 +71,7 @@ spec_1p_x =
         zlist_02 = spec_1.zlist_02,
         zlist_07 = spec_1.zlist_07,    
         zlist_prod_t = [0,5],
-        zlist_prod = [[[spec_1.vy;:log_total_income;:AP],[:log_mtime]],[[spec_1.vy;:log_total_income;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
+        zlist_prod = [[[spec_1.vy;:AP],[:log_mtime]],[[spec_1.vy;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
 )
 
 interactions_2 = make_interactions(panel_data,price_ratios,spec_2.vy)
@@ -82,7 +82,7 @@ spec_2p_x = (
     zlist_02 = spec_2.zlist_02,
     zlist_07 = spec_2.zlist_07,
     zlist_prod_t = [0,5],
-    zlist_prod = [[[spec_2.vy;:log_total_income;:AP],[:log_mtime]],[[spec_2.vy;:log_total_income;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
+    zlist_prod = [[[spec_2.vy;:AP],[:log_mtime]],[[spec_2.vy;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
 )
 
 interactions_3 = make_interactions(panel_data,price_ratios,spec_3.vy)
@@ -93,7 +93,7 @@ spec_3p_x = (
     zlist_02 = spec_3.zlist_02,
     zlist_07 = spec_3.zlist_07,
     zlist_prod_t = [0,5],
-    zlist_prod = [[[spec_3.vy;:log_total_income;:AP],[:log_mtime]],[[spec_3.vy;:log_total_income;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
+    zlist_prod = [[[spec_3.vy;:AP],[:log_mtime]],[[spec_3.vy;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
     #zlist_prod = [[],[[spec_3.vy;:log_total_income;interactions_3;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
     )
 
@@ -106,6 +106,6 @@ spec_5p_x = (
     zlist_02 = spec_5.zlist_02,
     zlist_07 = spec_5.zlist_07,
     zlist_prod_t = [0,5],
-    zlist_prod = [[[spec_5.vy;:log_total_income;:AP],[:log_mtime]],[[spec_5.vy;:log_total_income;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
+    zlist_prod = [[[spec_5.vy;:AP],[:log_mtime]],[[spec_5.vy;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
     )
 
