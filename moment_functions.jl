@@ -69,7 +69,7 @@ function demand_moments_stacked!(pars,n,g,R,data)
 end
 # --------------------------------------------------------- #
 # production residuals: relaxed
-function calc_production_resids!(it0,R,data,pars1,pars2,savings)
+function calc_production_resids!(it0,R,data,pars1,pars2)
     # it0 indicates the period in which skills are initially measured
     # it5 is the period in whichs skills are next measured:
     it5 = it0 + 5
@@ -81,12 +81,9 @@ function calc_production_resids!(it0,R,data,pars1,pars2,savings)
     for t=1:4
         lΦm,lΦf,lΦg,lΦc,log_price_index = calc_Φ_m(pars1,pars2,data,it0+t)
         #lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it0+t)
-        if savings
-            coeff_X += pars2.δ[1]*pars2.δ[2]^(4-t)
-            Ψ0 += pars2.δ[1]*pars2.δ[2]^(4-t)*(log_price_97 - log_price_index)
-        else
-            Ψ0 += pars2.δ[1]*pars2.δ[2]^(4-t)*(data.log_total_income[it0+t] - log_price_index) #<- assume that father's log wage is coded as zero for single parents
-        end
+        Ψ0 += pars2.δ[1]*pars2.δ[2]^(4-t)*(log_price_97 - log_price_index)
+        Ψ0 += pars2.κ * pars2.δ[1]*pars2.δ[2]^(4-t)*(data.log_total_income[it0+t] - data.log_total_income[it0])
+        coeff_X += pars2.δ[1]*pars2.δ[2]^(4-t)
     end
     @views Ψ0 += dot(pars2.βθ,data.Xθ[:,it0])
     r1 = data.AP[it5] / pars2.λ - Ψ0 - pars2.δ[2]^5 * data.LW[it0] #/ pars2.λ
@@ -122,22 +119,22 @@ function calc_production_resids!(it0,R,data,pars1,pars2,savings)
         R[8] = (data.AP[it5]*data.AP[it0] - pars2.λ^2*data.LW[it5]*data.LW[it0])
     end
 end
-function production_residuals_all!(R,pars1,pars2,n,data,savings)
+function production_residuals_all!(R,pars1,pars2,n,data)
     it97 = (n-1)*11+1
     it02 = it97+5
     it07 = it02+5
     if data.all_prices[it97] && !data.mtime_missing[it97] && !data.mtime_missing[it02] && (data.age[it97]<=12)
-        @views calc_production_resids!(it97,R[1:8],data,pars1,pars2,savings)
+        @views calc_production_resids!(it97,R[1:8],data,pars1,pars2)
         #resids = view(R,1:6) #<- is this necessary? I don't think so.
     end
     if data.all_prices[it02] && !data.mtime_missing[it02] && !data.mtime_missing[it07] && (data.age[it02]<=12)
-        @views calc_production_resids!(it02,R[9:16],data,pars1,pars2,savings)
+        @views calc_production_resids!(it02,R[9:16],data,pars1,pars2)
     end
 end
 
 
 # production residuals: restricted
-function calc_production_resids!(it0,R,data,pars1,savings)
+function calc_production_resids!(it0,R,data,pars1)
     # it0 indicates the period in which skills are initially measured
     # it5 is the period in whichs skills are next measured:
     it5 = it0 + 5
@@ -146,17 +143,15 @@ function calc_production_resids!(it0,R,data,pars1,savings)
     lΦm,lΦf,lΦg,lΦc,log_price_97 = calc_Φ_m(pars1,data,it0)
     Ψ0 = 0
     coeff_X = pars1.δ[1]*pars1.δ[2]^4
-    for t=1:4
-        #lΦ,log_price_index = calc_Φ_m(pars1,pars1,data,it0+t)
+    for t in 1:4
         lΦm,lΦf,lΦg,lΦc,log_price_index = calc_Φ_m(pars1,data,it0+t)
         #lϕm,lϕf,lϕc,log_price_index,Φg = log_input_ratios(pars1,data,it0+t)
-        if savings
-            coeff_X += pars1.δ[1]*pars1.δ[2]^(4-t)
-            Ψ0 += pars1.δ[1]*pars1.δ[2]^(4-t)*(log_price_97 - log_price_index)
-        else
-            Ψ0 += pars1.δ[1]*pars1.δ[2]^(4-t)*(data.log_total_income[it0+t] - log_price_index) #<- assume that father's log wage is coded as zero for single parents
-        end
+        Ψ0 += pars1.δ[1]*pars1.δ[2]^(4-t)*(log_price_97 - log_price_index)
+        Ψ0 += pars1.κ * pars1.δ[1]*pars1.δ[2]^(4-t)*(data.log_total_income[it0+t] - data.log_total_income[it0])
+        coeff_X += pars1.δ[1]*pars1.δ[2]^(4-t)
     end
+    
+
     @views Ψ0 += dot(pars1.βθ,data.Xθ[:,it0])
     r1 = data.AP[it5] / pars1.λ - Ψ0 - pars1.δ[2]^5 * data.LW[it0] #/ pars1.λ
     r2 = data.LW[it5] - Ψ0 - pars1.δ[2]^5 * data.LW[it0]
@@ -189,35 +184,35 @@ function calc_production_resids!(it0,R,data,pars1,savings)
         R[8] = (data.AP[it5]*data.AP[it0] - pars1.λ^2*data.LW[it5]*data.LW[it0])
     end
 end
-function production_residuals_all!(R,pars1,n,data,savings)
+function production_residuals_all!(R,pars1,n,data)
     it97 = (n-1)*11+1
     it02 = it97+5
     it07 = it02+5
     if data.all_prices[it97] && !data.mtime_missing[it97] && !data.mtime_missing[it02] && (data.age[it97]<=12)
-        @views calc_production_resids!(it97,R[1:8],data,pars1,savings)
+        @views calc_production_resids!(it97,R[1:8],data,pars1)
     end
     if data.all_prices[it02] && !data.mtime_missing[it02] && !data.mtime_missing[it07] && (data.age[it02]<=12)
-        @views calc_production_resids!(it02,R[9:16],data,pars1,savings)
+        @views calc_production_resids!(it02,R[9:16],data,pars1)
     end
 end
 
 # -------------------------------------------------------------- #
 
 # production and demand moments: relaxed
-function production_demand_moments_relaxed!(pars1,pars2,n,g,R,data,savings=true)
+function production_demand_moments_relaxed!(pars1,pars2,n,g,R,data)
     fill!(R,0.)
     # first do relative demand moments
     @views demand_residuals_all!(R[1:9],pars1,n,data)
 
-    @views production_residuals_all!(R[10:end],pars1,pars2,n,data,savings)
+    @views production_residuals_all!(R[10:end],pars1,pars2,n,data)
     stack_moments!(g,R,data,n)
 end
 # production and demand moments: strict case
-function production_demand_moments_strict!(pars1,n,g,R,data,savings=true)
+function production_demand_moments_strict!(pars1,n,g,R,data)
     fill!(R,0.)
     @views demand_residuals_all!(R[1:9],pars1,n,data)
 
-    @views production_residuals_all!(R[10:end],pars1,n,data,savings)
+    @views production_residuals_all!(R[10:end],pars1,n,data)
 
     stack_moments!(g,R,data,n)
 end

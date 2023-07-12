@@ -16,6 +16,7 @@ using Parameters
     βy::Vector{R} = zeros(R,2)
     βθ::Vector{R} = zeros(R,2)
     λ::R = R(1.)
+    κ::R = R(0.)
 end
 # - a simple constructor:
 function CESmod(spec)
@@ -48,7 +49,8 @@ function demand_guess(spec)
 end
 
 # - function to update all parameters (restricted case)
-function update(x,spec)
+function update(x,spec,case="hybrid")
+    R = eltype(x)
     ρ = x[1]
     γ = x[2]
     δ = x[3:4] #<- factor shares
@@ -65,25 +67,35 @@ function update(x,spec)
     βθ = x[pos:pos+nθ-1]
     pos+= nθ
     λ = x[pos]
-    P = CESmod(ρ=ρ,γ=γ,δ = δ,βm = βm,βf = βf,βy=βy,βθ=βθ,λ=λ)
+    if case=="hybrid"
+        κ = x[pos+1]
+    elseif case=="uc"
+        κ = R(0.)
+    else
+        κ = R(1.)
+    end
+    P = CESmod(ρ=ρ,γ=γ,δ = δ,βm = βm,βf = βf,βy=βy,βθ=βθ,λ=λ,κ=κ)
     return P
 end
-function update_inv(pars)
-    @unpack ρ,γ,δ,βm,βf,βy,βθ,λ = pars
-    return [ρ;γ;δ;βm;βf;βy;βθ;λ]
+function update_inv(pars,case="hybrid")
+    @unpack ρ,γ,δ,βm,βf,βy,βθ,λ,κ = pars
+    if case=="hybrid"
+        return [ρ;γ;δ;βm;βf;βy;βθ;λ;κ]
+    else
+        return [ρ;γ;δ;βm;βf;βy;βθ;λ]
+    end
 end
-
 # function to get the initial guess
-function initial_guess(spec)
+function initial_guess(spec,case="hybrid")
     P = CESmod(spec)
-    x0 = update_inv(P)
+    x0 = update_inv(P,case)
     x0[1:2] .= -2. #<- initial guess consistent with last time
     x0[3:4] = [0.1,0.9] #<- initial guess for δ
     return x0
 end
 
 # update function in the unrestricted case
-function update(x,spec,unrestricted)
+function update_relaxed(x,spec,unrestricted,case="hybrid")
     R = eltype(x)
     pos = 1 #<- tracks position in the vector of restriction indicators
     pos2 = 1 #<- tracks position in the vector of parameters
@@ -146,13 +158,21 @@ function update(x,spec,unrestricted)
     βθ = x[pos2:pos2+nθ-1]
     pos2 += nθ
     λ = x[pos2]
+    if case=="hybrid"
+        κ = x[pos2+1]
+    elseif case=="uc"
+        κ = R(0.)
+    else
+        κ = R(1.)
+    end
+
     P1 = CESmod{R}(ρ=ρ,γ=γ,βm = βm,βf = βf,βy=βy)
-    P2 = CESmod{R}(ρ=ρ2,γ=γ2,δ = δ,βm = βm2,βf = βf2,βy=βy2,βθ=βθ,λ=λ)
+    P2 = CESmod{R}(ρ=ρ2,γ=γ2,δ = δ,βm = βm2,βf = βf2,βy=βy2,βθ=βθ,λ=λ,κ = κ)
     return P1,P2
 end
 
 # an inverse of the update function assumes a CESmod object that holds indicators of restrictions
-function update_inv(P1,P2,Pu)
+function update_inv_relaxed(P1,P2,Pu,case="hybrid")
     x = [P1.ρ]
     if Pu.ρ
         push!(x,P2.ρ)
@@ -175,6 +195,9 @@ function update_inv(P1,P2,Pu)
 
     push!(x,P2.βθ...)
     push!(x,P2.λ)
+    if case=="hybrid"
+        push!(x,P2.κ)
+    end
     return x
 end
 

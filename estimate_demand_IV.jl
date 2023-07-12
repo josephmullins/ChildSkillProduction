@@ -103,7 +103,6 @@ r = residual_test(data,N,p)
 push!(results,r)
 push!(pvals,r[2])
 
-
 # ----- Write results to a LaTeX table
 include("table_tools.jl")
 

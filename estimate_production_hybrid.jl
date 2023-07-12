@@ -23,7 +23,7 @@ include("specifications.jl")
 
 N = length(unique(panel_data.kid))
 
-case = "uc"
+case = "hybrid"
 
 # define the moment functions
 gfunc!(x,n,g,resids,data,spec,case) = production_demand_moments_strict!(update(x,spec,case),n,g,resids,data)
@@ -93,30 +93,6 @@ labels = merge(other_labels,cluster_labels,ed_labels)
 par_vec = [update(res1.est1,spec_1p_x,case),update(res2.est1,spec_2p_x,case),update(res3.est1,spec_3p_x,case),update(res5.est1,spec_5p_x,case)]
 se_vec = [update(res1.se,spec_1p_x,case),update(res2.se,spec_2p_x,case),update(res3.se,spec_3p_x,case),update(res5.se,spec_5p_x,case)]
 pval_vec = [update_demand(pvec1,spec_1),update_demand(pvec2,spec_2),update_demand(pvec3,spec_3p_x),update_demand(pvec5,spec_5p_x)]
-write_production_table(par_vec,se_vec,pval_vec,[spec_1p_x,spec_2p_x,spec_3p_x,spec_5p_x],labels,"tables/demand_production_restricted.tex"
+write_production_table(par_vec,se_vec,pval_vec,[spec_1p_x,spec_2p_x,spec_3p_x,spec_5p_x],labels,"tables/demand_production_restricted_hybrid.tex"
 )
 
-## NOW: for specification (3), our preferred, we relax coefficients with pvalues<0.05.
-# Then we run another minimization routine and conduct a test using the distance metric
-unrestricted = pvec3.<0.05
-P = update(res3.est1,spec_3p_x,case)
-Pu = update_demand(unrestricted,spec_3p_x)
-x1 = update_inv_relaxed(P,P,Pu,case)
-
-W = inv(res3.Ω)
-data = child_data(panel_data,spec_3p_x)
-res3u = optimize(x->gmm_criterion(x,gfunc2!,W,N,length(data.Z),data,spec_3p_x,unrestricted,case),x1,Newton(),autodiff=:forward,Optim.Options(iterations=40,show_trace=true))
-g0 = gmm_criterion(x1,gfunc2!,W,N,length(data.Z),data,spec_3p_x,unrestricted,case)
-
-g1 = res3u.minimum
-DM = 2N*max(g0-g1,0.)
-if sum(unrestricted)>0
-    p_val = 1 - cdf(Chisq(sum(unrestricted)),DM)
-else
-    p_val = 1.
-end
-p1,p2 = update_relaxed(res3u.minimizer,spec_3p_x,unrestricted,case)
-v = parameter_variance_gmm(res3u.minimizer,gfunc2!,W,N,length(data.Z),data,spec_3p_x,unrestricted,case)
-SE1,SE2 = update_relaxed(sqrt.(diag(v)),spec_3p_x,unrestricted,case)
-
-write_production_table_unrestricted(p1,p2,Pu,SE1,SE2,spec_3p_x,labels,DM,p_val,"tables/demand_production_unrestricted.tex")

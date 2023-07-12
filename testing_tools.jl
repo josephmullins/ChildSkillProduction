@@ -26,27 +26,27 @@ function residual_test(data,N,pars)
 end
 
 # - test parameter restrictions one by one using LM test
-function test_individual_restrictions(est,W,N,spec,data)
+function test_individual_restrictions(est,W,N,spec,data,case)
     np_demand = 2+length(spec.vm)+length(spec.vf)+length(spec.vy)
     tvec = zeros(np_demand)
     pvec = zeros(np_demand)
     for i in 1:np_demand
         unrestricted = fill(false,np_demand)
         unrestricted[i] = true
-        P = update(est,spec)
+        P = update(est,spec,case)
         Pu = update_demand(unrestricted,spec)
-        x1 = update_inv(P,P,Pu)
-        tvec[i],pvec[i] = LM_test(x1,sum(unrestricted),gfunc2!,W,N,25,data,spec,unrestricted)
+        x1 = update_inv_relaxed(P,P,Pu,case)
+        tvec[i],pvec[i] = LM_test(x1,sum(unrestricted),gfunc2!,W,N,25,data,spec,unrestricted,case)
     end
     return tvec,pvec
 end
 
 # conduct joint test of parameter restrictions using LM stat:
-function test_joint_restrictions(est,W,N,spec,data)
-    P = update(est,spec)
+function test_joint_restrictions(est,W,N,spec,data,case)
+    P = update(est,spec,case)
     np_demand = 2+length(spec.vm)+length(spec.vf)+length(spec.vy)
     unrestricted = fill(true,np_demand)
     Pu = update_demand(unrestricted,spec)
-    x1 = update_inv(P,P,Pu)
-    return LM_test(x1,sum(unrestricted),gfunc2!,W,N,25,data,spec,unrestricted)
+    x1 = update_inv_relaxed(P,P,Pu,case)
+    return LM_test(x1,sum(unrestricted),gfunc2!,W,N,25,data,spec,unrestricted,case)
 end

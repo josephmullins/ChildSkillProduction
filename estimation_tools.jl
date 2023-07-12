@@ -118,7 +118,7 @@ end
 function estimate_gmm(x0,gfunc!,W,N,nresids,args...)
     nmom = size(W,1)
     # step (1)
-    r1 = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,args...),x0,LBFGS(),autodiff=:forward,Optim.Options(f_calls_limit=100))
+    r1 = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,args...),x0,LBFGS(),autodiff=:forward,Optim.Options(f_calls_limit=200))
     # step (2)
     Ω = moment_variance(r1.minimizer,gfunc!,N,nmom,nresids,args...)
     W = inv(Ω)

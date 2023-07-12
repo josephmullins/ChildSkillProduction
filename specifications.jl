@@ -64,6 +64,7 @@ spec_5 = build_spec((vm = [:constant;:div;:mu_k;m_ed[2:3];:age;:num_0_5],
 price_ratios = [:logprice_c_g;:logprice_m_g;:logprice_f_g]
 interactions_1 = make_interactions(panel_data,price_ratios,spec_1.vy)
 input_instruments = [:log_mtime,:log_ftime_coalesced,:log_chcare_input,:log_good_input] # 
+prices = [:logprice_c,:logprice_g,:logwage_m,:logwage_f]
 
 spec_1p_x = 
         (vm = spec_1.vm,vf = spec_1.vf, vy = spec_1.vy,vθ = [spec_1.vy;:ind02],
@@ -94,7 +95,7 @@ spec_3p_x = (
     zlist_07 = spec_3.zlist_07,
     zlist_prod_t = [0,5],
     zlist_prod = [[[spec_3.vy;:AP],[:log_mtime]],[[spec_3.vy;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
-    #zlist_prod = [[],[[spec_3.vy;:log_total_income;interactions_3;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
+    #zlist_prod = [[],[[spec_3.vy;interactions_3;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
     )
 
 

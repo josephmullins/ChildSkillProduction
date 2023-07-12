@@ -65,43 +65,44 @@ spec_5 = build_spec((vm = [:constant;:div;:mu_k;m_ed[2:3];:age;:num_0_5],
 price_ratios = [:logprice_c_g;:logprice_m_g;:logprice_f_g]
 interactions_1 = make_interactions(panel_data,price_ratios,spec_1.vy)
 input_instruments = [:log_mtime,:log_ftime_coalesced,:log_chcare_input,:log_good_input] # 
+prices = [:m_pred_lnwage_mean_occ_state,:f_pred_lnwage_mean_occ_state]
 
 spec_1p_x = 
-        (vm = spec_1.vm,vf = spec_1.vf, vy = spec_1.vy,vθ = spec_1.vy,
+        (vm = spec_1.vm,vf = spec_1.vf, vy = spec_1.vy,vθ = [spec_1.vy;:ind02],
         zlist_97 = spec_5.zlist_97,
         zlist_02 = spec_5.zlist_02,
         zlist_07 = spec_5.zlist_07,    
         zlist_prod_t = [0,5],
-        zlist_prod = [[[spec_1.vy;:log_total_income;interactions_1;:LW],[:log_mtime]],[[spec_1.vy;:log_total_income;interactions_1;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]])
+        zlist_prod = [[[spec_1.vy;prices;:AP],[:log_mtime]],[[spec_1.vy;prices;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]])
 
 interactions_2 = make_interactions(panel_data,price_ratios,spec_2.vy)
 
 spec_2p_x = (
-    vm = spec_2.vm,vf = spec_2.vf, vy = spec_2.vy,vθ = spec_2.vy,
+    vm = spec_2.vm,vf = spec_2.vf, vy = spec_2.vy,vθ = [spec_2.vy;:ind02],
     zlist_97 = spec_5.zlist_97,
     zlist_02 = spec_5.zlist_02,
     zlist_07 = spec_5.zlist_07,
     zlist_prod_t = [0,5],
-    zlist_prod = [[[spec_2.vy;:log_total_income;interactions_2;:LW],[:log_mtime]],[[spec_2.vy;:log_total_income;interactions_2;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]])
+    zlist_prod = [[[spec_2.vy;prices;:AP],[:log_mtime]],[[spec_2.vy;prices;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]])
 
 interactions_3 = make_interactions(panel_data,price_ratios,spec_3.vy)
 
 spec_3p_x = (
-    vm = spec_3.vm,vf = spec_3.vf, vy = spec_3.vy,vθ = spec_3.vy,
+    vm = spec_3.vm,vf = spec_3.vf, vy = spec_3.vy,vθ = [spec_3.vy;:ind02],
     zlist_97 = spec_5.zlist_97,
     zlist_02 = spec_5.zlist_02,
     zlist_07 = spec_5.zlist_07,
     zlist_prod_t = [0,5],
-    zlist_prod = [[[spec_3.vy;:log_total_income;interactions_3;:LW],[:log_mtime]],[[spec_3.vy;:log_total_income;interactions_3;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]])
+    zlist_prod = [[[spec_3.vy;prices;:AP],[:log_mtime]],[[spec_3.vy;prices;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]])
 
 
 interactions_5 = make_interactions(panel_data,price_ratios,spec_5.vy)
 
 spec_5p_x = (
-    vm = spec_5.vm,vf = spec_5.vf, vy = spec_5.vy,vθ = spec_5.vy,
+    vm = spec_5.vm,vf = spec_5.vf, vy = spec_5.vy,vθ = [spec_5.vy;:ind02],
     zlist_97 = spec_5.zlist_97,
     zlist_02 = spec_5.zlist_02,
     zlist_07 = spec_5.zlist_07,
     zlist_prod_t = [0,5],
-    zlist_prod = [[[spec_5.vy;:log_total_income;interactions_5;:LW],[:log_mtime]],[[spec_5.vy;:log_total_income;interactions_5;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]])
+    zlist_prod = [[[spec_5.vy;prices;:AP],[:log_mtime]],[[spec_5.vy;prices;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]])
 
