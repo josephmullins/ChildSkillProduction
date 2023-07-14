@@ -1,11 +1,15 @@
 # Fdb version 3
-["pdflatex"] 1689187264 "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" "results_new.pdf" "results_new" 1689187265
+["pdflatex"] 1689364393 "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" "results_new.pdf" "results_new" 1689364394
+  "../tables/demand_production_mothershare_relaxed.tex" 1689361399 1522 a4fe3f396e08bc0429f4f535741ddeeb ""
+  "../tables/demand_production_mothershare_relaxed_nbs.tex" 1689361544 1523 c8adf4f4b0622c11c0c59a8662795900 ""
   "../tables/demand_production_restricted.tex" 1689186083 3176 e6113099ff765e6ed8d46d0115dcac66 ""
   "../tables/demand_production_restricted_nbs.tex" 1689187192 3103 1bffa1085924702cd6b74d41681391ff ""
-  "../tables/demand_spec3_unrestricted.tex" 1689105316 1547 782dde2f15ec381ae52a296d656771cd ""
+  "../tables/demand_production_restricted_older.tex" 1689304186 2326 edb33598b805e1a0df076458129dba1b ""
+  "../tables/demand_production_unrestricted.tex" 1689186816 1578 a0c50aa2f83b4743b407de4d218b0aa4 ""
+  "../tables/demand_production_unrestricted_nbs.tex" 1689364134 1515 70e79a62b78fdbd63b83ece89a1dfbb1 ""
   "../tables/relative_demand.tex" 1688727615 2324 2b3e30f4f8ba08cc0188b81014afe634 ""
   "../tables/relative_demand_IV.tex" 1688727615 2327 0137f123e2cf6e15a972e24d422dafb6 ""
-  "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" 1689170398 14562 7499531fefab8f858adcf325016d5748 ""
+  "/Users/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex" 1689364392 17326 d300fdf80473cce3c6a48067f1675bfa ""
   "/usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2022/texmf-dist/fonts/tfm/jknappen/ec/tcrm1000.tfm" 1136768653 1536 e07581a4bb3136ece9eeb4c3ffab8233 ""
@@ -64,8 +68,8 @@
   "/usr/local/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1647878959 4410336 7d30a02e9fa9a16d7d1f8d037ba69641 ""
   "/usr/local/texlive/2022/texmf-var/web2c/pdftex/pdflatex.fmt" 1674674079 2826436 0d4a61304638bec2cd0360cc41b4a4c1 ""
   "/usr/local/texlive/2022/texmf.cnf" 1647878952 577 209b46be99c9075fd74d4c0369380e8c ""
-  "results_new.aux" 1689187265 1059 199776c8adf57e78b4c562c862780b56 "pdflatex"
-  "results_new.tex" 1689170398 14562 7499531fefab8f858adcf325016d5748 ""
+  "results_new.aux" 1689364394 1895 a06cff6ab7f985b60f5989d8d3049ddf "pdflatex"
+  "results_new.tex" 1689364392 17326 d300fdf80473cce3c6a48067f1675bfa ""
   (generated)
   "results_new.aux"
   "results_new.log"

@@ -175,6 +175,90 @@ function write_production_table(M,SE,Pp,specs,labels,outfile::String)
 
 end
 
+function write_production_table_older(M,SE,Pp,specs,labels,outfile::String)
+    form(x) = @sprintf("%0.2f",x)
+    formse(x) = string("(",@sprintf("%0.2f",x),")")
+    nspec = length(M)
+    
+    midrule(s) = "\\cmidrule(r){$(2+(s-1)*nspec)-$(1+s*nspec)}"
+    # Write the header:
+    io = open(outfile, "w");
+    write(io,"\\begin{tabular}{l",repeat("c",nspec*3),"}\\\\\\toprule","\n")
+
+    # - work on elasticity parameters
+    write(io," & \\multicolumn{$nspec}{c}{\$\\rho\$} & \\multicolumn{$nspec}{c}{\$\\delta_{1}\$} & \\multicolumn{$nspec}{c}{\$\\delta_{2}\$} ","\\\\\n")
+    write(io,repeat(["&($s)" for s in 1:nspec],3)...,"\\\\",[midrule(s) for s in 1:3]...,"\n")
+    
+    # -- now write the estimates:
+    
+    write(io,[string("&",format_pval(form,M[s].ρ,Pp[s].ρ)) for s in 1:nspec]...)
+    write(io,[string("&",form(M[s].δ[1])) for s in 1:nspec]...)
+    write(io,[string("&",form(M[s].δ[2])) for s in 1:nspec]...) #automate this?
+    write(io,"\\\\\n")
+    write(io,[string("&",formse(SE[s].ρ)) for s in 1:nspec]...)
+    write(io,[string("&",formse(SE[s].δ[1])) for s in 1:nspec]...)
+    write(io,[string("&",formse(SE[s].δ[2])) for s in 1:nspec]...) #automate this?
+    write(io,"\\\\\n")
+    write(io,repeat("&",3*nspec),"\\\\\n")
+
+    # - Write factor share parameters
+    write(io," & \\multicolumn{$nspec}{c}{\$\\phi_{m}\$: Mother's Time} & \\multicolumn{$nspec}{c}{\$\\phi_{f}\$: Father's Time} & \\multicolumn{$nspec}{c}{\$\\phi_{\\theta}\$: TFP} ","\\\\\n")
+    write(io,repeat(["&($s)" for s in 1:nspec],3)...,"\\\\",[midrule(s) for s in 1:3]...,"\n")
+
+    vlist = union([s[specvar] for s in specs, specvar in [:vm,:vf,:vm,:vθ]]...)
+    for v in vlist
+        if v in keys(labels)
+            vname = labels[v]
+            vname = string(vname) #<-?
+        else
+            vname = string(v)
+        end
+        write(io,vname)
+        # write estimates
+        varlist = [:βm,:βf,:βθ]
+        svarlist = [:vm,:vf,:vθ]#<- I'm an idiot for calling these different things
+        for k in 1:3
+            var = varlist[k]
+            specvar = svarlist[k]
+            for j in 1:nspec
+                i = findfirst(specs[j][specvar].==v)
+                if isnothing(i)
+                    write(io,"&","-")
+                else
+                    xval = getfield(M[j],var)[i]
+                    if var==:βθ
+                        write(io,"&",form(xval))
+                    else                        
+                        pval = getfield(Pp[j],var)[i]
+                        write(io,"&",format_pval(form,xval,pval))
+                    end
+                end
+            end
+        end
+        write(io,"\\\\\n")
+        # now write standard errors:
+        
+        for k in 1:3
+            var = varlist[k]
+            specvar = svarlist[k]
+            for j in 1:nspec
+                i = findfirst(specs[j][specvar].==v)
+                if isnothing(i)
+                    write(io,"&","-")
+                else
+                    write(io,"&",formse(getfield(SE[j],var)[i]))
+                end
+            end
+        end
+        write(io,"\\\\\n")
+    end 
+    write(io,"\\\\\n")
+    write(io,"\\bottomrule")
+    write(io,"\\end{tabular}")
+    close(io)
+
+end
+
 
 
 

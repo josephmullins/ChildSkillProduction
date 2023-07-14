@@ -21,39 +21,14 @@ cluster_dummies=make_dummy(panel_data,:cluster) #cluster dummies made
 # - load the specifications that we want to use. See that script for more details.
 include("specifications.jl")
 
-
 N = length(unique(panel_data.kid))
-
-case = "nbs"
-
 # define the moment functions
 gfunc!(x,n,g,resids,data,spec,case) = production_demand_moments_strict!(update(x,spec,case),n,g,resids,data)
 gfunc2!(x,n,g,resids,data,spec,unrestricted,case) = production_demand_moments_relaxed!(update_relaxed(x,spec,unrestricted,case)...,n,g,resids,data)
 
-# ---- Part 1: estimate the restricted estimator and conduct tests of the equality constraints using the LM statistic
-# ---- specification (1)
-data = child_data(panel_data,spec_1p_x)
-nmom = sum([size(z,1)*!isempty(z) for z in data.Z])
-W = I(nmom)
-x0 = initial_guess(spec_1p_x,case)
-res1 = estimate_gmm(x0,gfunc!,W,N,length(data.Z),data,spec_1p_x,case)
+# ------  Unconstrained case
 
-# - test restrictions (inidividual and joint)
-W = inv(res1.Ω)
-t1,p1 = test_joint_restrictions(res1.est1,W,N,spec_1p_x,data,case)
-tvec1,pvec1 = test_individual_restrictions(res1.est1,W,N,spec_1p_x,data,case)
-
-# ---- specification (2)
-data = child_data(panel_data,spec_2p_x)
-nmom = sum([size(z,1)*!isempty(z) for z in data.Z])
-W = I(nmom)
-x0 = initial_guess(spec_2p_x,case)
-res2 = estimate_gmm(x0,gfunc!,W,N,length(data.Z),data,spec_2p_x,case)
-
-# - test restrictions (individual and joint)
-W = inv(res2.Ω)
-t2,p2 = test_joint_restrictions(res2.est1,W,N,spec_2p_x,data,case)
-tvec2,pvec2 = test_individual_restrictions(res2.est1,W,N,spec_2p_x,data,case)
+case = "uc"
 
 
 # ---- specification (3)
@@ -61,46 +36,14 @@ data = child_data(panel_data,spec_3p_x)
 nmom = sum([size(z,1)*!isempty(z) for z in data.Z])
 W = I(nmom)
 x0 = initial_guess(spec_3p_x,case)
-
 res3 = estimate_gmm(x0,gfunc!,W,N,length(data.Z),data,spec_3p_x,case)
 
-# - test restrictions (individual and joint)
-W = inv(res3.Ω)
-t3,p3 = test_joint_restrictions(res3.est1,W,N,spec_3p_x,data,case)
-tvec3,pvec3 = test_individual_restrictions(res3.est1,W,N,spec_3p_x,data,case)
+# ------ Re-estimate with mother's factor share relaxed
 
-
-# ---- specification 5
-data = child_data(panel_data,spec_5p_x)
-nmom = sum([size(z,1)*!isempty(z) for z in data.Z])
-W = I(nmom)
-x0 = initial_guess(spec_5p_x,case)
-res5 = estimate_gmm(x0,gfunc!,W,N,length(data.Z),data,spec_5p_x,case)
-
-# - test restrictions (inidividual and joint)
-W = inv(res5.Ω)
-t5,p5 = test_joint_restrictions(res5.est1,W,N,spec_5p_x,data,case)
-tvec5,pvec5 = test_individual_restrictions(res5.est1,W,N,spec_5p_x,data,case)
-
-
-# Write results to a table
-include("table_tools.jl")
-cluster_labels = Dict(zip(cluster_dummies,[string("Type ",string(s)[end]) for s in cluster_dummies]))
-ed_labels = Dict(zip([f_ed[2:3];m_ed[2:3]],["Father: College+","Father: Some College","Mother: Some College","Mother: College+"]))
-
-other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. Children 0-5", :constant => "Const.", :mu_k => "\$\\mu_{k}\$", :age => "Child Age")
-
-labels = merge(other_labels,cluster_labels,ed_labels)
-
-par_vec = [update(res1.est1,spec_1p_x,case),update(res2.est1,spec_2p_x,case),update(res3.est1,spec_3p_x,case),update(res5.est1,spec_5p_x,case)]
-se_vec = [update(res1.se,spec_1p_x,case),update(res2.se,spec_2p_x,case),update(res3.se,spec_3p_x,case),update(res5.se,spec_5p_x,case)]
-pval_vec = [update_demand(pvec1,spec_1),update_demand(pvec2,spec_2),update_demand(pvec3,spec_3p_x),update_demand(pvec5,spec_5p_x)]
-write_production_table(par_vec,se_vec,pval_vec,[spec_1p_x,spec_2p_x,spec_3p_x,spec_5p_x],labels,"tables/demand_production_restricted_nbs.tex"
-)
-
-## NOW: for specification (3), our preferred, we relax coefficients with pvalues<0.05.
-# Then we run another minimization routine and conduct a test using the distance metric
-unrestricted = pvec3.<0.05
+np_demand = 2 + length(spec_3.vm) + length(spec_3.vf) + length(spec_3.vy)
+P_index = update_demand(1:np_demand,spec_3)
+unrestricted = fill(false,np_demand)
+unrestricted[P_index.βm[1]] = true
 P = update(res3.est1,spec_3p_x,case)
 Pu = update_demand(unrestricted,spec_3p_x)
 x1 = update_inv_relaxed(P,P,Pu,case)
@@ -112,13 +55,45 @@ g0 = gmm_criterion(x1,gfunc2!,W,N,length(data.Z),data,spec_3p_x,unrestricted,cas
 
 g1 = res3u.minimum
 DM = 2N*max(g0-g1,0.)
-if sum(unrestricted)>0
-    p_val = 1 - cdf(Chisq(sum(unrestricted)),DM)
-else
-    p_val = 1.
-end
+p_val = 1 - cdf(Chisq(sum(unrestricted)),DM)
 p1,p2 = update_relaxed(res3u.minimizer,spec_3p_x,unrestricted,case)
 v = parameter_variance_gmm(res3u.minimizer,gfunc2!,W,N,length(data.Z),data,spec_3p_x,unrestricted,case)
 SE1,SE2 = update_relaxed(sqrt.(diag(v)),spec_3p_x,unrestricted,case)
 
-write_production_table_unrestricted(p1,p2,Pu,SE1,SE2,spec_3p_x,labels,DM,p_val,"tables/demand_production_unrestricted_nbs.tex")
+include("table_tools.jl")
+cluster_labels = Dict(zip(cluster_dummies,[string("Type ",string(s)[end]) for s in cluster_dummies]))
+ed_labels = Dict(zip([f_ed[2:3];m_ed[2:3]],["Father: College+","Father: Some College","Mother: Some College","Mother: College+"]))
+
+other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. Children 0-5", :constant => "Const.", :mu_k => "\$\\mu_{k}\$", :age => "Child Age")
+
+labels = merge(other_labels,cluster_labels,ed_labels)
+
+write_production_table_unrestricted(p1,p2,Pu,SE1,SE2,spec_3p_x,labels,DM,p_val,"tables/demand_production_mothershare_relaxed.tex")
+
+
+# ---- No borrowing or saving case
+
+case = "nbs"
+
+res3 = estimate_gmm(x0,gfunc!,W,N,length(data.Z),data,spec_3p_x,case)
+
+# ------ Re-estimate with mother's factor share relaxed
+
+P = update(res3.est1,spec_3p_x,case)
+Pu = update_demand(unrestricted,spec_3p_x)
+x1 = update_inv_relaxed(P,P,Pu,case)
+
+W = inv(res3.Ω)
+data = child_data(panel_data,spec_3p_x)
+res3u = optimize(x->gmm_criterion(x,gfunc2!,W,N,length(data.Z),data,spec_3p_x,unrestricted,case),x1,Newton(),autodiff=:forward,Optim.Options(iterations=40,show_trace=true))
+g0 = gmm_criterion(x1,gfunc2!,W,N,length(data.Z),data,spec_3p_x,unrestricted,case)
+
+g1 = res3u.minimum
+DM = 2N*max(g0-g1,0.)
+p_val = 1 - cdf(Chisq(sum(unrestricted)),DM)
+p1,p2 = update_relaxed(res3u.minimizer,spec_3p_x,unrestricted,case)
+v = parameter_variance_gmm(res3u.minimizer,gfunc2!,W,N,length(data.Z),data,spec_3p_x,unrestricted,case)
+SE1,SE2 = update_relaxed(sqrt.(diag(v)),spec_3p_x,unrestricted,case)
+
+
+write_production_table_unrestricted(p1,p2,Pu,SE1,SE2,spec_3p_x,labels,DM,p_val,"tables/demand_production_mothershare_relaxed_nbs.tex")
