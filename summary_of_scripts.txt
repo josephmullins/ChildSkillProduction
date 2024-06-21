@@ -1,0 +1,26 @@
+# ---- Tables used in revision -------- #
+- note: _EC looks like Betsy went in and changed the rho and gamma parameters to elasticities
+- also note: demand_production_restricted_older already has this form. did I do it differently??
+
+------
+joint_gmm_summary_production.tex *** <- looks to be manually created form the results below
+
+demand_production_restricted_nbs_EC.tex **<- estimate_production_nbs.jl, but without elasticities
+
+demand_production_restricted_EC.tex **<- estimate_production_main.jl, but without elasticities
+------
+
+demand_production_restricted_older.tex **<- estimate_production_9-12.jl (different functions used here?)
+
+-----
+joint_gmm_summary.tex *** <- looks to be manually created from the results below
+
+demand_production_unrestricted_EC.tex **<- estimate_production_main.jl, but without elasticities
+------
+
+
+demand_production_mothershare_relaxed_nbs_EC.tex **<- estimate_relaxed_mother_share.jl
+
+demand_production_mothershare_relaxed_EC.tex **<- estimate_relaxed_mother_share.jl
+
+

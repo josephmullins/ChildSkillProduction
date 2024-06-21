@@ -37,6 +37,7 @@ W = I(nmom)
 x0 = initial_guess(spec_1p_x,case)
 res1 = estimate_gmm(x0,gfunc!,W,N,length(data.Z),data,spec_1p_x,case)
 
+break
 # - test restrictions (inidividual and joint)
 W = inv(res1.Ω)
 t1,p1 = test_joint_restrictions(res1.est1,W,N,spec_1p_x,data,case)
