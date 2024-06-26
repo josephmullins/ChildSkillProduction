@@ -13,22 +13,55 @@ wage_types = DataFrame(CSV.File("data/wage_types.csv"))
 panel_data=innerjoin(panel_data, wage_types, on = :MID) #merging in cluster types
 cluster_dummies=make_dummy(panel_data,:cluster) #cluster dummies made
 
+# get the four specifications we settle on in the paper
 spec1,spec2,spec3,spec4 = get_specifications(m_ed,f_ed,cluster_dummies)
 
-N = length(unique(panel_data.kid))
+# define the moment function we use in estimation
+gfunc!(x,n,g,resids,data,spec,unrestricted,case) = production_demand_moments!(update_relaxed(x,spec,unrestricted,case)...,n,g,resids,data)
 
-case = "uc"
+# define the set of labels that convert symbols to strings for our output tables
+cluster_labels = Dict(zip(cluster_dummies,[string("Type ",string(s)[end]) for s in cluster_dummies]))
+ed_labels = Dict(zip([f_ed[2:3];m_ed[2:3]],["Father: College+","Father: Some College","Mother: Some College","Mother: College+"]))
+other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. Children 0-5", :constant => "Const.", :mu_k => "\$\\mu_{k}\$", :age => "Child Age")
+labels = merge(other_labels,cluster_labels,ed_labels)
 
-# define the moment function
-gfunc!(x,n,g,resids,data,spec,case) = production_demand_moments!(update(x,spec,case),n,g,resids,data)
-#gfunc!(x,n,g,resids,data,spec,unrestricted,case) = production_demand_moments!(update_relaxed(x,spec,unrestricted,case)...,n,g,resids,data)
 
-data = child_data(panel_data,spec1)
-nmom = sum([size(z,1)*!isempty(z) for z in data.Z])
-W = I(nmom)
-x0 = initial_guess(spec1,"uc")
-unrestricted = fill(false,length(x0))
-#res1 = estimate_gmm(x0,gfunc!,W,N,length(data.Z),data,spec1,unrestricted,"uc")
-res1 = estimate_gmm(x0,gfunc!,W,N,length(data.Z),data,spec1,"uc")
+# ------- Case 1: unconstrained (κ=0)
 
-#p1,p2 = update_relaxed(res1.est2,spec1,unrestricted,"uc")
+res1 = run_restricted_estimation(panel_data,spec1,"uc",gfunc!)
+res2 = run_restricted_estimation(panel_data,spec2,"uc",gfunc!)
+res3 = run_restricted_estimation(panel_data,spec3,"uc",gfunc!)
+res4 = run_restricted_estimation(panel_data,spec4,"uc",gfunc!)
+
+# write these results to a .tex table
+# Write results to a table
+write_production_table([res1,res2,res3,res4],[spec1,spec2,spec3,spec4],labels,"tables/demand_production_restricted.tex")
+
+# run the unrestricted version for our preferred specification
+res3u = run_unrestricted_estimation(panel_data,spec3,"uc",gfunc!,res3)
+
+write_production_table_unrestricted(res3u,spec3,labels,"tables/demand_production_unrestricted.tex")
+
+# --------- Case 2: No borrowing or savings (κ=1)
+
+res1_nbs = run_restricted_estimation(panel_data,spec1,"nbs",gfunc!)
+res2_nbs = run_restricted_estimation(panel_data,spec2,"nbs",gfunc!)
+res3_nbs = run_restricted_estimation(panel_data,spec3,"nbs",gfunc!)
+res4_nbs = run_restricted_estimation(panel_data,spec4,"nbs",gfunc!)
+
+# write these results to a .tex table
+# Write results to a table
+write_production_table([res1_nbs,res2_nbs,res3_nbs,res4_nbs],[spec1,spec2,spec3,spec4],labels,"tables/demand_production_restricted_nbs.tex")
+
+# run the unrestricted version for our preferred specification
+res3u_nbs = run_unrestricted_estimation(panel_data,spec3,"nbs",gfunc!,res3_nbs)
+write_production_table_unrestricted(res3u_nbs,spec3,labels,"tables/demand_production_unrestricted_nbs.tex")
+
+# Finally: write a summary table for specification three (our preferred)
+
+# THEN: write the relative demand case in here as well.
+
+
+# THEN: run the estimation for older children.
+
+# THEN: run the estimation with the relaxed mother share.

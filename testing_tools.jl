@@ -76,3 +76,5 @@ function test_joint_restrictions_older(est,W,N,spec,data,case)
     x1 = update_inv_relaxed_older(P,P,Pu,case)
     return LM_test(x1,sum(unrestricted),gfunc2!,W,N,25,data,spec,unrestricted,case)
 end
+
+# too many functions here doing the same thing. I don't like that!! how can we fix this?

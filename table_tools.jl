@@ -260,8 +260,6 @@ function write_production_table_older(M,SE,Pp,specs,labels,outfile::String)
 end
 
 
-
-
 function writetable(M,SE,specs,labels,pvals,outfile::String,production = false)
     form(x) = @sprintf("%0.2f",x)
     formse(x) = string("(",@sprintf("%0.2f",x),")")
@@ -383,7 +381,7 @@ function write_production_table_unrestricted(P1,P2,Pu,SE1,SE2,spec,labels,test_s
         write(io,vname)
         # write estimates
         varlist = [:βm,:βf,:βy,:βθ]
-        svarlist = [:vm,:vf,:vy,:vθ]#<- I'm an idiot for calling these different things
+        svarlist = [:vm,:vf,:vy,:vθ]#<- 
         for k in 1:4
             var = varlist[k]
             specvar = svarlist[k]

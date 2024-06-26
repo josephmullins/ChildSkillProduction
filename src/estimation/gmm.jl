@@ -32,7 +32,7 @@ function estimate_gmm(x0,gfunc!,W,N,nresids,args...)
     var = avar / N
     se = sqrt.(diag(var))
     se_old = sqrt.(diag(V))
-    return (est1 = x_est,est2 = r1.minimizer,Ω = Ω,avar = avar,se = se,se_old=se_old)
+    return (est = x_est,Ω = Ω,avar = avar,se = se)
 end
 
 # ----- function that calculates the sample mean of gfunc
@@ -75,4 +75,21 @@ function parameter_variance_gmm(x_est,gfunc!,W,N,nresids,args...)
     bread = inv(dg'*W*dg)
     peanut_butter = dg'*W*Σ*W*dg
     return (1/N)  * bread * peanut_butter * bread'
+end
+
+# -----
+# - Conduct a lagrange multiplier of dg/dx_est where x_est are restricted estimates and g is a relaxed version of the function
+# this test only works if W is the inverse of a consistent estimate of the variance of g
+function LM_test(x_est,r,gfunc!,W,N,nresids,args...)
+    nmom = size(W,1)
+
+    dG = ForwardDiff.jacobian(x->moment_func(x,gfunc!,N,nmom,nresids,args...),x_est)
+    gn = moment_func(x_est,gfunc!,N,nmom,nresids,args...)
+    Binv = inv(dG'*W*dG)
+
+    # test statistic and p-value
+    pre = dG'*W*gn
+    test_stat = N*pre'*Binv*pre
+    pval = 1-cdf(Chisq(r),test_stat)
+    return test_stat,pval
 end

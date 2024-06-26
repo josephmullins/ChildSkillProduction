@@ -23,6 +23,22 @@ function CESmod(spec)
     return CESmod{Float64}(βm = zeros(length(spec.vm)),βf = zeros(length(spec.vf)),βy = zeros(length(spec.vy)),βθ = zeros(length(spec.vθ)))
 end
 
+# - function to update just demand parameters
+function update_demand(x,spec)
+    R = eltype(x)
+    ρ = x[1]
+    γ = x[2]
+    nm = length(spec.vm)
+    βm = x[3:2+nm]
+    pos = 3+nm
+    nf = length(spec.vf)
+    βf = x[pos:pos+nf-1]
+    ny = length(spec.vy)
+    pos += nf
+    βy = x[pos:pos+ny-1]
+    return CESmod{R}(ρ=ρ,γ=γ,βm = βm,βf = βf,βy=βy)
+end
+
 # - function to update all parameters (restricted case)
 # - the keyword case indicates whether we are estimating in the unconstrained case ("uc"), with no borrowing or saving "nbs" 
 # or attempting to estimate the degree of constraints using κ to index.
