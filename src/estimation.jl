@@ -4,6 +4,7 @@ include("estimation/specifications.jl")
 include("estimation/clustering.jl")
 include("estimation/moment_functions.jl")
 include("estimation/gmm.jl")
+include("estimation/testing.jl")
 include("estimation/input_output.jl")
 
 # And finally a function that does everything we want to for our baseline restricted results, it takes as an argument:
@@ -22,8 +23,8 @@ function run_restricted_estimation(panel_data,spec,case,gfunc!)
 
     # test the restrictions
     W = inv(res.Ω)
-    t_joint,p_joint = test_joint_restrictions(res.est,W,N,spec,data,case)
-    t_indiv,p_indiv = test_individual_restrictions(res.est,W,N,spec,data,case)
+    t_joint,p_joint = test_joint_restrictions(res.est,W,N,spec,data,case,gfunc!)
+    t_indiv,p_indiv = test_individual_restrictions(res.est,W,N,spec,data,case,gfunc!)
     return (;res...,t_joint,p_joint,t_indiv,p_indiv)
 end
 
@@ -51,4 +52,19 @@ function run_unrestricted_estimation(panel_data,spec,case,gfunc!,res)
     var = parameter_variance_gmm(res3u.minimizer,gfunc!,W,N,length(data.Z),data,spec,unrestricted,case)
     se = sqrt.(diag(var))
     return (;est = res3u.minimizer,se,p_val,DM,unrestricted,case)
+end
+
+function run_demand_estimation(panel_data,spec,gfunc!)
+    N = length(unique(panel_data.kid))
+
+    x0 = demand_guess(spec)
+    data = child_data(panel_data,spec)
+    nmom = sum([size(z,1)*!isempty(z) for z in data.Z])
+    W = I(nmom)
+    res = estimate_gmm(x0,gfunc!,W,N,9,data,spec)
+    p = update_demand(res.est,spec)
+    pse = update_demand(res.se,spec)
+    r = residual_test(data,N,p)
+    pval = r[2]
+    return (;res...,p,pse,pval)
 end

@@ -285,11 +285,6 @@ function writetable(M,SE,specs,labels,pvals,outfile::String,production = false)
         write_line!(io,form,M,:λ,0,"\$\\lambda_{AP}\$")
         write_line!(io,formse,SE,:λ,0) 
     end
-    # δ_1 and δ_2 #are there delta parameters here?
-    #for j in 1:2
-    #    write_line!(io,form,M,:δ,j,"\$\\delta_{$j}\$")
-    #    write_line!(io,formse,SE,:δ,j)
-    #end
 
     # Factor share Parameters:
     # a_{m}

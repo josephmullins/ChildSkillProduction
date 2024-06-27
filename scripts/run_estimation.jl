@@ -1,6 +1,7 @@
 using CSV, DataFrames, Parameters, Random, Printf, LinearAlgebra, Statistics
 using Optim
 include("../src/model.jl")
+include("../src/model_older_children.jl")
 include("../src/estimation.jl")
 
 # --------  read in the data:
@@ -27,7 +28,7 @@ labels = merge(other_labels,cluster_labels,ed_labels)
 
 
 # ------- Case 1: unconstrained (κ=0)
-
+println(" ====== Estimating Main Specifications for κ = 0 ========= ")
 res1 = run_restricted_estimation(panel_data,spec1,"uc",gfunc!)
 res2 = run_restricted_estimation(panel_data,spec2,"uc",gfunc!)
 res3 = run_restricted_estimation(panel_data,spec3,"uc",gfunc!)
@@ -43,7 +44,7 @@ res3u = run_unrestricted_estimation(panel_data,spec3,"uc",gfunc!,res3)
 write_production_table_unrestricted(res3u,spec3,labels,"tables/demand_production_unrestricted.tex")
 
 # --------- Case 2: No borrowing or savings (κ=1)
-
+println(" ====== Estimating Main Specifications for κ = 0 ========= ")
 res1_nbs = run_restricted_estimation(panel_data,spec1,"nbs",gfunc!)
 res2_nbs = run_restricted_estimation(panel_data,spec2,"nbs",gfunc!)
 res3_nbs = run_restricted_estimation(panel_data,spec3,"nbs",gfunc!)
@@ -57,11 +58,17 @@ write_production_table([res1_nbs,res2_nbs,res3_nbs,res4_nbs],[spec1,spec2,spec3,
 res3u_nbs = run_unrestricted_estimation(panel_data,spec3,"nbs",gfunc!,res3_nbs)
 write_production_table_unrestricted(res3u_nbs,spec3,labels,"tables/demand_production_unrestricted_nbs.tex")
 
-# Finally: write a summary table for specification three (our preferred)
-
-# THEN: write the relative demand case in here as well.
+# -------- Finally: write a summary table for specification three (our preferred)
 
 
 # THEN: run the estimation for older children.
-
+# --------- Run the 
 # THEN: run the estimation with the relaxed mother share.
+
+# THEN: write the relative demand case in here as well.
+gfunc_demand!(x,n,g,resids,data,spec) = demand_moments_stacked!(update_demand(x,spec),n,g,resids,data)
+
+res1d = run_demand_estimation(panel_data,(;spec1...,zlist_prod_t = [], zlist_prod = []),gfunc_demand!)
+res2d = run_demand_estimation(panel_data,(;spec2...,zlist_prod_t = [], zlist_prod = []),gfunc_demand!)
+res3d = run_demand_estimation(panel_data,(;spec3...,zlist_prod_t = [], zlist_prod = []),gfunc_demand!)
+res4d = run_demand_estimation(panel_data,(;spec4...,zlist_prod_t = [], zlist_prod = []),gfunc_demand!)
