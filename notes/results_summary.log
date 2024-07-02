@@ -1,10 +1,10 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2024.3.15)  26 JUN 2024 09:26
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2024.3.15)  2 JUL 2024 14:23
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex
-(/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.tex
+**/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.tex
+(/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.tex
 LaTeX2e <2020-02-02> patch level 2
 L3 programming layer <2020-02-14> (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
@@ -106,8 +106,8 @@ Package pdflscape Info: Auto-detected driver: pdftex on input line 81.
 File: l3backend-pdfmode.def 2020-02-03 L3 backend support: PDF mode
 \l__kernel_color_stack_int=\count184
 \l__pdf_internal_box=\box45
-) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.aux)
-\openout1 = `results_new.aux'.
+) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.aux)
+\openout1 = `results_summary.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 10.
 LaTeX Font Info:    ... okay on input line 10.
@@ -185,97 +185,33 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <8> on input line 12.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <6> on input line 12.
+ (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/joint_gmm_summary_production.tex
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 15.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 15.
- [1
+(Font)              <5> on input line 1.
+) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/joint_gmm_summary.tex) [1
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2] [3]
-Overfull \hbox (10.458pt too wide) detected at line 85
-\OML/cmm/m/it/10 ^^U[]S[] \OT1/cmr/m/n/10 = \OML/cmm/m/it/10 Z[][] \OT1/cmr/m/n/10 + [] \OML/cmm/m/it/10 ^^N[]^^N[] [] [] \OT1/cmr/m/n/10 + \OML/cmm/m/it/10 ^^N[]^^N[] [] [] \OT1/cmr/m/n/10 + \OML/cmm/m/it/10 ^^N[]^^U[]S[] \OT1/cmr/m/n/10 + \OML/cmm/m/it/10 ^^X[]
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2] [3] (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_restricted.tex)
+Overfull \hbox (133.87506pt too wide) in paragraph at lines 1--32
+ [] 
  []
 
-[4]
-*geometry* verbose mode - [ newgeometry ] result:
-* driver: pdftex
-* paper: <default>
-* layout: <same size as paper>
-* layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: 
-* h-part:(L,W,R)=(92.14519pt, 430.00462pt, 92.14519pt)
-* v-part:(T,H,B)=(0.0pt, 794.96999pt, 0.0pt)
-* \paperwidth=614.295pt
-* \paperheight=794.96999pt
-* \textwidth=430.00462pt
-* \textheight=794.96999pt
-* \oddsidemargin=19.8752pt
-* \evensidemargin=19.8752pt
-* \topmargin=-109.26999pt
-* \headheight=12.0pt
-* \headsep=25.0pt
-* \topskip=10.0pt
-* \footskip=30.0pt
-* \marginparwidth=65.0pt
-* \marginparsep=11.0pt
-* \columnsep=10.0pt
-* \skip\footins=9.0pt plus 4.0pt minus 2.0pt
-* \hoffset=0.0pt
-* \voffset=0.0pt
-* \mag=1000
-* \@twocolumnfalse
-* \@twosidefalse
-* \@mparswitchfalse
-* \@reversemarginfalse
-* (1in=72.27pt=25.4mm, 1cm=28.453pt)
-
- (../tables/relative_demand.tex) [5]
-*geometry* verbose mode - [ newgeometry ] result:
-* driver: pdftex
-* paper: <default>
-* layout: <same size as paper>
-* layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: 
-* h-part:(L,W,R)=(92.14519pt, 430.00462pt, 92.14519pt)
-* v-part:(T,H,B)=(0.0pt, 794.96999pt, 0.0pt)
-* \paperwidth=614.295pt
-* \paperheight=794.96999pt
-* \textwidth=430.00462pt
-* \textheight=794.96999pt
-* \oddsidemargin=19.8752pt
-* \evensidemargin=19.8752pt
-* \topmargin=-109.26999pt
-* \headheight=12.0pt
-* \headsep=25.0pt
-* \topskip=10.0pt
-* \footskip=30.0pt
-* \marginparwidth=65.0pt
-* \marginparsep=11.0pt
-* \columnsep=10.0pt
-* \skip\footins=9.0pt plus 4.0pt minus 2.0pt
-* \hoffset=0.0pt
-* \voffset=0.0pt
-* \mag=1000
-* \@twocolumnfalse
-* \@twosidefalse
-* \@mparswitchfalse
-* \@reversemarginfalse
-* (1in=72.27pt=25.4mm, 1cm=28.453pt)
-
- (../tables/relative_demand_IV.tex) [6] (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_restricted.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_restricted_nbs.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_restricted_older.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_unrestricted_nbs.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_unrestricted.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_mothershare_relaxed_nbs.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_mothershare_relaxed.tex) [7] [8] [9] [10] [11] [12] [13] (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.aux) ) 
+(/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_restricted_older.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_unrestricted.tex)
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 64.
+ (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_mothershare_relaxed_nbs.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_mothershare_relaxed.tex) [4] [5] [6] [7] [8] (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.aux) ) 
 Here is how much of TeX's memory you used:
- 2901 strings out of 483183
- 48858 string characters out of 5966292
- 399889 words of memory out of 5000000
- 17895 multiletter control sequences out of 15000+600000
- 536966 words of font info for 39 fonts, out of 8000000 for 9000
+ 2882 strings out of 483183
+ 48490 string characters out of 5966292
+ 358170 words of memory out of 5000000
+ 17884 multiletter control sequences out of 15000+600000
+ 535719 words of font info for 35 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 41i,10n,42p,2203b,418s stack positions out of 5000i,500n,10000p,200000b,80000s
- </home/joseph/.texlive2019/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1000.600pk></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on /home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_new.pdf (13 pages, 218887 bytes).
+ 41i,10n,42p,557b,445s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
+Output written on /home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.pdf (8 pages, 148346 bytes).
 PDF statistics:
- 120 PDF objects out of 1000 (max. 8388607)
- 86 compressed objects within 1 object stream
+ 87 PDF objects out of 1000 (max. 8388607)
+ 62 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

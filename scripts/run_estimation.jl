@@ -1,5 +1,3 @@
-using CSV, DataFrames, Parameters, Random, Printf, LinearAlgebra, Statistics
-using Optim
 include("../src/model.jl")
 include("../src/model_older_children.jl")
 include("../src/estimation.jl")
@@ -22,8 +20,8 @@ gfunc!(x,n,g,resids,data,spec,unrestricted,case) = production_demand_moments!(up
 
 # define the set of labels that convert symbols to strings for our output tables
 cluster_labels = Dict(zip(cluster_dummies,[string("Type ",string(s)[end]) for s in cluster_dummies]))
-ed_labels = Dict(zip([f_ed[2:3];m_ed[2:3]],["Father: College+","Father: Some College","Mother: Some College","Mother: College+"]))
-other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. Children 0-5", :constant => "Const.", :mu_k => "\$\\mu_{k}\$", :age => "Child Age")
+ed_labels = Dict(zip([f_ed[2:3];m_ed[2:3]],["Father some coll.","Father coll+","Mother some coll.","Mother coll+"]))
+other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. of children 0-5", :constant => "Constant", :mu_k => "\$\\mu_{k}\$", :age => "Child's age", :ind02 => "Year = 2002")
 labels = merge(other_labels,cluster_labels,ed_labels)
 
 
@@ -34,7 +32,6 @@ res2 = run_restricted_estimation(panel_data,spec2,"uc",gfunc!)
 res3 = run_restricted_estimation(panel_data,spec3,"uc",gfunc!)
 res4 = run_restricted_estimation(panel_data,spec4,"uc",gfunc!)
 
-# write these results to a .tex table
 # Write results to a table
 write_production_table([res1,res2,res3,res4],[spec1,spec2,spec3,spec4],labels,"tables/demand_production_restricted.tex")
 
@@ -50,7 +47,6 @@ res2_nbs = run_restricted_estimation(panel_data,spec2,"nbs",gfunc!)
 res3_nbs = run_restricted_estimation(panel_data,spec3,"nbs",gfunc!)
 res4_nbs = run_restricted_estimation(panel_data,spec4,"nbs",gfunc!)
 
-# write these results to a .tex table
 # Write results to a table
 write_production_table([res1_nbs,res2_nbs,res3_nbs,res4_nbs],[spec1,spec2,spec3,spec4],labels,"tables/demand_production_restricted_nbs.tex")
 
@@ -59,16 +55,35 @@ res3u_nbs = run_unrestricted_estimation(panel_data,spec3,"nbs",gfunc!,res3_nbs)
 write_production_table_unrestricted(res3u_nbs,spec3,labels,"tables/demand_production_unrestricted_nbs.tex")
 
 # -------- Finally: write a summary table for specification three (our preferred)
+write_joint_gmm_table_production([res3,res3_nbs],[spec3,spec3],labels,"tables/joint_gmm_summary_production.tex")
 
+println(" ====== Estimating Preferred Specification with Relaxed Share on Mother's Time ========= ")
 
-# THEN: run the estimation for older children.
-# --------- Run the 
-# THEN: run the estimation with the relaxed mother share.
+# --------- Run the estimation with the relaxed mother share
+res3_ms = run_unrestricted_estimation_mothershare(panel_data,spec3,"uc",gfunc!,res3)
+write_production_table_unrestricted(res3_ms,spec3,labels,"tables/demand_production_mothershare_relaxed.tex")
+res3_ms_nbs = run_unrestricted_estimation_mothershare(panel_data,spec3,"nbs",gfunc!,res3_nbs)
+write_production_table_unrestricted(res3_ms_nbs,spec3,labels,"tables/demand_production_mothershare_relaxed_nbs.tex")
 
-# THEN: write the relative demand case in here as well.
+println(" ====== Estimating On Children 8-12 Only ========= ")
+# --------- Run the estimation for older children only
+gfunc_older!(x,n,g,resids,data,spec,unrestricted,case) = production_demand_moments_older!(update_relaxed_older(x,spec,unrestricted,case)...,n,g,resids,data)
+
+res1_older = run_restricted_estimation_older(panel_data,build_spec_older(spec1),"uc",gfunc_older!)
+res2_older = run_restricted_estimation_older(panel_data,build_spec_older(spec2),"uc",gfunc_older!)
+res3_older = run_restricted_estimation_older(panel_data,build_spec_older(spec3),"uc",gfunc_older!)
+res4_older = run_restricted_estimation_older(panel_data,build_spec_older(spec4),"uc",gfunc_older!)
+write_production_table_older([res1_older,res2_older,res3_older,res4_older],[spec1,spec2,spec3,spec4],labels,"tables/demand_production_restricted_older.tex")
+
+println(" ====== Estimating Using Only Relative Demand ========= ")
+# ---------- Run Relative Demand
 gfunc_demand!(x,n,g,resids,data,spec) = demand_moments_stacked!(update_demand(x,spec),n,g,resids,data)
 
-res1d = run_demand_estimation(panel_data,(;spec1...,zlist_prod_t = [], zlist_prod = []),gfunc_demand!)
-res2d = run_demand_estimation(panel_data,(;spec2...,zlist_prod_t = [], zlist_prod = []),gfunc_demand!)
+#res1d = run_demand_estimation(panel_data,(;spec1...,zlist_prod_t = [], zlist_prod = []),gfunc_demand!)
+#res2d = run_demand_estimation(panel_data,(;spec2...,zlist_prod_t = [], zlist_prod = []),gfunc_demand!)
 res3d = run_demand_estimation(panel_data,(;spec3...,zlist_prod_t = [], zlist_prod = []),gfunc_demand!)
-res4d = run_demand_estimation(panel_data,(;spec4...,zlist_prod_t = [], zlist_prod = []),gfunc_demand!)
+#res4d = run_demand_estimation(panel_data,(;spec4...,zlist_prod_t = [], zlist_prod = []),gfunc_demand!)
+
+res3d_iv = run_demand_estimation(panel_data,build_spec_iv(spec3),gfunc_demand!)
+
+write_demand_table([res3d,res3d_iv],[spec3,spec3],labels,"tables/joint_gmm_summary.tex")

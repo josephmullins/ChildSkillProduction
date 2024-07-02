@@ -1,4 +1,4 @@
-function pval_ind(p,char = "*")
+function pval_ind_detailed(p,char = "+")
     if p<0.001
         return string("^{",repeat(char,3),"}")
     elseif p<0.01
@@ -9,14 +9,116 @@ function pval_ind(p,char = "*")
         return ""
     end
 end
+function pval_ind(p,char = "+")
+    if p<0.05
+        return string("^{",char,"}")
+    else
+        return ""
+    end
+end
 function format_pval(form,x,p)
     return string("\$",form(x),pval_ind(p),"\$")
 end
 
 # this function writes a table that summarizes the results of the restricted estimation from many specifications for the same case ("uc" or "nbs")
+function write_joint_gmm_table_production(results,specs,labels,outfile::String)
+    M = [update(results[r].est,specs[r],results[r].case) for r in eachindex(results)]
+    SE = [update(results[r].se,specs[r],results[r].case) for r in eachindex(results)]
+    Pp = [update_demand(results[r].p_indiv,specs[r]) for r in eachindex(results)]
+
+    form(x) = @sprintf("%0.2f",x)
+    formse(x) = string("(",@sprintf("%0.2f",x),")")
+    nspec = length(M)
+    
+    midrule(s) = "\\cmidrule(r){$(2+(s-1)*nspec)-$(1+s*nspec)}"
+    # Write the header:
+    io = open(outfile, "w");
+    write(io,"\\begin{tabular}{l",repeat("c",nspec*4),"}\\\\\\toprule","\n")
+
+    # - work on elasticity parameters
+    write(io," & \\multicolumn{$nspec}{c}{\$\\epsilon_{\\tau,g}\$} & \\multicolumn{$nspec}{c}{\$\\epsilon_{x,H}\$} & \\multicolumn{$nspec}{c}{\$\\delta_{1}\$} & \\multicolumn{$nspec}{c}{\$\\delta_{2}\$} ","\\\\\n")
+    write(io,repeat("& \$(\\kappa=0)\$ & \$(\\kappa=1)\$ ",4)...,"\\\\",[midrule(s) for s in 1:4]...,"\n")
+    
+    # -- now write the estimates:
+    
+    e_ρ = [1/(1-M[s].ρ) for s in 1:nspec]
+    se_ρ = [SE[s].ρ/(1-M[s].ρ)^2 for s in 1:nspec]
+    e_γ = [1/(1-M[s].γ) for s in 1:nspec]
+    se_γ = [SE[s].γ/(1-M[s].γ)^2 for s in 1:nspec]
+
+    write(io,[string("&",format_pval(form,e_ρ[s],Pp[s].ρ)) for s in 1:nspec]...)
+    write(io,[string("&",format_pval(form,e_γ[s],Pp[s].γ)) for s in 1:nspec]...)
+    write(io,[string("&",form(M[s].δ[1])) for s in 1:nspec]...)
+    write(io,[string("&",form(M[s].δ[2])) for s in 1:nspec]...) #automate this?
+    write(io,"\\\\\n")
+    write(io,[string("&",formse(se_ρ[s])) for s in 1:nspec]...)
+    write(io,[string("&",formse(se_γ[s])) for s in 1:nspec]...)
+    write(io,[string("&",formse(SE[s].δ[1])) for s in 1:nspec]...)
+    write(io,[string("&",formse(SE[s].δ[2])) for s in 1:nspec]...) #automate this?
+    write(io,"\\\\\n")
+    write(io,repeat("&",4*nspec),"\\\\\n")
+
+    # - Write factor share parameters
+    write(io," & \\multicolumn{$nspec}{c}{\$\\tilde{\\phi}_{m}\$: Mother's Time} & \\multicolumn{$nspec}{c}{\$\\tilde{\\phi}_{f}\$: Father's Time} & \\multicolumn{$nspec}{c}{\$\\tilde{\\phi}_{x}\$: Childcare} & \\multicolumn{$nspec}{c}{\$\\phi_{\\theta}\$: TFP} ","\\\\\n")
+    write(io,repeat("& \$(\\kappa=0)\$ & \$(\\kappa=1)\$ ",4)...,"\\\\",[midrule(s) for s in 1:4]...,"\n")
+
+    vlist = union([s[specvar] for s in specs, specvar in [:vm,:vf,:vm,:vθ]]...)
+    for v in vlist
+        if v in keys(labels)
+            vname = labels[v]
+            vname = string(vname) #<-?
+        else
+            vname = string(v)
+        end
+        write(io,vname)
+        # write estimates
+        varlist = [:βm,:βf,:βy,:βθ]
+        svarlist = [:vm,:vf,:vy,:vθ]#<- 
+        for k in 1:4
+            var = varlist[k]
+            specvar = svarlist[k]
+            for j in 1:nspec
+                i = findfirst(specs[j][specvar].==v)
+                if isnothing(i)
+                    write(io,"&","-")
+                else
+                    xval = getfield(M[j],var)[i]
+                    if var==:βθ
+                        write(io,"&",form(xval))
+                    else                        
+                        pval = getfield(Pp[j],var)[i]
+                        write(io,"&",format_pval(form,xval,pval))
+                    end
+                end
+            end
+        end
+        write(io,"\\\\\n")
+        # now write standard errors:
+        
+        for k in 1:4
+            var = varlist[k]
+            specvar = svarlist[k]
+            for j in 1:nspec
+                i = findfirst(specs[j][specvar].==v)
+                if isnothing(i)
+                    write(io,"&","-")
+                else
+                    write(io,"&",formse(getfield(SE[j],var)[i]))
+                end
+            end
+        end
+        write(io,"\\\\\n")
+    end 
+    write(io,"\\\\\n")
+    write(io,"\\bottomrule")
+    write(io,"\\end{tabular}")
+    close(io)
+end
+
+# this function writes a table that summarizes the results of the restricted estimation from many specifications for the same case ("uc" or "nbs")
 function write_production_table(results,specs,labels,outfile::String)
-    M = [update(results[r].est,specs[r],case) for r in eachindex(results)]
-    SE = [update(results[r].se,specs[r],case) for r in eachindex(results)]
+    M = [update(results[r].est,specs[r],results[r].case) for r in eachindex(results)]
+    SE = [update(results[r].se,specs[r],results[r].case) for r in eachindex(results)]
     Pp = [update_demand(results[r].p_indiv,specs[r]) for r in eachindex(results)]
 
     form(x) = @sprintf("%0.2f",x)
@@ -52,7 +154,7 @@ function write_production_table(results,specs,labels,outfile::String)
     write(io,repeat("&",4*nspec),"\\\\\n")
 
     # - Write factor share parameters
-    write(io," & \\multicolumn{$nspec}{c}{\$\\phi_{m}\$: Mother's Time} & \\multicolumn{$nspec}{c}{\$\\phi_{f}\$: Father's Time} & \\multicolumn{$nspec}{c}{\$\\phi_{x}\$: Childcare} & \\multicolumn{$nspec}{c}{\$\\phi_{\\theta}\$: TFP} ","\\\\\n")
+    write(io," & \\multicolumn{$nspec}{c}{\$\\tilde{\\phi}_{m}\$: Mother's Time} & \\multicolumn{$nspec}{c}{\$\\tilde{\\phi}_{f}\$: Father's Time} & \\multicolumn{$nspec}{c}{\$\\tilde{\\phi}_{x}\$: Childcare} & \\multicolumn{$nspec}{c}{\$\\phi_{\\theta}\$: TFP} ","\\\\\n")
     write(io,repeat(["&($s)" for s in 1:nspec],4)...,"\\\\",[midrule(s) for s in 1:4]...,"\n")
 
     vlist = union([s[specvar] for s in specs, specvar in [:vm,:vf,:vm,:vθ]]...)
@@ -108,8 +210,8 @@ function write_production_table(results,specs,labels,outfile::String)
     close(io)
 end
 function write_production_table_older(results,specs,labels,outfile::String)
-    M = [update_older(results[r].est,specs[r],case) for r in eachindex(results)]
-    SE = [update_older(results[r].se,specs[r],case) for r in eachindex(results)]
+    M = [update_older(results[r].est,specs[r],results[r].case) for r in eachindex(results)]
+    SE = [update_older(results[r].se,specs[r],results[r].case) for r in eachindex(results)]
     Pp = [update_demand_older(results[r].p_indiv,specs[r]) for r in eachindex(results)]
 
     form(x) = @sprintf("%0.2f",x)
@@ -129,7 +231,7 @@ function write_production_table_older(results,specs,labels,outfile::String)
     
     # -- now write the estimates:
     
-    write(io,[string("&",format_pval(form,e_ρ[s].ρ,Pp[s].ρ)) for s in 1:nspec]...)
+    write(io,[string("&",format_pval(form,e_ρ[s],Pp[s].ρ)) for s in 1:nspec]...)
     write(io,[string("&",form(M[s].δ[1])) for s in 1:nspec]...)
     write(io,[string("&",form(M[s].δ[2])) for s in 1:nspec]...) #automate this?
     write(io,"\\\\\n")
@@ -140,7 +242,7 @@ function write_production_table_older(results,specs,labels,outfile::String)
     write(io,repeat("&",3*nspec),"\\\\\n")
 
     # - Write factor share parameters
-    write(io," & \\multicolumn{$nspec}{c}{\$\\phi_{m}\$: Mother's Time} & \\multicolumn{$nspec}{c}{\$\\phi_{f}\$: Father's Time} & \\multicolumn{$nspec}{c}{\$\\phi_{\\theta}\$: TFP} ","\\\\\n")
+    write(io," & \\multicolumn{$nspec}{c}{\$\\tilde{\\phi}_{m}\$: Mother's Time} & \\multicolumn{$nspec}{c}{\$\\tilde{\\phi}_{f}\$: Father's Time} & \\multicolumn{$nspec}{c}{\$\\tilde{\\phi}_{\\theta}\$: TFP} ","\\\\\n")
     write(io,repeat(["&($s)" for s in 1:nspec],3)...,"\\\\",[midrule(s) for s in 1:3]...,"\n")
 
     vlist = union([s[specvar] for s in specs, specvar in [:vm,:vf,:vm,:vθ]]...)
@@ -253,7 +355,7 @@ function write_production_table_unrestricted(res,spec,labels,outfile::String)
     write(io,repeat("&",7),"\\\\\n")
 
     # - Write factor share parameters
-    write(io," & \\multicolumn{2}{c}{\$\\phi_{m}\$: Mother's Time} & \\multicolumn{2}{c}{\$\\phi_{f}\$: Father's Time} & \\multicolumn{2}{c}{\$\\phi_{Y}\$: Childcare} &{\$\\phi_{\\theta}\$: TFP} ","\\\\\n")
+    write(io," & \\multicolumn{2}{c}{\$\\tilde{\\phi}_{m}\$: Mother's Time} & \\multicolumn{2}{c}{\$\\tilde{\\phi}_{f}\$: Father's Time} & \\multicolumn{2}{c}{\$\\tilde{\\phi}_{x}\$: Childcare} &{\$\\phi_{\\theta}\$: TFP} ","\\\\\n")
     write(io," & Rel. Dem. & Prod. & Rel. Dem. & Prod. & Rel. Dem. & Prod. & -  \\\\","\\cmidrule(r){2-3}","\\cmidrule(r){4-5}","\\cmidrule(r){6-7}","\\cmidrule(r){8-8}","\n")
 
     vlist = union([spec[specvar] for specvar in [:vm,:vf,:vm,:vθ]]...)
@@ -332,78 +434,48 @@ function write_production_table_unrestricted(res,spec,labels,outfile::String)
 end
 
 # ---- this function writes a table to present all of the results from demand estimation
+
 function write_demand_table(results,specs,labels,outfile::String)
-    M = [update(results[r].est,specs[r],case) for r in eachindex(results)]
-    SE = [update(results[r].se,specs[r],case) for r in eachindex(results)]
-    pvals = [results[r].pval for r in eachindex(results)]
+    M = [update_demand(results[r].est,specs[r]) for r in eachindex(results)]
+    SE = [update_demand(results[r].se,specs[r]) for r in eachindex(results)]
+
     form(x) = @sprintf("%0.2f",x)
     formse(x) = string("(",@sprintf("%0.2f",x),")")
     nspec = length(M)
-
-    # Write the header
-    io = open(outfile, "w");
-    write(io,"\\begin{tabular}{l",repeat("c",nspec+1),"}\\\\\\toprule","\n")
-    write(io,"&",["($s)&" for s in 1:nspec]...,"\\\\\\cmidrule(r){2-$(nspec+2)}")
     
-    # Write the elasticity parameters 
-    # start by calculating them
-    for s in eachindex(M)
-        M[s].ϵm = 1/(1 - M[s].ρ)
-        SE[s].ϵm = SE[s].ρ / (1 - M[s].ρ)^2
-        M[s].ϵx = 1/(1 - M[s].γ)
-        SE[s].ϵx = SE[s].γ / (1 - M[s].γ)^2
-    end
-    # here we need to put in elasticities instead. This is next!!!
-    v = [:ϵm,:ϵx]
-    vname = ["\$\\epsilon_{\\tau,g}\$","\$\\epsilon_{x,H}\$"]
-    for j in 1:2
-        write_line!(io,form,M,v[j],0,vname[j])
-        write_line!(io,formse,SE,v[j],0)
-    end
+    midrule(s) = "\\cmidrule(r){$(2+(s-1)*nspec)-$(1+s*nspec)}"
+    # Write the header:
+    io = open(outfile, "w");
+    write(io,"\\begin{tabular}{l",repeat("c",nspec*4),"}\\\\\\toprule","\n")
 
-    # Factor share Parameters:
-    # a_{m}
-    # write the header:
-    write(io,"& \\multicolumn{$(nspec+1)}{c}{\$\\phi_{m}\$: Mother's Time}\\\\\\cmidrule(r){2-$(nspec+2)}")
-    write_observables!(io,form,formse,M,SE,specs,labels,:βm,:vm)
-    # a_{f}
-    write(io,"& \\multicolumn{$(nspec+1)}{c}{\$\\phi_{f}\$: Father's Time}\\\\\\cmidrule(r){2-$(nspec+2)}")
-    write_observables!(io,form,formse,M,SE,specs,labels,:βf,:vf)
-    # a_{g}
-    write(io,"& \\multicolumn{$(nspec+1)}{c}{\$\\phi_{x}\$: Childcare}\\\\\\cmidrule(r){2-$(nspec+2)}")
-    write_observables!(io,form,formse,M,SE,specs,labels,:βy,:vy)
+    # - work on elasticity parameters and residual correlation test
+    write(io," & \\multicolumn{$nspec}{c}{\$\\epsilon_{\\tau,g}\$} & \\multicolumn{$nspec}{c}{\$\\epsilon_{x,H}\$} & \\multicolumn{$nspec}{c}{Correl. residuals}","\\\\\n")
+    write(io,repeat(["&($s)" for s in 1:nspec],3)...,"\\\\",[midrule(s) for s in 1:3]...,"\n")
+    
+    # -- now write the estimates:
+    
+    e_ρ = [1/(1-M[s].ρ) for s in 1:nspec]
+    se_ρ = [SE[s].ρ/(1-M[s].ρ)^2 for s in 1:nspec]
+    e_γ = [1/(1-M[s].γ) for s in 1:nspec]
+    se_γ = [SE[s].γ/(1-M[s].γ)^2 for s in 1:nspec]
 
-    # test results
-    write(io,"& \\multicolumn{$(nspec+1)}{c}{Residual Correlation Test}\\\\\\cmidrule(r){2-$(nspec+2)}")
-    write(io,"p-value","&")
-    for s in 1:nspec
-        write(io,form(pvals[s]),"&")
-    end
-    write(io,"\\\\","\n")
+    write(io,[string("&",form(e_ρ[s])) for s in 1:nspec]...)
+    write(io,[string("&",form(e_γ[s])) for s in 1:nspec]...)
+    write(io,[string("&",form(results[s].pval)) for s in 1:nspec]...)
+    write(io,["&" for s in 1:nspec]...) #automate this?
+    write(io,"\\\\\n")
+    write(io,[string("&",formse(se_ρ[s])) for s in 1:nspec]...)
+    write(io,[string("&",formse(se_γ[s])) for s in 1:nspec]...)
+    write(io,["&" for s in 1:nspec]...)
+    write(io,["&" for s in 1:nspec]...) #automate this?
+    write(io,"\\\\\n")
+    write(io,repeat("&",3*nspec),"\\\\\n")
 
+    # - Write factor share parameters
+    write(io," & \\multicolumn{$nspec}{c}{\$\\tilde{\\phi}_{m}\$: Mother's Time} & \\multicolumn{$nspec}{c}{\$\\tilde{\\phi}_{f}\$: Father's Time} & \\multicolumn{$nspec}{c}{\$\\tilde{\\phi}_{x}\$: Childcare}","\\\\\n")
+    write(io,repeat(["&($s)" for s in 1:nspec],3)...,"\\\\",[midrule(s) for s in 1:3]...,"\n")
 
-    write(io,"\\bottomrule")
-    write(io,"\\end{tabular}")
-    close(io)
-
-end
-function write_line!(io,format,M,v::Symbol,i::Int=0,vname::String="",endline=true)
-    nspec = length(M)
-    write(io,vname,"&")
-    for s in 1:nspec
-        if i==0
-            write(io,format(getfield(M[s],v)),"&")
-        else
-            write(io,format(getfield(M[s],v)[i]),"&")
-        end
-    end
-    if endline
-        write(io,"\\\\","\n")
-    end
-end
-function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,specvar::Symbol)
-    nspec = length(M)
-    vlist = union([s[specvar] for s in specs]...)
+    vlist = union([s[specvar] for s in specs, specvar in [:vm,:vf,:vm]]...)
     for v in vlist
         if v in keys(labels)
             vname = labels[v]
@@ -411,29 +483,41 @@ function write_observables!(io,format,formatse,M,SE,specs,labels,var::Symbol,spe
         else
             vname = string(v)
         end
-        write(io,vname,"&")
+        write(io,vname)
         # write estimates
-        for j in 1:nspec
-            i = findfirst(specs[j][specvar].==v)
-            if isnothing(i)
-                write(io,"-","&")
-            else
-                write(io,format(getfield(M[j],var)[i]),"&")
+        varlist = [:βm,:βf,:βy]
+        svarlist = [:vm,:vf,:vy]#<- 
+        for k in 1:3
+            var = varlist[k]
+            specvar = svarlist[k]
+            for j in 1:nspec
+                i = findfirst(specs[j][specvar].==v)
+                if isnothing(i)
+                    write(io,"&","-")
+                else
+                    write(io,"&",form(getfield(M[j],var)[i]))
+                end
             end
         end
-        write(io,"\\\\")
-        # write standard errors
-        write(io,"&")
-        for j in 1:nspec
-            i = findfirst(specs[j][specvar].==v)
-            if isnothing(i)
-                write(io,"","&")
-            else
-                write(io,formatse(getfield(SE[j],var)[i]),"&")
+        write(io,"\\\\\n")
+        # now write standard errors:
+        
+        for k in 1:3
+            var = varlist[k]
+            specvar = svarlist[k]
+            for j in 1:nspec
+                i = findfirst(specs[j][specvar].==v)
+                if isnothing(i)
+                    write(io,"&","-")
+                else
+                    write(io,"&",formse(getfield(SE[j],var)[i]))
+                end
             end
         end
-        write(io,"\\\\")
-
-    end
+        write(io,"\\\\\n")
+    end 
+    write(io,"\\\\\n")
+    write(io,"\\bottomrule")
+    write(io,"\\end{tabular}")
+    close(io)
 end
-

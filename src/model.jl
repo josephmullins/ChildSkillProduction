@@ -38,6 +38,16 @@ function update_demand(x,spec)
     βy = x[pos:pos+ny-1]
     return CESmod{R}(ρ=ρ,γ=γ,βm = βm,βf = βf,βy=βy)
 end
+function demand_inv(pars)
+    @unpack ρ,γ,βm,βf,βy = pars
+    return [ρ;γ;βm;βf;βy]
+end
+function demand_guess(spec)
+    P = CESmod(spec)
+    x0 = demand_inv(P)
+    return x0
+end
+
 
 # - function to update all parameters (restricted case)
 # - the keyword case indicates whether we are estimating in the unconstrained case ("uc"), with no borrowing or saving "nbs" 
