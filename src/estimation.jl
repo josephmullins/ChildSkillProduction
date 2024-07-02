@@ -10,11 +10,9 @@ include("estimation/gmm.jl")
 include("estimation/testing.jl")
 include("estimation/input_output.jl")
 
-# And finally a function that does everything we want to for our baseline restricted results, it takes as an argument:
-# - the panel data
-# - the specification (spec)
-# and runs the estimation routine, and tests the restrictions collectively and individually
+# And finally a set of functions that run the various estimation routines to produce final results
 
+# - runs joint gmm estimation in the completely restricted case and tests individual restrictions on the parameters
 function run_restricted_estimation(panel_data,spec,case,gfunc!)
     N = length(unique(panel_data.kid))
     data = child_data(panel_data,spec)
@@ -31,6 +29,7 @@ function run_restricted_estimation(panel_data,spec,case,gfunc!)
     return (;res...,t_joint,p_joint,t_indiv,p_indiv,case)
 end
 
+# - runs joint gmm estimation with parameters that fail the LM test above allowed to be estimated separately
 function run_unrestricted_estimation(panel_data,spec,case,gfunc!,res)
     N = length(unique(panel_data.kid))
     (;Ω,p_indiv,est) = res
@@ -57,6 +56,7 @@ function run_unrestricted_estimation(panel_data,spec,case,gfunc!,res)
     return (;est = res3u.minimizer,se,p_val,DM,unrestricted,case)
 end
 
+# runs joint gmm estimation with the intercept term on the mother's factor share allowed to differ in demand vs production
 function run_unrestricted_estimation_mothershare(panel_data,spec,case,gfunc!,res)
     N = length(unique(panel_data.kid))
     (;Ω,est) = res
@@ -86,7 +86,7 @@ function run_unrestricted_estimation_mothershare(panel_data,spec,case,gfunc!,res
     return (;est = res3u.minimizer,se,p_val,DM,unrestricted,case)
 end
 
-
+# runs joint gmm estimation using only children aged 8-12 and assuming no childcare
 function run_restricted_estimation_older(panel_data,spec,case,gfunc!)
     N = length(unique(panel_data.kid))
     data = child_data(panel_data,spec)
@@ -103,7 +103,7 @@ function run_restricted_estimation_older(panel_data,spec,case,gfunc!)
     return (;res...,t_joint,p_joint,t_indiv,p_indiv,case)
 end
 
-
+# runs gmm estimation with only relative demand moments (no production moments and no parameters from that appear only intertemporally i.e. δ₁,δ₂,ϕ_θ)
 function run_demand_estimation(panel_data,spec,gfunc!)
     N = length(unique(panel_data.kid))
 

@@ -82,3 +82,19 @@ function get_wage_data(data,vlist::Array{Symbol,1},fe)
     lW = Vector{Float64}(d2.logwage_m)
     return lW,Matrix{Float64}(d2[!,vlist]),d
 end
+
+function predict_wage(data,vlist,β)
+    return [linear_combination(β,vlist,data,n) for n=1:size(data,1)]
+end
+function linear_combination(β,vars,data,n)
+    r = 0. #<- not assuming a constant term
+    for j in eachindex(vars)
+        if vars[j]==:constant #<- this condition is unnecessary: we simply add a variable =1 named :constant to the dataset
+            r += β[j]
+        else
+            r += β[j] * data[n,vars[j]]
+        end
+    end
+    return r
+end
+

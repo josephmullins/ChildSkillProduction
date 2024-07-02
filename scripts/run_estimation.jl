@@ -2,12 +2,32 @@ include("../src/model.jl")
 include("../src/model_older_children.jl")
 include("../src/estimation.jl")
 
-# --------  read in the data:
+# =======================   read in the data ===================================== #
 # - load the data 
 panel_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/psid_fam.csv",missingstring = ["","NA"]))
 panel_data, m_ed, f_ed = prep_data(panel_data)
 panel_data = DataFrame(filter(x-> sum(skipmissing(x.ind_not_sample.==0))>0 || sum(x.all_prices)>0,groupby(panel_data,:kid)))
-wage_types = DataFrame(CSV.File("data/wage_types.csv"))
+
+# =======================   run the clustering routine on wages ===================================== #
+
+println(" ======= Running the Clustering Algorithm on Wage Data ========= ")
+wage_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/MotherPanelCDS.csv",missingstring = "NA"))
+wage_data[!,:logwage_m] = wage_data.ln_wage_m
+wage_data = subset(wage_data,:m_wage => x->x.>0,skipmissing=true)
+wage_data[!,:constant] .= 1.
+m_ed = make_dummy(wage_data,:m_ed)
+yr = make_dummy(wage_data,:year)
+vl=[yr[2:end];m_ed[2:end];:m_exper;:m_exper2]
+num_clusters = 3
+
+Random.seed!(2724)
+wage_types = cluster_routine_robust(wage_data,vl,num_clusters)
+wage_types_k10 = cluster_routine_robust(wage_data,vl,10,500)
+wage_types_k10 = rename(select(wage_types_k10,[:MID,:center]),:center => :mu_k)
+
+wage_types = innerjoin(wage_types,wage_types_k10,on=:MID)
+
+# =======================  Do other basic setup work ===================================== #
 
 panel_data=innerjoin(panel_data, wage_types, on = :MID) #merging in cluster types
 cluster_dummies=make_dummy(panel_data,:cluster) #cluster dummies made
@@ -24,6 +44,7 @@ ed_labels = Dict(zip([f_ed[2:3];m_ed[2:3]],["Father some coll.","Father coll+","
 other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. of children 0-5", :constant => "Constant", :mu_k => "\$\\mu_{k}\$", :age => "Child's age", :ind02 => "Year = 2002")
 labels = merge(other_labels,cluster_labels,ed_labels)
 
+# =======================  Run the specifications ===================================== #
 
 # ------- Case 1: unconstrained (κ=0)
 println(" ====== Estimating Main Specifications for κ = 0 ========= ")
