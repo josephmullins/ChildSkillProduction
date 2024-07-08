@@ -120,7 +120,7 @@ function calc_production_resids!(it0,R,data,pars1,pars2)
     end
 end
 function calc_production_resids!(it0,R,data,pars1)
-        # it0 indicates the period in which skills are initially measured
+    # it0 indicates the period in which skills are initially measured
     # it5 is the period in whichs skills are next measured:
     it5 = it0 + 5
     # this function call is assumed to return a coefficient lΦm where $X_{it} = τ_{m,it} / exp(lΦm)
@@ -175,7 +175,6 @@ function production_residuals_all!(R,pars1,pars2,n,data)
     it07 = it02+5
     if data.all_prices[it97] && !data.mtime_missing[it97] && !data.mtime_missing[it02] && (data.age[it97]<=12)
         @views calc_production_resids!(it97,R[1:8],data,pars1,pars2)
-        #resids = view(R,1:6) #<- is this necessary? I don't think so.
     end
     if data.all_prices[it02] && !data.mtime_missing[it02] && !data.mtime_missing[it07] && (data.age[it02]<=12)
         @views calc_production_resids!(it02,R[9:16],data,pars1,pars2)
@@ -187,7 +186,6 @@ function production_residuals_all!(R,pars1,n,data)
     it07 = it02+5
     if data.all_prices[it97] && !data.mtime_missing[it97] && !data.mtime_missing[it02] && (data.age[it97]<=12)
         @views calc_production_resids!(it97,R[1:8],data,pars1)
-        #resids = view(R,1:6) #<- is this necessary? I don't think so.
     end
     if data.all_prices[it02] && !data.mtime_missing[it02] && !data.mtime_missing[it07] && (data.age[it02]<=12)
         @views calc_production_resids!(it02,R[9:16],data,pars1)
