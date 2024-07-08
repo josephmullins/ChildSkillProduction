@@ -20,7 +20,7 @@ function build_spec(spec)
     (:constant,:logprice_f_g)        
     ]
     zlist_prod_t = [0,5]
-    zlist_prod = [[[spec.vy;:AP],[:log_mtime]],[[spec.vy;:AP],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
+    zlist_prod = [[[spec.vy,:AP,:logprice_c_g,:logprice_m_g],[:log_mtime]],[[spec.vy,:AP,:logprice_c_g,:logprice_m_g],[:log_mtime]],[],[],[],[],[[:constant],[]],[[:constant],[]]]
 
     return (;vm = spec.vm, vf = spec.vf, vθ = [spec.vy;:ind02], vy = spec.vy,
     zlist_97, zlist_02, zlist_07, zlist_prod, zlist_prod_t
