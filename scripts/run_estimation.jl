@@ -86,6 +86,8 @@ write_production_table_unrestricted(res3_ms,spec3,labels,"tables/demand_producti
 res3_ms_nbs = run_unrestricted_estimation_mothershare(panel_data,spec3,"nbs",gfunc!,res3_nbs)
 write_production_table_unrestricted(res3_ms_nbs,spec3,labels,"tables/demand_production_mothershare_relaxed_nbs.tex")
 
+
+break
 println(" ====== Estimating On Children 8-12 Only ========= ")
 # --------- Run the estimation for older children only
 gfunc_older!(x,n,g,resids,data,spec,unrestricted,case) = production_demand_moments_older!(update_relaxed_older(x,spec,unrestricted,case)...,n,g,resids,data)
