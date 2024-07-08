@@ -27,6 +27,8 @@ wage_types_k10 = rename(select(wage_types_k10,[:MID,:center]),:center => :mu_k)
 
 wage_types = innerjoin(wage_types,wage_types_k10,on=:MID)
 
+CSV.write("data/wage_types.csv",wage_types)
+
 # =======================  Do other basic setup work ===================================== #
 
 panel_data=innerjoin(panel_data, wage_types, on = :MID) #merging in cluster types
@@ -70,6 +72,9 @@ res4_nbs = run_restricted_estimation(panel_data,spec4,"nbs",gfunc!)
 
 # Write results to a table
 write_production_table([res1_nbs,res2_nbs,res3_nbs,res4_nbs],[spec1,spec2,spec3,spec4],labels,"tables/demand_production_restricted_nbs.tex")
+
+# save results for monte carlo simulation
+writedlm("output/est_nbs_spec3",res3_nbs.est)
 
 # run the unrestricted version for our preferred specification
 res3u_nbs = run_unrestricted_estimation(panel_data,spec3,"nbs",gfunc!,res3_nbs)
