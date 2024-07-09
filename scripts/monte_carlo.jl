@@ -1,193 +1,123 @@
-using Random, Distributions
+# a script to pick parameters for the monte-carlo simulation
 
-function gen_data(p1,p2,N)
-    (;δ,σξ,σπ) = p2
-    rel_price = rand(LogNormal(0,σπ),N)
-    x1 = rand(LogNormal(3.,1.),N)
-    x2 = (p1.a/(1-p1.a))^(1/(p1.ρ-1)) .* rel_price.^(1/(p1.ρ-1)) .* x1
-    y = δ * log.( (p2.a .* x1 .^ p2.ρ .+ (1 - p2.a) .* x2 .^ p2.ρ ) .^ (1/p2.ρ) ) .+ rand(Normal(0,σξ),N)
-    x2_obs = log.(x2) .+ rand(Normal(0,0.2),N)
-    x1_obs = log.(x1)
-    return (;y,x1,x2,x1_obs,x2_obs,rel_price)
+include("../src/model.jl")
+include("../src/model_older_children.jl")
+include("../src/estimation.jl")
+
+# =======================   read in the data and estimates ===================================== #
+# - load the data 
+panel_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/psid_fam.csv",missingstring = ["","NA"]))
+panel_data, m_ed, f_ed = prep_data(panel_data)
+panel_data = DataFrame(filter(x-> sum(skipmissing(x.ind_not_sample.==0))>0 || sum(x.all_prices)>0,groupby(panel_data,:kid)))
+
+wage_types = DataFrame(CSV.File("data/wage_types.csv"))
+
+panel_data=innerjoin(panel_data, wage_types, on = :MID) #merging in cluster types
+cluster_dummies=make_dummy(panel_data,:cluster) #cluster dummies made
+
+# get the four specifications we settle on in the paper
+spec1,spec2,spec3,spec4 = get_specifications(m_ed,f_ed,cluster_dummies)
+
+# read in estimates from spec 3
+est = readdlm("output/est_nbs_spec3")[:]
+
+p = update(est,spec3,"nbs")
+
+# ============ Calibrate Parameters ====================================== #
+# (1) residual variation of child care prices relative to mother's wage
+# (2) covariance of demand residuals across time periods
+# (3) variance of demand residuals
+# (4) variance of residual in outcome equation
+# (5) variance of the mother's time input (logged, conditional on Zθ)
+N = length(unique(panel_data.kid))
+data = child_data(panel_data,spec3)
+R = zeros(30,N)
+for n in 1:N
+    @views demand_residuals_all!(R[1:9,n],p,n,data)
+    @views production_residuals_all!(R[10:end,n],p,p,n,data)
 end
 
+
+r_keep = sum(R[1:2,:].!=0,dims=1)[:].>1 #<- keep only non-missing residuals in both years
+σζ1 = sqrt(cov(R[1,r_keep],R[2,r_keep]))
+σζ2 = sqrt(var(R[1,r_keep]) - σζ1^2)
+σξ = std(R[10,:]) 
+
+I_keep = (panel_data.year.==1997) .& .!ismissing.(panel_data.logprice_c_m) .& .!ismissing.(panel_data.div) .& .!ismissing.(panel_data.log_mtime)
+X = Matrix{Float64}(panel_data[I_keep,spec3.vθ[1:end-1]])
+Y1 = Vector{Float64}(panel_data.logprice_c_m[I_keep])
+Y2 = Vector{Float64}(panel_data.log_mtime[I_keep])
+
+σx = std(Y2 .- X*inv(X' * X) * X' * Y2)
+σπ = std(Y1 .- X*inv(X' * X) * X' * Y1)
+
+p = (;ρ = -3.,a = 0.5,δ = 0.1, σζ1, σζ2, σπ, σξ, σx)
+
+# ================= Functions to run the simulation ====================== #
 function gen_data(p,N)
-    (;a,ρ,σξ,δ,σπ) = p
-    x1 = rand(LogNormal(3.,1),N)
-    x2 = rand(LogNormal(3.,σπ),N)
-    y = δ * log.( (a .* x1 .^ ρ .+ (1 - a) .* x2 .^ ρ ) .^ (1/ρ) ) .+ rand(Normal(0,σξ),N)
-    return (;y,x1,x2)
+    (;ρ, a, δ, σξ, σπ, σζ1,σζ2, σx) = p
+    rel_price = rand(LogNormal(0,σπ),N)
+    ζ1 = rand(Normal(0.,σζ1),N) #<- true variation in x2
+    ζ2 = rand(Normal(0.,σζ2),N) #<- measurement error in x2
+    x1 = rand(LogNormal(0.,σx),N)
+    x2 = (a/(1-a))^(1/(ρ-1)) .* rel_price.^(1/(ρ-1)) .* x1 .* exp.(ζ1)
+    logy = δ * log.( (a .* x1 .^ ρ .+ (1 - a) .* x2 .^ ρ ) .^ (1/ρ) ) .+ rand(Normal(0,σξ),N)
+    logx2_obs = log.(x2) .+ ζ2
+    return (;logy,x1,x2,logx2_obs,rel_price)
+end
+# this function works for both estimators 1 and 2.
+function Q1_nlls(p,data)
+    (;logy,x1,x2) = data
+    (;ρ,a,δ) = p
+    r2 = logy .- δ * log.( (a .* x1 .^ ρ .+ (1 - a) .* x2 .^ ρ) .^ (1/ρ) )
+    return sum(r2.^2)
 end
 
-p = (;ρ = -2.,a = 0.5, δ = 0.2,σξ = 0.5,σπ = 0.2)
-dat = gen_data(p,p,500)
-
-# no measurement error
-function Q_nlls(p1,p2,data)
-    (;y,x1,x2,x1_obs,x2_obs,rel_price) = data
+# this function works for estimators 3 and 4
+function Q2_nlls(p1,p2,data)
+    # p1 are the perceived parameters of technology
+    # p2 are the true parameters of technology
+    (;logy,x1,logx2_obs,rel_price) = data
     (;δ) = p2
-    r1 = x2_obs .- x1_obs .- (1/(p1.ρ-1))*log(p1.a/(1-p1.a)) .- (1/(p1.ρ-1))*log.(rel_price)
-    #x2 = (p1.a/(1-p1.a))^(1/(p1.ρ-1)) .* rel_price.^(1/(p1.ρ-1)) .* x1
-    r2 = y .- δ * log.( (p2.a .* x1 .^ p2.ρ .+ (1 - p2.a) .* x2 .^ p2.ρ) .^ (1/p2.ρ) )
+    r1 = logx2_obs .- log.(x1) .- (1/(p1.ρ-1))*log(p1.a/(1-p1.a)) .- (1/(p1.ρ-1))*log.(rel_price)
+    x2 = (p1.a/(1-p1.a))^(1/(p1.ρ-1)) .* rel_price.^(1/(p1.ρ-1)) .* x1
+    r2 = logy .- δ * log.( (p2.a .* x1 .^ p2.ρ .+ (1 - p2.a) .* x2 .^ p2.ρ) .^ (1/p2.ρ) )
     return sum(r1.^2) + sum(r2.^2)
 end
 
-logit(x) = exp(x)/(1+exp(x))
-logit_inv(x) = log(x/(1-x))
-
-function pars_restricted(x)
-    ρ = x[1]
-    a = logit(x[2])
-    δ = x[3]
-    p = (;ρ,a,δ)
-    return p,p
-end
-function pars_relaxed(x)
-    p1 = (;ρ = x[1], a = logit(x[2]))
-    p2 = (;ρ = x[3], a = logit(x[4]),δ = x[5])
-    return p1,p2
-end
-
-using Optim
-
 function monte_carlo(N,B,p)
-    Xb = zeros(3,B)
-    x0 = [p.ρ,logit_inv(p.a),p.δ]
+    ρb = zeros(4,B)
+    ab = zeros(3,B)
     for b in 1:B
-        Random.seed!(11211+b)
-        println("Doing round $b of $B trials")
-        dat = gen_data(p,p,N)
-        f_obj(x) = Q_nlls(pars_restricted(x)...,dat)
-        res = optimize(f_obj,x0,LBFGS(),autodiff=:forward,Optim.Options(show_trace=false)) 
-        Xb[:,b] = res.minimizer
-    end
-    return Xb
-end
-
-Xb = monte_carlo(1000,100,p)
-
-using Plots
-histogram(Xb[1,:])
-
-break
-
-# Random.seed!(11211+2)
-# dat = gen_data(p,p,N)
-# f_obj(x) = Q_nlls(pars_restricted(x)...,dat)
-# res = optimize(f_obj,x0,LBFGS(),autodiff=:forward,Optim.Options(show_trace=false)) 
-# p1,_ = pars_restricted(res.minimizer)
-# Q_nlls(p1,p1,dat)
-# Q_nlls(p,p,dat)
-
-function monte_carlo(N,B,p)
-    Xb = zeros(5,B)
-    x0 = [p.ρ,logit_inv(p.a),p.ρ,logit_inv(p.a),p.δ]
-    for b in 1:B
-        Random.seed!(11211+b)
-        println("Doing round $b of $B trials")
-        dat = gen_data(p,p,N)
-        f_obj(x) = Q_nlls(pars_relaxed(x)...,dat)
-        res = optimize(f_obj,x0,LBFGS(),autodiff=:forward,Optim.Options(show_trace=false)) 
-        Xb[:,b] = res.minimizer
-    end
-    return Xb
-end
-
-Xb = monte_carlo(1000,100,p)
-
-using Plots
-histogram(Xb[3,:])
-
-function Q_nlls(x,data)
-    (;y,x1,x2) = data
-    ρ = x[1]
-    a = logit(x[2])
-    δ = x[3]
-    r2 = y .- δ * log.( (a .* x1 .^ ρ .+ (1 - a) .* x2 .^ ρ) .^ (1/ρ) )
-    return sum(r2.^2)
-end
-
-function monte_carlo(N,B,p)
-    Xb = zeros(3,B)
-    x0 = [p.ρ,logit_inv(p.a),p.δ]
-    for b in 1:B
-        Random.seed!(11211+b)
-        println("Doing round $b of $B trials")
-        dat = gen_data(p,p,N)
-        res = optimize(x->Q_nlls(x,dat),x0,LBFGS(),autodiff=:forward,Optim.Options(show_trace=false)) 
-        Xb[:,b] = res.minimizer
-    end
-    return Xb
-end
-
-# how much variation in relative prices do we need? maybe a shite load?
-# note: in our case having prices and demand parameters is an equivalent formulation
-p = (;p...,σπ = 2.)
-Xb = monte_carlo(1000,100,p)
-histogram(Xb[1,:])
-
-
-# ------------- simplest possible case -------------- #
-function Q_nlls(x,data)
-    (;y,x1,x2) = data
-    ρ = x
-    a = 0.5 #<- true value
-    δ = 0.2 #<- true value
-    r2 = y .- δ * log.( (a .* x1 .^ ρ .+ (1 - a) .* x2 .^ ρ) .^ (1/ρ) )
-    return sum(r2.^2)
-end
-
-function monte_carlo(N,B,p)
-    Xb = zeros(B)
-    Xb2 = zeros(B)
-    for b in 1:B
-        Random.seed!(11211+b)
-        println("Doing round $b of $B trials")
-        dat = gen_data(p,p,N)
-        res = optimize(x->Q_nlls(x,dat),-100.,1.) #[-2.]) #-300,1.) 
-        Xb[b] = res.minimizer
+        #println("Doing round $b of $B trials")
         dat = gen_data(p,N)
-        res = optimize(x->Q_nlls(x,dat),-100.,1.) #[-2.]) #-300,1.) 
-        Xb2[b] = res.minimizer
+        lower = [-50.,0.,0.]
+        upper = [1.,1.,1.]
+        x0 = [p.ρ, p.a, p.δ]
+        res1 = optimize(x->Q1_nlls((;p...,ρ=x),dat),-50.,1.) #[-2.]) #-300,1.) 
+        res2 = optimize(x->Q1_nlls((;ρ=x[1],a=x[2],δ = x[3]),dat),lower,upper,x0,Fminbox(LBFGS()),autodiff=:forward)
+        res4 = optimize(x->Q2_nlls((;ρ=x[1],a=x[2]),(;ρ=x[1],a=x[2],δ = x[3]),dat),lower,upper,x0,Fminbox(LBFGS()),autodiff=:forward) 
+        lower = [-50.,0.,-50.,0.,0.]
+        upper = [1.,1.,1.,1.,1.]
+        x0 = [p.ρ, p.a, p.ρ, p.a, p.δ]
+        res3 = optimize(x->Q2_nlls((;ρ=x[1],a=x[2]),(;ρ=x[3],a=x[4],δ = x[5]),dat),lower,upper,x0,Fminbox(LBFGS()),autodiff=:forward)
+        ρb[:,b] .= (res1.minimizer,res2.minimizer[1],res3.minimizer[3],res4.minimizer[1])
+        ab[:,b] .= (res2.minimizer[2],res3.minimizer[4],res4.minimizer[2])
     end
-    return Xb,Xb2
+    return ρb,ab
 end
 
-# how much variation in relative prices do we need? maybe a shite load?
+# ================== Results ========================== #
+#ρb,ab = monte_carlo(N_vec[j],500,p)
 
-# note: in our case having prices and demand parameters is an equivalent formulation
-# HERE IS THE MOST IMPORTANT THING
-# the variance of the estimator depends on sample size but also on the variance of relative prices. 
-# As these get smaller, the left tail of the distribution of the estimator grows (variance increases).
-# We could probably run a simulation to show that this is true. Could we even characterize the variance?
-# NOTE: this could also depend on the value of ρ itself (potentially).
-# Another issue: if I set the lower bound too low, the estimate converges to the same number for every trial.
-# NOTE: this seems to be related to whatever I set the mean of x1 to be also.
-# this is caused by the lower bound for ρ hitting an infinite number. we need to dynamically find the initial guess.
-p = (;p...,σπ = 1.5)
-Xb = monte_carlo(1000,500,p)
-histogram(Xb)
-dat = gen_data(p,p,5_000)
-Q_nlls(-500.,dat) # so this is the issue!!!
+N_vec = [500,1_000,2_000]
 
-σπ_vec = [0.5,1.,1.5]
-N_vec = [500,1_000,5_000]
-H = []
-H2 = []
-for i in 1:3
-    for j in 1:3
-       p = (;p...,σπ = σπ_vec[i])
-       Xb,Xb2 = monte_carlo(N_vec[j],200,p)
-       push!(H,histogram(Xb,bins=20))
-       push!(H2,histogram(Xb2,bins=20))
-    end
+da = DataFrame(N = [], estimator = [], bias = [], sd = [])
+dρ = DataFrame(N = [], estimator = [], bias = [], sd = [])
+
+for j in 1:3
+    global da, dρ
+    ρb,ab = monte_carlo(N_vec[j],500,p)
+    da = [da; DataFrame(N = N_vec[j], estimator = 2:4, bias = p.a .- mean(ab,dims=2)[:], sd = std(ab,dims=2)[:])]
+    dρ = [dρ; DataFrame(N = N_vec[j], estimator = 1:4, bias = p.ρ .- mean(ρb,dims=2)[:], sd = std(ρb,dims=2)[:])]
 end
-plot(H...)
-plot(H2...)
-
-
-dat = gen_data(p,p,1000)
-Q_nlls(0.99,dat)
-
-xg = LinRange(-3.,-1.,100)
-plot(xg,[Q_nlls(x,dat) for x in xg])
