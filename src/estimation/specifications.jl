@@ -83,24 +83,28 @@ function get_specifications(m_ed,f_ed,cluster_dummies)
     spec_1 = build_spec((vm = [:constant;:div;m_ed[2:3];:age;:num_0_5],
         vf = [:constant;f_ed[2:3];:age;:num_0_5],
         vθ = [:constant;:div;m_ed[2:3];f_ed[2:3];:age;:num_0_5],
-        vy = [:constant;:div;m_ed[2:3];f_ed[2:3];:age;:num_0_5]))
+        vy = [:constant;:div;m_ed[2:3];f_ed[2:3];:age;:num_0_5],
+        vx = [],vτ = [],vΩ = []))
 
     # using just cluster dummies
     spec_2 = build_spec((vm = [:constant;:div;cluster_dummies[2:end];:age;:num_0_5],
         vf = [:constant;f_ed[2:3];:age;:num_0_5],
         vθ = [:constant,:div,:age,:num_0_5],
-        vy = [:constant;:div;cluster_dummies[2:end];f_ed[2:3];:age;:num_0_5]))
+        vy = [:constant;:div;cluster_dummies[2:end];f_ed[2:3];:age;:num_0_5],
+        vx = [],vτ = [],vΩ = []))
 
     # using cluster dummies and education
     spec_3 = build_spec((vm = [:constant;:div;cluster_dummies[2:end];m_ed[2:3];:age;:num_0_5],
         vf = [:constant;f_ed[2:3];:age;:num_0_5],
         vθ = [:constant,:div,:age,:num_0_5],
-        vy = [:constant;:div;cluster_dummies[2:end];m_ed[2:3];f_ed[2:3];:age;:num_0_5]))
+        vy = [:constant;:div;cluster_dummies[2:end];m_ed[2:3];f_ed[2:3];:age;:num_0_5],
+        vx = [],vτ = [],vΩ = []))
 
     # using centers (as above) and education
     spec_4 = build_spec((vm = [:constant;:div;:mu_k;m_ed[2:3];:age;:num_0_5],
         vf = [:constant;f_ed[2:3];:age;:num_0_5],
         vθ = [:constant,:div,:age,:num_0_5],
-        vy = [:constant;:div;:mu_k;m_ed[2:3];f_ed[2:3];:age;:num_0_5]))
+        vy = [:constant;:div;:mu_k;m_ed[2:3];f_ed[2:3];:age;:num_0_5],
+        vx = [],vτ = [],vΩ = []))
     return spec_1,spec_2,spec_3,spec_4
 end

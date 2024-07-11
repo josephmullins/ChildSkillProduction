@@ -5,6 +5,11 @@ struct child_data
     Xf::Matrix{Float64}
     Xy::Matrix{Float64}
     Xθ::Matrix{Float64}
+    Zc::Matrix{Float64}
+    Zf::Matrix{Float64}
+    Zg::Matrix{Float64}
+    Zτ::Matrix{Float64}
+    Ω::Matrix{Float64}
     year::Vector{Int64}
     age::Vector{Int64}
     # logicals:
@@ -46,6 +51,19 @@ function child_data(data,spec)
     Xf = hcat([data[!,v] for v in spec.vf]...)'
     Xy = hcat([data[!,v] for v in spec.vy]...)'
     Xθ = hcat([data[!,v] for v in spec.vθ]...)'
+    if :zc in keys(spec)
+        Zτ = hcat([data[!,v] for v in spec.zτ]...)'
+        Ω = hcat([data[!,v] for v in spec.vΩ]...)'
+        Zc = hcat([data[!,v] for v in spec.zc]...)'
+        Zf = hcat([data[!,v] for v in spec.zf]...)'
+        Zg = hcat([data[!,v] for v in spec.zg]...)'
+    else
+        Zτ = zeros(0,0)
+        Ω = zeros(0,0)
+        Zc = zeros(0,0)
+        Zf = zeros(0,0)
+        Zg = zeros(0,0)
+    end
     Z = []
     for zv in spec.zlist_97
         push!(Z,coalesce.(hcat([data[data.year.==1997,v] for v in zv]...)',0.))
@@ -82,6 +100,11 @@ function child_data(data,spec)
     coalesce.(Xf,0.),
     coalesce.(Xy,0.),
     coalesce.(Xθ,0.),
+    coalesce.(Zc,0.),
+    coalesce.(Zf,0.),
+    coalesce.(Zg,0.),
+    coalesce.(Zτ,0.),
+    coalesce.(Ω,0.),
     data.year,
     data.age,
     coalesce.(data.mar_stat,false),
@@ -204,3 +227,75 @@ function make_interactions(data,V1::Vector{Symbol},V2::Vector{Symbol})
     end
     return names
 end
+
+# function get_data_method_1(data,spec)
+#     Xm = hcat([data[!,v] for v in spec.vm]...)'
+#     Xf = hcat([data[!,v] for v in spec.vf]...)'
+#     Xy = hcat([data[!,v] for v in spec.vy]...)'
+#     Xθ = hcat([data[!,v] for v in spec.vθ]...)'
+#     X = hcat([data[!,v] for v in spec.vx]...)'
+#     Xτ = hcat([data[!,v] for v in spec.vx]...)'
+#     Ω = hcat([data[!,v] for v in spec.vΩ]...)'
+#     Z = []
+#     for zv in spec.zlist_97
+#         push!(Z,coalesce.(hcat([data[data.year.==1997,v] for v in zv]...)',0.))
+#     end
+#     for zv in spec.zlist_02
+#         push!(Z,coalesce.(hcat([data[data.year.==2002,v] for v in zv]...)',0.))
+#     end
+#     for zv in spec.zlist_07
+#         push!(Z,coalesce.(hcat([data[data.year.==2007,v] for v in zv]...)',0.))
+#     end
+#     # have to update the specification
+#     for zv in spec.zlist_prod
+#         Zt = [] #
+#         for i in eachindex(zv)
+#             y = 1997+spec.zlist_prod_t[i]
+#             for v in zv[i]
+#                 push!(Zt,Vector{Float64}(coalesce.(data[data.year.==y,v],0.)))
+#             end
+#         end
+#         push!(Z,hcat(Zt...)')
+#     end
+#     #push!(Z,[Matrix{Float64}(undef,1,0) for i in 1:8]...)
+#     for zv in spec.zlist_prod
+#         Zt = []
+#         for i in eachindex(zv)
+#             y = 2002+spec.zlist_prod_t[i]
+#             for v in zv[i]
+#                 push!(Zt,Vector{Float64}(coalesce.(data[data.year.==y,v],0.)))
+#             end
+#         end
+#         push!(Z,hcat(Zt...)')
+#     end
+#     return (;
+#     Xm = coalesce.(Xm,0.),
+#     Xf = coalesce.(Xf,0.),
+#     Xy = coalesce.(Xy,0.),
+#     Xθ = coalesce.(Xθ,0.),
+#     year = data.year,
+#     age = data.age,
+#     mar_stat = coalesce.(data.mar_stat,false),
+#     prices_observed = data.prices_observed,
+#     data.ind_not_sample,
+#     coalesce.(data.logprice_g,0.),
+#     coalesce.(data.logprice_c,0.),
+#     coalesce.(data.logwage_m,0.),
+#     coalesce.(data.logwage_f,0.),
+#     coalesce.(data.log_total_income,0.),
+#     coalesce.(data.log_mtime,0.),
+#     coalesce.(data.log_ftime,0.),
+#     coalesce.(data.log_chcare,0.),
+#     coalesce.(data.log_good,0.),
+#     ismissing.(data.log_mtime),
+#     ismissing.(data.log_ftime),
+#     ismissing.(data.log_chcare),
+#     ismissing.(data.log_good),
+#     Z,
+#     panel_data.all_prices,
+#     coalesce.(data.AP,0.),
+#     coalesce.(data.LW,0.),
+#     ismissing.(data.AP),
+#     ismissing.(data.LW)
+#     )
+# end

@@ -35,20 +35,35 @@ function estimate_gmm(x0,gfunc!,W,N,nresids,args...)
     return (est = x_est,Ω = Ω,avar = avar,se = se)
 end
 
+function bootstrap_gmm(x0,gfunc!,W,N,nresids,args...;ntrials=50,seed=71024,trace=true)
+    np = length(x0)
+    Xb = zeros(np,ntrials)
+    Random.seed!(seed)
+    for b in 1:ntrials
+        index = rand(1:N,N)
+        if trace
+            println("Doing bootstrap trial $b of $ntrials")
+        end
+        r1 = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,args...;index),x0,Newton(),autodiff=:forward,Optim.Options(iterations=1))
+        Xb[:,b] .= r1.minimizer
+    end
+    return Xb
+end
+
 # ----- function that calculates the sample mean of gfunc
 # idea: pass other arguments here
 # g = N^{-1}∑gfunc(x,i...)
 # gfunc = [ϵ_{1,i} × Z_{1,i}, ϵ_{2,i} × Z_{2,i}, .... ]
-function gmm_criterion(x,gfunc!,W,N,nresids,args...)
+function gmm_criterion(x,gfunc!,W,N,nresids,args...;index = 1:N)
     nmom = size(W)[1]
-    g = moment_func(x,gfunc!,N,nmom,nresids,args...)
+    g = moment_func(x,gfunc!,N,nmom,nresids,args...;index)
     return g'*W*g / 2
 end
 # - used in gmm_criterion, calculates sample moments
-function moment_func(x,gfunc!,N,nmom,nresids,args...)
+function moment_func(x,gfunc!,N,nmom,nresids,args...;index = 1:N)
     g = zeros(typeof(x[1]),nmom) #<- pre-allocate an array for the moment function to write to
     resids = zeros(typeof(x[1]),nresids) #<- pre-allocate an array to write the residuals.
-    for n in 1:N
+    for n in index
         #println(n)
         gfunc!(x,n,g,resids,args...)
     end
