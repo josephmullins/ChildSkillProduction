@@ -95,6 +95,14 @@
 
 \end{landscape}
 
+\begin{table}\footnotesize\caption{Monte Carlo Simulation - Direct vs Indirect Methods}
+    \begin{center}
+        \input{../tables/monte_carlo_results.tex}
+        \captionsetup{width=\textwidth}
+        \caption*{This table presents results from 500 Monte Carlo samples of each estimator. Estimator 1 assumes inputs are perfectly measured and performs NLLS on production outcomes. Estimator 2 assumes measurement error in input 2 and uses relative demand observations to impute the second input, but does not impose cross-equation restrictions between demand and production when performing NLLS. Estimator 3 imposes the cross-equation restrictions. Estimator 4 implements estimator 1 assuming the true value of $\rho$.}
+    \end{center}
+\end{table}
+
 
 \end{document}
 

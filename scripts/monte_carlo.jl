@@ -87,37 +87,73 @@ end
 
 function monte_carlo(N,B,p)
     ρb = zeros(4,B)
-    ab = zeros(3,B)
+    ab = zeros(4,B)
+    δb = zeros(4,B)
     for b in 1:B
-        #println("Doing round $b of $B trials")
+        println("Doing round $b of $B trials")
         dat = gen_data(p,N)
         lower = [-50.,0.,0.]
         upper = [1.,1.,1.]
         x0 = [p.ρ, p.a, p.δ]
-        res1 = optimize(x->Q1_nlls((;p...,ρ=x),dat),-50.,1.) #[-2.]) #-300,1.) 
+        #res1 = optimize(x->Q1_nlls((;p...,ρ=x),dat),-50.,1.) #[-2.]) #-300,1.) 
         res2 = optimize(x->Q1_nlls((;ρ=x[1],a=x[2],δ = x[3]),dat),lower,upper,x0,Fminbox(LBFGS()),autodiff=:forward)
         res4 = optimize(x->Q2_nlls((;ρ=x[1],a=x[2]),(;ρ=x[1],a=x[2],δ = x[3]),dat),lower,upper,x0,Fminbox(LBFGS()),autodiff=:forward) 
         lower = [-50.,0.,-50.,0.,0.]
         upper = [1.,1.,1.,1.,1.]
         x0 = [p.ρ, p.a, p.ρ, p.a, p.δ]
         res3 = optimize(x->Q2_nlls((;ρ=x[1],a=x[2]),(;ρ=x[3],a=x[4],δ = x[5]),dat),lower,upper,x0,Fminbox(LBFGS()),autodiff=:forward)
-        ρb[:,b] .= (res1.minimizer,res2.minimizer[1],res3.minimizer[3],res4.minimizer[1])
-        ab[:,b] .= (res2.minimizer[2],res3.minimizer[4],res4.minimizer[2])
+        lower = [0.,0.]
+        upper = [1.,1.]
+        x0 = [p.a, p.δ]
+        res5 = optimize(x->Q1_nlls((;ρ=p.ρ,a=x[1],δ = x[2]),dat),lower,upper,x0,Fminbox(LBFGS()),autodiff=:forward)
+        ρb[:,b] .= (res2.minimizer[1],res3.minimizer[3],res4.minimizer[1],p.ρ)
+        ab[:,b] .= (res2.minimizer[2],res3.minimizer[4],res4.minimizer[2],res5.minimizer[1])
+        δb[:,b] .= (res2.minimizer[3],res3.minimizer[5],res4.minimizer[3],res5.minimizer[2])
     end
-    return ρb,ab
+    return ρb,ab,δb
 end
 
 # ================== Results ========================== #
-#ρb,ab = monte_carlo(N_vec[j],500,p)
 
 N_vec = [500,1_000,2_000]
 
-da = DataFrame(N = [], estimator = [], bias = [], sd = [])
-dρ = DataFrame(N = [], estimator = [], bias = [], sd = [])
+bias = zeros(4,3,3)
+sd = zeros(4,3,3)
 
 for j in 1:3
-    global da, dρ
-    ρb,ab = monte_carlo(N_vec[j],500,p)
-    da = [da; DataFrame(N = N_vec[j], estimator = 2:4, bias = p.a .- mean(ab,dims=2)[:], sd = std(ab,dims=2)[:])]
-    dρ = [dρ; DataFrame(N = N_vec[j], estimator = 1:4, bias = p.ρ .- mean(ρb,dims=2)[:], sd = std(ρb,dims=2)[:])]
+    ρb,ab,δb = monte_carlo(N_vec[j],500,p)
+    bias[:,j,1] .= p.ρ .- mean(ρb,dims=2)[:]
+    sd[:,j,1] .= std(ρb,dims=2)[:]
+    bias[:,j,2] .=  p.a .- mean(ab,dims=2)[:]
+    sd[:,j,2] .= std(ab,dims=2)[:]
+    bias[:,j,3] .=  p.δ .- mean(δb,dims=2)[:]
+    sd[:,j,3] .= std(δb,dims=2)[:]
 end
+
+
+# ============= How to present the results? ============= #
+# parameters: δ, a, ρ
+# bias / sd
+# then do each N / estimator
+function write_monte_carlo_table(sd,bias,N_vec,outfile::String)
+    form(x) = @sprintf("%0.2f",x)
+    io = open(outfile, "w");
+    write(io,"\\begin{tabular}{lcccccc} \\\\\\toprule","\n")
+    write(io," & \\multicolumn{2}{c}{\$\\rho\$}")
+    write(io," & \\multicolumn{2}{c}{\$a\$}")
+    write(io," & \\multicolumn{2}{c}{\$\\delta\$} \\\\ \n")
+    write(io," & Bias & Std. Dev. & Bias & Std. Dev. & Bias & Std. Dev. \\\\\n")
+    write(io,"\\cmidrule(r){2-3}\\cmidrule(r){4-5}\\cmidrule(r){6-7} \\\\\n")
+    for j in 1:4
+        for i in eachindex(N_vec)
+            write(io,"Method $j, \$N=$(N_vec[i])\$ & ",form(bias[j,i,1])," & ",form(sd[j,i,1]))
+            write(io," & ",form(bias[j,i,2])," & ",form(sd[j,i,2]))
+            write(io," & ",form(bias[j,i,3])," & ",form(sd[j,i,3]),"\\\\\n")
+        end
+    end
+    write(io,"\\bottomrule")
+    write(io,"\\end{tabular}")
+    close(io)
+end
+
+write_monte_carlo_table(sd,bias,N_vec,"tables/monte_carlo_results.tex")

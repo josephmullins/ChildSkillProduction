@@ -268,6 +268,10 @@ INPUT ../tables/direct_estimation_iqr.tex
 INPUT ../tables/direct_estimation_iqr.tex
 INPUT ../tables/direct_estimation_iqr.tex
 INPUT ../tables/direct_estimation_iqr.tex
+INPUT ../tables/monte_carlo_results.tex
+INPUT ../tables/monte_carlo_results.tex
+INPUT ../tables/monte_carlo_results.tex
+INPUT ../tables/monte_carlo_results.tex
 INPUT results_summary.aux
 INPUT /usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb
 INPUT /usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb
