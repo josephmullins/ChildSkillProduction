@@ -180,8 +180,6 @@ function prep_data(panel_data)
     panel_data[!,:log_total_income] = log.(exp.(panel_data.logwage_m) .+ exp.(panel_data.logwage_f))
     panel_data[!,:AP_valid] = .!ismissing.(panel_data.AP)
     panel_data[!,:LW_valid] = .!ismissing.(panel_data.LW)
-    #panel_data[!,:AP] = coalesce.(panel_data.AP,0.)
-    #panel_data[!,:LW] = coalesce.(panel_data.LW,0.)
     panel_data[!,:mtime_valid] = .!ismissing.(panel_data.log_mtime) .& .!ismissing.(panel_data.m_ed)
     panel_data[!,:ftime_valid] = .!ismissing.(panel_data.log_ftime) #.| .!panel_data.mar_stat only use non-missing father's time
 
@@ -194,17 +192,7 @@ function prep_data(panel_data)
     panel_data[!,:log_chcare_input] = coalesce.(panel_data.log_chcare .- panel_data.logprice_c,0.)
     panel_data[!,:log_good_input] = coalesce.(panel_data.log_good .- panel_data.logprice_g,0.)
 
-    # de-mean test scores in all years
-    # i97 = panel_data.year.==1997
-    # i02 = panel_data.year.==2002
-    # i07 = panel_data.year.==2007
-    # ii = panel_data.all_prices .& panel_data.mtime_valid .& (panel_data.age.<=12)
-    # panel_data.LW[i97] .-= mean(panel_data.LW[i97 .& ii])
-    # panel_data.AP[i97] .-= mean(panel_data.AP[i97 .& ii])
-    # panel_data.LW[i02] .-= mean(panel_data.LW[i02 .& panel_data.all_prices .& panel_data.mtime_valid])
-    # panel_data.AP[i02] .-= mean(panel_data.AP[i02 .& panel_data.all_prices .& panel_data.mtime_valid])
-    # panel_data.LW[i07] .-= mean(panel_data.LW[i07 .& panel_data.all_prices .& panel_data.mtime_valid])
-    # panel_data.AP[i07] .-= mean(panel_data.AP[i07 .& panel_data.all_prices .& panel_data.mtime_valid])
+
     return panel_data, m_ed, f_ed
 end
 
