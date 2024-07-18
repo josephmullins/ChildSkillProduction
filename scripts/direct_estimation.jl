@@ -8,11 +8,27 @@ include("../src/estimation/direct_method_1.jl")
 panel_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/psid_fam.csv",missingstring = ["","NA"]))
 panel_data, m_ed, f_ed = prep_data(panel_data)
 panel_data = DataFrame(filter(x-> sum(skipmissing(x.ind_not_sample.==0))>0 || sum(x.all_prices)>0,groupby(panel_data,:kid)))
-
 wage_types = DataFrame(CSV.File("data/wage_types.csv"))
 
 panel_data=innerjoin(panel_data, wage_types, on = :MID) #merging in cluster types
 cluster_dummies=make_dummy(panel_data,:cluster) #cluster dummies made
+
+# ======= Introduce alternative normalization of test scores ====== #
+scores = DataFrame(CSV.File("../../../PSID_CDS/data-cds/assessments/AssessmentPanel.csv",missingstring=["","NA"]))
+scores = select(scores,[:KID,:year,:LW_raw,:AP_raw,:AP_std,:LW_std])
+scores = rename(scores,:KID => :kid)
+panel_data = sort(leftjoin(panel_data,scores,on=[:kid,:year]),[:kid,:year])
+mLW = mean(skipmissing(panel_data.LW_raw[panel_data.age.==12]))
+sLW = std(skipmissing(panel_data.LW_raw[panel_data.age.==12]))
+mAP = mean(skipmissing(panel_data.AP_raw[panel_data.age.==12]))
+sAP = std(skipmissing(panel_data.AP_raw[panel_data.age.==12]))
+
+using DataFramesMeta
+panel_data = @chain panel_data begin
+    # groupby(:age)
+    @transform :LW = (:LW_raw .- mLW)/sLW :AP = (:AP_raw .- mAP)/sAP
+end
+
 
 # ============= Write the specification =================== #
 vm = [:constant] #[:constant;:div;m_ed[2:3];:age;:num_0_5]
@@ -30,7 +46,6 @@ zlist_07 = [(zc...,vΩ...),(zf...,vΩ...)]
 zlist_prod_t = [0,5]
 zlist_prod = [[[vy;vΩ;:AP],[:log_mtime]],[[vy;vΩ;:AP],[:log_mtime]],[[:constant],[]],[[:constant],[]]]
 spec = (;vm,vf,vθ,vy,zc,zf,zg,zτ,vΩ,zlist_97,zlist_02,zlist_07,zlist_prod_t,zlist_prod)
-break
 
 # ======= Step 1: Estimate the Demand Parameters ======== #
 spec = (;vm,vf,vθ,vy,zc,zf,zg,zτ,vΩ,zlist_97,zlist_02,zlist_07,zlist_prod_t = [],zlist_prod = [])
@@ -62,7 +77,7 @@ for b in 1:ntrials
     @show b
     res = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,data,spec;index=ib),xp,LBFGS(),autodiff=:forward,Optim.Options(iterations=100,show_trace=false))
     #W = inv(moment_variance(res.minimizer,gfunc!,N,nmom,nresids,data,spec))
-    res = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,data,spec;index=ib),res.minimizer,Newton(),autodiff=:forward,Optim.Options(iterations=10,show_trace=false))
+    res = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,data,spec;index=ib),res.minimizer,Newton(),autodiff=:forward,Optim.Options(iterations=5,show_trace=false))
     #res = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,data,spec;index=ib),res.minimizer,LBFGS(),autodiff=:forward,Optim.Options(iterations=100,show_trace=false))
     #res = optimize(x->gmm_criterion(x,gfunc!,W,N,nresids,data,spec;index=ib),res.minimizer,LBFGS(),autodiff=:forward,Optim.Options(iterations=50,show_trace=false))
     Xb[:,b] = res.minimizer

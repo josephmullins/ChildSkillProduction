@@ -22,7 +22,7 @@ sAP = std(skipmissing(panel_data.AP_raw[panel_data.age.==12]))
 using DataFramesMeta
 panel_data = @chain panel_data begin
     # groupby(:age)
-    @transform :LW = (:LW_raw .- mean(skipmissing(:LW_raw)))/sLW :AP = (:AP_raw .- mean(skipmissing(:AP_raw)))/sAP
+    @transform :LW = (:LW_raw .- mLW)/sLW :AP = (:AP_raw .- mAP)/sAP
 end
 
 # =======================   run the clustering routine on wages ===================================== #
