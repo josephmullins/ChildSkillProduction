@@ -131,7 +131,6 @@ for j in 1:3
 end
 
 
-# ============= How to present the results? ============= #
 # parameters: δ, a, ρ
 # bias / sd
 # then do each N / estimator
@@ -157,3 +156,94 @@ function write_monte_carlo_table(sd,bias,N_vec,outfile::String)
 end
 
 write_monte_carlo_table(sd,bias,N_vec,"tables/monte_carlo_results.tex")
+
+# ========== Results with σπ doubled =========== #
+
+p2 = (;p...,σπ = 2p.σπ)
+bias = zeros(4,3,3)
+sd = zeros(4,3,3)
+
+for j in 1:3
+    ρb,ab,δb = monte_carlo(N_vec[j],500,p2)
+    bias[:,j,1] .= p.ρ .- mean(ρb,dims=2)[:]
+    sd[:,j,1] .= std(ρb,dims=2)[:]
+    bias[:,j,2] .=  p.a .- mean(ab,dims=2)[:]
+    sd[:,j,2] .= std(ab,dims=2)[:]
+    bias[:,j,3] .=  p.δ .- mean(δb,dims=2)[:]
+    sd[:,j,3] .= std(δb,dims=2)[:]
+end
+
+write_monte_carlo_table(sd,bias,N_vec,"tables/monte_carlo_results_2.tex")
+
+
+# ========= Results with all residual variation in x2 attributable to preferences ==== #
+
+p2 = (;p...,σζ1 = p.σζ1+p.σζ2)
+bias = zeros(4,3,3)
+sd = zeros(4,3,3)
+
+for j in 1:3
+    ρb,ab,δb = monte_carlo(N_vec[j],500,p2)
+    bias[:,j,1] .= p.ρ .- mean(ρb,dims=2)[:]
+    sd[:,j,1] .= std(ρb,dims=2)[:]
+    bias[:,j,2] .=  p.a .- mean(ab,dims=2)[:]
+    sd[:,j,2] .= std(ab,dims=2)[:]
+    bias[:,j,3] .=  p.δ .- mean(δb,dims=2)[:]
+    sd[:,j,3] .= std(δb,dims=2)[:]
+end
+
+write_monte_carlo_table(sd,bias,N_vec,"tables/monte_carlo_results_3.tex")
+
+function gen_data2(p,N)
+    (;ρ, a, δ, σξ, σπ, σζ1,σζ2, σx) = p
+    rel_price = rand(LogNormal(0,σπ),N)
+    ζ1 = rand(Normal(0.,σζ1),N) #<- true variation in x2
+    ζ2 = rand(Normal(0.,σζ2),N) #<- measurement error in x2
+    x1 = rand(LogNormal(0.,σx),N)
+    x2 = rand(LogNormal(0.,σζ1),N)
+    logy = δ * log.( (a .* x1 .^ ρ .+ (1 - a) .* x2 .^ ρ ) .^ (1/ρ) ) .+ rand(Normal(0,σξ),N)
+    logx2_obs = log.(x2) .+ ζ2
+    return (;logy,x1,x2,logx2_obs,rel_price)
+end
+
+# Experimenting a bit.
+function monte_carlo_simple(N,B,p)
+    ρb = zeros(B)
+    ab = zeros(B)
+    δb = zeros(B)
+    for b in 1:B
+        println("Doing round $b of $B trials")
+        dat = gen_data(p,N)
+        lower = [-50.,0.,0.]
+        upper = [1.,1.,1.]
+        x0 = [p.ρ, p.a, p.δ]
+        #res1 = optimize(x->Q1_nlls((;p...,ρ=x),dat),-50.,1.) #[-2.]) #-300,1.) 
+        res2 = optimize(x->Q1_nlls((;ρ=x[1],a=x[2],δ = x[3]),dat),lower,upper,x0,Fminbox(LBFGS()),autodiff=:forward)
+        #res2 = optimize(x->Q1_nlls((;ρ=x[1],a=1/(1+exp(x[2])),δ = x[3]),dat),x0,LBFGS(),autodiff=:forward)
+        ρb[b] = res2.minimizer[1]
+        ab[b] = res2.minimizer[2]
+        δb[b] = res2.minimizer[3]
+    end
+    return ρb,ab,δb
+end
+
+p2 = (;p...,σπ = 10*p.σπ)
+ρb,ab,_ = monte_carlo_simple(2_000,100,p2)
+
+#p2 = (;p...,σπ = 10p.σπ, σζ1 = 10*p.σζ1)
+#p2 = (;p...,σπ = 0.,σx = 2., σζ1 = 3.) #, σζ1 = 10*p.σζ1)
+
+
+p2 = (;p...,σζ1 = 5p.σζ1)
+
+ρb,ab,_ = monte_carlo_simple(2_000,100,p2)
+
+p2 = (;p...,σπ = 5p.σπ)
+
+ρb,ab,_ = monte_carlo_simple(2_000,100,p2)
+
+p2 = (;p...,σx = 5p.σx)
+
+p2 = (;p...,σπ = 5p.σπ,σζ1 = 5p.σζ1)
+
+ρb,ab,_ = monte_carlo_simple(2_000,100,p2)
