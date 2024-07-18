@@ -8,6 +8,30 @@ panel_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/psid_fam.csv",mi
 panel_data, m_ed, f_ed = prep_data(panel_data)
 panel_data = DataFrame(filter(x-> sum(skipmissing(x.ind_not_sample.==0))>0 || sum(x.all_prices)>0,groupby(panel_data,:kid)))
 
+scores = DataFrame(CSV.File("../../../PSID_CDS/data-cds/assessments/AssessmentPanel.csv",missingstring=["","NA"]))
+
+scores = select(scores,[:KID,:year,:LW_raw,:AP_raw,:AP_std,:LW_std])
+scores = rename(scores,:KID => :kid)
+#panel_data = select(panel_data,Not([:AP,:LW]))
+panel_data = leftjoin(panel_data,scores,on=[:kid,:year])
+mLW = mean(skipmissing(panel_data.LW_raw[panel_data.age.==12]))
+sLW = std(skipmissing(panel_data.LW_raw[panel_data.age.==12]))
+mAP = mean(skipmissing(panel_data.AP_raw[panel_data.age.==12]))
+sAP = std(skipmissing(panel_data.AP_raw[panel_data.age.==12]))
+
+using DataFramesMeta
+panel_data = @chain panel_data begin
+    # groupby(:age)
+    # @transform :LW = (:LW_raw .- mean(skipmissing(:LW_raw)))/sLW :AP = (:AP_raw .- mean(skipmissing(:AP_raw)))/sAP
+    @transform :LW2 = (:LW_std .- 100)/15 :AP2 = (:AP_std .- 100)/15
+end
+
+@chain panel_data begin
+    @subset .!ismissing.(:LW)
+    @select :kid :year :LW :LW2
+    #@combine :a = maximum(abs.(:LW .- :LW2))
+end
+
 # =======================   run the clustering routine on wages ===================================== #
 
 println(" ======= Running the Clustering Algorithm on Wage Data ========= ")
