@@ -131,3 +131,17 @@ res3d = run_demand_estimation(panel_data,(;spec3...,zlist_prod_t = [], zlist_pro
 res3d_iv = run_demand_estimation(panel_data,build_spec_iv(spec3),gfunc_demand!)
 
 write_demand_table([res3d,res3d_iv],[spec3,spec3],labels,"tables/joint_gmm_summary.tex")
+
+println(" ====== Run preferred specification with relative price instruments in production ======= ")
+zlist_prod_t = [0,3,5]
+zlist_prod = [[[spec3.vy;:AP;:logprice_c_m;:logprice_c_g],[:logprice_c_m;:logprice_c_g],[:log_mtime]],[[spec3.vy;:AP;:logprice_c_m;:logprice_c_g],[:logprice_c_m;:logprice_c_g],[:log_mtime]],[],[],[],[],[[:constant],[],[]],[[:constant],[],[]]]
+spec3_iv = (;spec3...,zlist_prod,zlist_prod_t)
+
+gfunc!(x,n,g,resids,data,spec,unrestricted,case) = production_demand_moments!(update_relaxed(x,spec,unrestricted,case)...,n,g,resids,data)
+
+res3_iv = run_restricted_estimation(panel_data,spec3_iv,"uc",gfunc!)
+res3_iv_nbs = run_restricted_estimation(panel_data,spec3_iv,"nbs",gfunc!)
+# run the unrestricted version for our preferred specification
+res3u_iv = run_unrestricted_estimation(panel_data,spec3_iv,"uc",gfunc!,res3_iv)
+
+write_joint_gmm_table_production([res3_iv,res3_iv_nbs],[spec3_iv,spec3_iv],labels,"tables/joint_gmm_summary_price_iv.tex")

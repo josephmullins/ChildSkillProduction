@@ -26,6 +26,7 @@ ed_labels = Dict(zip([f_ed[2:3];m_ed[2:3]],["Father some coll.","Father coll+","
 other_labels = Dict(:mar_stat => "Married",:div => "Single",:num_0_5 => "Num. of children 0-5", :constant => "Constant", :mu_k => "\$\\mu_{k}\$", :age => "Child's age", :ind02 => "Year = 2002")
 labels = merge(other_labels,cluster_labels,ed_labels)
 
+break
 # =======================  Run the specifications ===================================== #
 res1 = run_restricted_estimation(panel_data,spec1,"uc",gfunc!)
 

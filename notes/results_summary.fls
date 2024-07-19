@@ -229,6 +229,10 @@ INPUT ../tables/joint_gmm_summary_production.tex
 INPUT ../tables/joint_gmm_summary_production.tex
 INPUT ../tables/joint_gmm_summary_production.tex
 INPUT ../tables/joint_gmm_summary_production.tex
+INPUT ../tables/joint_gmm_summary_price_iv.tex
+INPUT ../tables/joint_gmm_summary_price_iv.tex
+INPUT ../tables/joint_gmm_summary_price_iv.tex
+INPUT ../tables/joint_gmm_summary_price_iv.tex
 INPUT ../tables/joint_gmm_summary.tex
 INPUT ../tables/joint_gmm_summary.tex
 INPUT ../tables/joint_gmm_summary.tex
