@@ -8,7 +8,6 @@ panel_data = DataFrame(CSV.File("../../../PSID_CDS/data-derived/psid_fam.csv",mi
 panel_data, m_ed, f_ed = prep_data(panel_data)
 panel_data = DataFrame(filter(x-> sum(skipmissing(x.ind_not_sample.==0))>0 || sum(x.all_prices)>0,groupby(panel_data,:kid)))
 
-
 # ======= Introduce alternative normalization of test scores ====== #
 scores = DataFrame(CSV.File("../../../PSID_CDS/data-cds/assessments/AssessmentPanel.csv",missingstring=["","NA"]))
 scores = select(scores,[:KID,:year,:LW_raw,:AP_raw,:AP_std,:LW_std])
@@ -118,7 +117,6 @@ res3_older = run_restricted_estimation_older(panel_data,build_spec_older(spec3),
 res4_older = run_restricted_estimation_older(panel_data,build_spec_older(spec4),"uc",gfunc_older!)
 write_production_table_older([res1_older,res2_older,res3_older,res4_older],[spec1,spec2,spec3,spec4],labels,"tables/demand_production_restricted_older.tex")
 
-break
 println(" ====== Estimating Using Only Relative Demand ========= ")
 # ---------- Run Relative Demand
 gfunc_demand!(x,n,g,resids,data,spec) = demand_moments_stacked!(update_demand(x,spec),n,g,resids,data)
