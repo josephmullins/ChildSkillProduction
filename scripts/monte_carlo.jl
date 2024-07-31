@@ -41,7 +41,7 @@ end
 r_keep = sum(R[1:2,:].!=0,dims=1)[:].>1 #<- keep only non-missing residuals in both years
 σζ1 = sqrt(cov(R[1,r_keep],R[2,r_keep]))
 σζ2 = sqrt(var(R[1,r_keep]) - σζ1^2)
-σξ = std(R[10,:]) 
+σξ = std(R[10,:]) / 2 #<- we divide by 2 to increase the starkness of comparisons.
 
 I_keep = (panel_data.year.==1997) .& .!ismissing.(panel_data.logprice_c_m) .& .!ismissing.(panel_data.div) .& .!ismissing.(panel_data.log_mtime)
 X = Matrix{Float64}(panel_data[I_keep,spec3.vθ[1:end-1]])
@@ -54,6 +54,7 @@ Y2 = Vector{Float64}(panel_data.log_mtime[I_keep])
 p = (;ρ = -3.,a = 0.5,δ = 0.1, σζ1, σζ2, σπ, σξ, σx)
 
 # ================= Functions to run the simulation ====================== #
+# main dgp
 function gen_data(p,N)
     (;ρ, a, δ, σξ, σπ, σζ1,σζ2, σx) = p
     rel_price = rand(LogNormal(0,σπ),N)
@@ -65,6 +66,21 @@ function gen_data(p,N)
     logx2_obs = log.(x2) .+ ζ2
     return (;logy,x1,x2,logx2_obs,rel_price)
 end
+# dgp with independent variation
+function gen_data2(p,N)
+    (;ρ, a, δ, σξ, σπ, σζ1,σζ2, σx) = p
+    #     x2 = (a/(1-a))^(1/(ρ-1)) .* rel_price.^(1/(ρ-1)) .* x1 .* exp.(ζ1)
+    sdlogx2 = sqrt((1/(ρ-1))^2*σπ^2 + σx^2 + σζ1^2)
+    rel_price = rand(LogNormal(0,σπ),N)
+    ζ2 = rand(Normal(0.,σζ2),N) #<- measurement error in x2
+    x1 = rand(LogNormal(0.,σx),N)
+    x2 = rand(LogNormal(0.,sdlogx2),N)
+    logy = δ * log.( (a .* x1 .^ ρ .+ (1 - a) .* x2 .^ ρ ) .^ (1/ρ) ) .+ rand(Normal(0,σξ),N)
+    logx2_obs = log.(x2) .+ ζ2
+    return (;logy,x1,x2,logx2_obs,rel_price)
+end
+
+
 # this function works for both estimators 1 and 2.
 function Q1_nlls(p,data)
     (;logy,x1,x2) = data
@@ -102,20 +118,26 @@ function monte_carlo(N,B,p)
         upper = [1.,1.,1.,1.,1.]
         x0 = [p.ρ, p.a, p.ρ, p.a, p.δ]
         res3 = optimize(x->Q2_nlls((;ρ=x[1],a=x[2]),(;ρ=x[3],a=x[4],δ = x[5]),dat),lower,upper,x0,Fminbox(LBFGS()),autodiff=:forward)
-        lower = [0.,0.]
-        upper = [1.,1.]
-        x0 = [p.a, p.δ]
-        res5 = optimize(x->Q1_nlls((;ρ=p.ρ,a=x[1],δ = x[2]),dat),lower,upper,x0,Fminbox(LBFGS()),autodiff=:forward)
-        ρb[:,b] .= (res2.minimizer[1],res3.minimizer[3],res4.minimizer[1],p.ρ)
-        ab[:,b] .= (res2.minimizer[2],res3.minimizer[4],res4.minimizer[2],res5.minimizer[1])
-        δb[:,b] .= (res2.minimizer[3],res3.minimizer[5],res4.minimizer[3],res5.minimizer[2])
+        # lower = [0.,0.]
+        # upper = [1.,1.]
+        # x0 = [p.a, p.δ]
+        # res5 = optimize(x->Q1_nlls((;ρ=p.ρ,a=x[1],δ = x[2]),dat),lower,upper,x0,Fminbox(LBFGS()),autodiff=:forward)
+        dat = gen_data2(p,N)
+        lower = [-50.,0.,0.]
+        upper = [1.,1.,1.]
+        x0 = [p.ρ, p.a, p.δ]
+        res5 = optimize(x->Q1_nlls((;ρ=x[1],a=x[2],δ = x[3]),dat),lower,upper,x0,Fminbox(LBFGS()),autodiff=:forward)
+
+        ρb[:,b] .= (res2.minimizer[1],res3.minimizer[3],res4.minimizer[1],res5.minimizer[1])
+        ab[:,b] .= (res2.minimizer[2],res3.minimizer[4],res4.minimizer[2],res5.minimizer[2])
+        δb[:,b] .= (res2.minimizer[3],res3.minimizer[5],res4.minimizer[3],res5.minimizer[3])
     end
     return ρb,ab,δb
 end
 
 # ================== Results ========================== #
 
-N_vec = [500,1_000,2_000]
+N_vec = [500,1_000,5_000]
 
 bias = zeros(4,3,3)
 sd = zeros(4,3,3)
@@ -157,6 +179,8 @@ end
 
 write_monte_carlo_table(sd,bias,N_vec,"tables/monte_carlo_results.tex")
 
+
+break
 # ========== Results with σπ doubled =========== #
 
 p2 = (;p...,σπ = 2p.σπ)
@@ -196,11 +220,12 @@ write_monte_carlo_table(sd,bias,N_vec,"tables/monte_carlo_results_3.tex")
 
 function gen_data2(p,N)
     (;ρ, a, δ, σξ, σπ, σζ1,σζ2, σx) = p
+    #     x2 = (a/(1-a))^(1/(ρ-1)) .* rel_price.^(1/(ρ-1)) .* x1 .* exp.(ζ1)
+    sdlogx2 = sqrt((1/(ρ-1))^2*σπ^2 + σx^2 + σζ1^2)
     rel_price = rand(LogNormal(0,σπ),N)
-    ζ1 = rand(Normal(0.,σζ1),N) #<- true variation in x2
     ζ2 = rand(Normal(0.,σζ2),N) #<- measurement error in x2
     x1 = rand(LogNormal(0.,σx),N)
-    x2 = rand(LogNormal(0.,σζ1),N)
+    x2 = rand(LogNormal(0.,sdlogx2),N)
     logy = δ * log.( (a .* x1 .^ ρ .+ (1 - a) .* x2 .^ ρ ) .^ (1/ρ) ) .+ rand(Normal(0,σξ),N)
     logx2_obs = log.(x2) .+ ζ2
     return (;logy,x1,x2,logx2_obs,rel_price)
@@ -213,13 +238,13 @@ function monte_carlo_simple(N,B,p)
     δb = zeros(B)
     for b in 1:B
         println("Doing round $b of $B trials")
-        dat = gen_data(p,N)
+        dat = gen_data2(p,N)
         lower = [-50.,0.,0.]
         upper = [1.,1.,1.]
         x0 = [p.ρ, p.a, p.δ]
         #res1 = optimize(x->Q1_nlls((;p...,ρ=x),dat),-50.,1.) #[-2.]) #-300,1.) 
         res2 = optimize(x->Q1_nlls((;ρ=x[1],a=x[2],δ = x[3]),dat),lower,upper,x0,Fminbox(LBFGS()),autodiff=:forward)
-        #res2 = optimize(x->Q1_nlls((;ρ=x[1],a=1/(1+exp(x[2])),δ = x[3]),dat),x0,LBFGS(),autodiff=:forward)
+        # res2 = optimize(x->Q1_nlls((;ρ=x[1],a=1/(1+exp(x[2])),δ = x[3]),dat),x0,LBFGS(),autodiff=:forward)
         ρb[b] = res2.minimizer[1]
         ab[b] = res2.minimizer[2]
         δb[b] = res2.minimizer[3]
@@ -228,15 +253,22 @@ function monte_carlo_simple(N,B,p)
 end
 
 p2 = (;p...,σπ = 10*p.σπ)
-ρb,ab,_ = monte_carlo_simple(2_000,100,p2)
+ρb,ab,δb = monte_carlo_simple(2_000,100,p2)
 
 #p2 = (;p...,σπ = 10p.σπ, σζ1 = 10*p.σζ1)
 #p2 = (;p...,σπ = 0.,σx = 2., σζ1 = 3.) #, σζ1 = 10*p.σζ1)
-
+d = gen_data(p,4_000)
+(1/(p.ρ-1))^2*p.σπ^2 + p.σx^2 + p.σζ1^2
 
 p2 = (;p...,σζ1 = 5p.σζ1)
+p2 = (;p...,σζ1 = 10p.σζ1,σx = 10p.σx)
 
 ρb,ab,_ = monte_carlo_simple(2_000,100,p2)
+
+p2 = (;p...,σζ1 = 2σζ1,σx = 2p.σx)
+
+ρb,ab,_ = monte_carlo_simple(5_000,100,p)
+ρb,ab,_ = monte_carlo_simple(5_000,100,p2)
 
 p2 = (;p...,σπ = 5p.σπ)
 
