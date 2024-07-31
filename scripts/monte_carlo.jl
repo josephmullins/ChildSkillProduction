@@ -142,6 +142,7 @@ N_vec = [500,1_000,5_000]
 bias = zeros(4,3,3)
 sd = zeros(4,3,3)
 
+Random.seed!(73124)
 for j in 1:3
     ρb,ab,δb = monte_carlo(N_vec[j],500,p)
     bias[:,j,1] .= p.ρ .- mean(ρb,dims=2)[:]
@@ -152,24 +153,28 @@ for j in 1:3
     sd[:,j,3] .= std(δb,dims=2)[:]
 end
 
-
-# parameters: δ, a, ρ
-# bias / sd
-# then do each N / estimator
 function write_monte_carlo_table(sd,bias,N_vec,outfile::String)
     form(x) = @sprintf("%0.2f",x)
     io = open(outfile, "w");
-    write(io,"\\begin{tabular}{lcccccc} \\\\\\toprule","\n")
-    write(io," & \\multicolumn{2}{c}{\$\\rho\$}")
-    write(io," & \\multicolumn{2}{c}{\$a\$}")
-    write(io," & \\multicolumn{2}{c}{\$\\delta\$} \\\\ \n")
-    write(io," & Bias & Std. Dev. & Bias & Std. Dev. & Bias & Std. Dev. \\\\\n")
-    write(io,"\\cmidrule(r){2-3}\\cmidrule(r){4-5}\\cmidrule(r){6-7} \\\\\n")
-    for j in 1:4
-        for i in eachindex(N_vec)
-            write(io,"Method $j, \$N=$(N_vec[i])\$ & ",form(bias[j,i,1])," & ",form(sd[j,i,1]))
-            write(io," & ",form(bias[j,i,2])," & ",form(sd[j,i,2]))
-            write(io," & ",form(bias[j,i,3])," & ",form(sd[j,i,3]),"\\\\\n")
+    par_string = ["\$\\rho\$","\$a\$","\$\\delta\$"]
+    write(io,"\\begin{tabular}{lcccccccc} \\\\\\toprule","\n")
+    for i in 1:3
+        write(io," & \\multicolumn{8}{c}{Results for ",par_string[i],"} \\\\ \n")
+        write(io," & \\multicolumn{4}{c}{Bias} & \\multicolumn{4}{c}{Std. Dev.} \\\\ \n")
+        write(io,("& ($j)" for b in 1:2 for j in 1:4)...,"\\\\ \n")
+        write(io,"\\cmidrule(r){2-5}\\cmidrule(r){6-9}")
+        for n in eachindex(N_vec)
+            write(io,"\$N\$ = $(N_vec[n])")
+            for j in 1:4
+                write(io," & ",form(bias[j,n,i]))
+            end
+            for j in 1:4
+                write(io," & ",form(sd[j,n,i]))
+            end
+            write(io,"\\\\ \n")
+        end
+        if i<3
+            write(io,"&&&&&&&& \\\\ \n")
         end
     end
     write(io,"\\bottomrule")
