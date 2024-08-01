@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1722456864 "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.tex" "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.pdf" "results_summary" 1722456864
+["pdflatex"] 1722460007 "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.tex" "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.pdf" "results_summary" 1722460088
   "../tables/demand_production_mothershare_relaxed.tex" 1721329992 1604 c8cb174b3948e663fbadfe366bd71e66 ""
   "../tables/demand_production_mothershare_relaxed_nbs.tex" 1721329998 1605 6c3b2e6cb43b87029a82ae01f158f216 ""
   "../tables/demand_production_restricted.tex" 1721329774 3175 a38fec4e57b470d508d2aa9cb4ee6624 ""
@@ -11,10 +11,10 @@
   "../tables/joint_gmm_summary.tex" 1722454320 1401 d223c199b7a2c6273f4fdbdf9b24aeac ""
   "../tables/joint_gmm_summary_price_iv.tex" 1722443785 2173 909b7b055482a3fdb417bd09a95f6577 ""
   "../tables/joint_gmm_summary_production.tex" 1721329975 2167 2da742a1e1fb08bb9e430ff804ea484f ""
-  "../tables/monte_carlo_results.tex" 1722456864 1309 0ccd26709a54ccff6c4bb533d3f0d8a4 ""
-  "../tables/monte_carlo_results_2.tex" 1720813097 1046 84f9bf58c4408971e5f3316bc5abea48 ""
+  "../tables/monte_carlo_results.tex" 1722459453 1309 0ccd26709a54ccff6c4bb533d3f0d8a4 ""
+  "../tables/monte_carlo_results_2.tex" 1722460088 1303 d2c12c7c80feee37f6605a7f9bda4242 ""
   "/etc/texmf/web2c/texmf.cnf" 1620057033 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.aux" 1722456864 2696 6a7ddede0e50f22ac5d85906ece6489a ""
+  "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.aux" 1722460007 2696 ac86d68e8ba88df7d04a7e73276ce095 ""
   "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.tex" 1721397722 7628 f87c1e654760866de8cc3eab65b14d1e ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmmi12.tfm" 1136768653 1524 4414a8315f39513458b80dfc63bff03a ""
@@ -67,11 +67,11 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1581979058 38841 ce3692aa899bb693b90b87eaa5d4d84e ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1620057247 4429294 7e37af41c846069ce41e50f05b527231 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1710503547 4791332 905586186faa41a7422067faa61ee61d ""
-  "results_summary.aux" 1722456864 2696 6a7ddede0e50f22ac5d85906ece6489a "pdflatex"
+  "results_summary.aux" 1722460007 2696 ac86d68e8ba88df7d04a7e73276ce095 "pdflatex"
   "results_summary.tex" 1721397722 7628 f87c1e654760866de8cc3eab65b14d1e ""
   (generated)
   "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.pdf"
-  "results_summary.log"
-  "results_summary.aux"
   "results_summary.pdf"
   "/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.log"
+  "results_summary.log"
+  "results_summary.aux"

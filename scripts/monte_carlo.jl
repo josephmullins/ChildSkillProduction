@@ -184,3 +184,18 @@ end
 
 write_monte_carlo_table(sd,bias,N_vec,"tables/monte_carlo_results.tex")
 
+# ==== Same experiment but with 5 times the variation in relative prices ===== #
+
+p2 = (;p...,σπ = 5p.σπ)
+Random.seed!(73124)
+for j in 1:3
+    ρb,ab,δb = monte_carlo(N_vec[j],500,p2)
+    bias[:,j,1] .= p.ρ .- mean(ρb,dims=2)[:]
+    sd[:,j,1] .= std(ρb,dims=2)[:]
+    bias[:,j,2] .=  p.a .- mean(ab,dims=2)[:]
+    sd[:,j,2] .= std(ab,dims=2)[:]
+    bias[:,j,3] .=  p.δ .- mean(δb,dims=2)[:]
+    sd[:,j,3] .= std(δb,dims=2)[:]
+end
+
+write_monte_carlo_table(sd,bias,N_vec,"tables/monte_carlo_results_2.tex")

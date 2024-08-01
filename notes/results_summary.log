@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2024.3.15)  31 JUL 2024 15:14
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2024.3.15)  31 JUL 2024 16:06
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -207,7 +207,7 @@ Overfull \hbox (87.265pt too wide) in paragraph at lines 47--47
 [] [] 
  []
 
-(/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_unrestricted_nbs.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_unrestricted.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_restricted_older.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_mothershare_relaxed_nbs.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_mothershare_relaxed.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/direct_estimation_iqr.tex) [5] [6] [7] [8] [9] [10] [11] [12] (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/monte_carlo_results.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/monte_carlo_results_2.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/monte_carlo_results_2.tex) [13] [14] (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.aux) ) 
+(/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_unrestricted_nbs.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_unrestricted.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_restricted_older.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_mothershare_relaxed_nbs.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/demand_production_mothershare_relaxed.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/direct_estimation_iqr.tex) [5] [6] [7] [8] [9] [10] [11] [12] (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/monte_carlo_results.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/monte_carlo_results_2.tex) (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/../tables/monte_carlo_results_2.tex) [13] [14] [15] (/home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.aux) ) 
 Here is how much of TeX's memory you used:
  2910 strings out of 483183
  50459 string characters out of 5966292
@@ -217,10 +217,10 @@ Here is how much of TeX's memory you used:
  14 hyphenation exceptions out of 8191
  41i,10n,42p,652b,445s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on /home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.pdf (14 pages, 162242 bytes).
+Output written on /home/joseph/Dropbox/JPE_Child_Devp_2020/Code/ChildSkillProduction/notes/results_summary.pdf (15 pages, 163151 bytes).
 PDF statistics:
- 106 PDF objects out of 1000 (max. 8388607)
- 75 compressed objects within 1 object stream
+ 109 PDF objects out of 1000 (max. 8388607)
+ 77 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
